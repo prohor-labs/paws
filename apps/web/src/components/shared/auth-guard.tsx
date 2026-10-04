@@ -12,8 +12,14 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const { data: session, isPending } = useSession();
   const mounted = useMounted();
 
+  const user = session?.user as
+    | (NonNullable<typeof session>["user"] & { onboardingCompleted?: boolean })
+    | undefined;
+
   useEffect(() => {
-    if (mounted && !isPending && !session) {
+    if (!mounted || isPending) return;
+
+    if (!session) {
       const queryString = searchParams?.toString();
       const currentPath = `${pathname}${queryString ? `?${queryString}` : ""}`;
       const loginUrl =
@@ -21,14 +27,31 @@ export function AuthGuard({ children }: { children: ReactNode }) {
           ? `/login?redirect=${encodeURIComponent(currentPath)}`
           : "/login";
       router.replace(loginUrl);
+      return;
     }
-  }, [mounted, isPending, session, router, pathname, searchParams]);
 
-  if (!mounted || isPending) {
+    const isOnboardingPage = pathname === "/onboarding";
+    const hasCompletedOnboarding = Boolean(user?.onboardingCompleted);
+
+    if (!hasCompletedOnboarding && !isOnboardingPage) {
+      router.replace("/onboarding");
+    } else if (hasCompletedOnboarding && isOnboardingPage) {
+      router.replace("/dashboard");
+    }
+  }, [mounted, isPending, session, user, router, pathname, searchParams]);
+
+  if (!mounted || isPending || !session) {
     return <AuthGuardLoading />;
   }
 
-  if (!session) {
+  const isOnboardingPage = pathname === "/onboarding";
+  const hasCompletedOnboarding = Boolean(user?.onboardingCompleted);
+
+  if (!hasCompletedOnboarding && !isOnboardingPage) {
+    return <AuthGuardLoading />;
+  }
+
+  if (hasCompletedOnboarding && isOnboardingPage) {
     return <AuthGuardLoading />;
   }
 

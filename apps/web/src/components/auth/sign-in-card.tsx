@@ -18,12 +18,17 @@ export function SignInCard() {
   const redirectTarget = rawRedirect && rawRedirect !== "/" ? rawRedirect : "/dashboard";
 
   const { data: session, isPending: isSessionPending } = useSession();
+  const user = session?.user as
+    | (NonNullable<typeof session>["user"] & { onboardingCompleted?: boolean })
+    | undefined;
 
   useEffect(() => {
     if (!isSessionPending && session) {
-      router.replace(redirectTarget);
+      const destination =
+        user && !user.onboardingCompleted ? "/onboarding" : redirectTarget;
+      router.replace(destination);
     }
-  }, [session, isSessionPending, router, redirectTarget]);
+  }, [session, user, isSessionPending, router, redirectTarget]);
 
   const [mode, setMode] = useState<AuthMode>("signin");
   const [method, setMethod] = useState<SignInMethod>("magic-link");

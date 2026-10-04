@@ -6,7 +6,7 @@ import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { PlusFrame } from "@/components/auth";
 import { ONBOARDING_STEPS, TRACK_PRESETS } from "@/lib/consts/onboarding";
-import { type UpdateUserInput, updateUser, useSession } from "@/lib/sdk";
+import { type UpdateUserInput, getAuthClient, updateUser, useSession } from "@/lib/sdk";
 import { StepReady } from "./step-ready";
 import { WizardFooter } from "./wizard-footer";
 import { WizardFormBody } from "./wizard-form-body";
@@ -110,9 +110,14 @@ export function OnboardingWizard() {
         onboardingCompleted: true,
       },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
           toast.success("অনবোর্ডিং সফলভাবে সম্পন্ন হয়েছে!");
-          router.push("/dashboard");
+          try {
+            await getAuthClient().getSession();
+          } catch {
+            // ignore
+          }
+          router.replace("/dashboard");
           router.refresh();
         },
       },

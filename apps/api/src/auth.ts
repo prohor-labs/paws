@@ -24,6 +24,30 @@ export const auth = betterAuth({
     },
     skipStateCookieCheck: true,
   },
+  user: {
+    additionalFields: {
+      onboardingCompleted: {
+        type: "boolean",
+        defaultValue: false,
+        input: true,
+      },
+      level: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      track: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      dailyReminderEnabled: {
+        type: "boolean",
+        defaultValue: true,
+        input: true,
+      },
+    },
+  },
   advanced: {
     database: {
       generateId: () => uuidv7(),
