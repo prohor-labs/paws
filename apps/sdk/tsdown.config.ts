@@ -12,9 +12,8 @@ export default defineConfig({
   treeshake: true,
   target: "es2022",
   platform: "neutral",
-  sourcemap: true,
-  publint: "ci-only",
-  attw: "ci-only",
+  publint: false,
+  attw: false,
   deps: {
     neverBundle: ["better-auth", "hono", "zod", "react", "react-dom"],
   },
