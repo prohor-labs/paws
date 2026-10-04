@@ -211,10 +211,10 @@ export function SignInCard() {
             প্রথমবার এসেছেন?{" "}
             <button
               type="button"
-              onClick={() => setMode("signup")}
+              onClick={handleGoogleSignIn}
               className="font-medium text-foreground underline underline-offset-4 hover:text-primary transition-colors cursor-pointer"
             >
-              বিনামূল্যে শুরু করুন
+              সাইন আপ করুন
             </button>
           </span>
         ) : (

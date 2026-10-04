@@ -16,6 +16,15 @@ const authApp = new Hono().on(["POST", "GET"], "/api/auth/**", (c) => auth.handl
 
 const app = new Hono()
   .use("*", requestId())
+  .use("*", async (c, next) => {
+    const startedAt = performance.now();
+    await next();
+    const duration = performance.now() - startedAt;
+    const slowTag = duration > 500 ? " [SLOW]" : "";
+    console.info(
+      `[API] ${c.req.method} ${c.req.path} ${c.res.status} ${duration.toFixed(1)}ms${slowTag}`,
+    );
+  })
   .use("*", secureHeaders())
   .use("*", compress())
   .use("*", async (c, next) => {
@@ -39,17 +48,6 @@ const app = new Hono()
       }
     }
     await next();
-  })
-  .use("*", async (c, next) => {
-    if (env.isProduction) {
-      await next();
-      return;
-    }
-    const startedAt = performance.now();
-    await next();
-    console.info(
-      `${c.req.method} ${c.req.path} ${c.res.status} ${(performance.now() - startedAt).toFixed(1)}ms`,
-    );
   })
   .use(
     "*",
