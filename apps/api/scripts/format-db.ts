@@ -97,16 +97,20 @@ async function formatDatabase() {
   console.log("  ✓ Converted misclassified MCQ questions and options.\n");
 
   // STEP 4.5: Convert Creative (CQ) questions misclassified as MCQ and link JSON explanation parts
-  console.log("[4.5/7] Converting Creative (CQ) questions and linking subpart solutions...");
+  // STEP 4.5: Convert Creative (CQ) questions and link subpart solutions
+  // Strictly applies ONLY to board/academic questions where questionText actually represents a stem with CQ subparts
+  console.log("[4.5/7] Linking Creative (CQ) questions and subpart solutions...");
   const rawJsonQuestions = await db.execute(sql`
-    SELECT id, q_type as "qType", explanation
-    FROM qb_questions
-    WHERE TRIM(explanation) LIKE '{%';
+    SELECT q.id, q.q_type as "qType", q.explanation, q.question_text as "questionText"
+    FROM qb_questions q
+    WHERE TRIM(q.explanation) LIKE '{"A":%'
+       OR TRIM(q.explanation) LIKE '{"ক":%';
   `);
   const jsonQuestions = (rawJsonQuestions as unknown as Array<{
     id: string;
     qType: string;
     explanation: string;
+    questionText: string;
   }>);
 
   const keyMap = [
@@ -117,98 +121,49 @@ async function formatDatabase() {
     ["E", "e", "ঙ", "৫", "5"],
   ];
 
-    const idList = jsonQuestions.map((q) => q.id);
-    if (idList.length > 0) {
-      const allOptsResult = await db.execute(sql`
-        SELECT id, question_id, option_text, order_index
-        FROM qb_question_options
-        WHERE question_id IN (SELECT id FROM qb_questions WHERE TRIM(explanation) LIKE '{%')
-        ORDER BY order_index ASC;
-      `);
-      const allOpts = (allOptsResult as unknown as Array<{
-        id: string;
-        question_id: string;
-        option_text: string;
-        order_index: number;
-      }>);
-      const optsByQ = new Map<string, typeof allOpts>();
-      for (const opt of allOpts) {
-        if (!optsByQ.has(opt.question_id)) optsByQ.set(opt.question_id, []);
-        optsByQ.get(opt.question_id)!.push(opt);
-      }
-
-      const allPartsResult = await db.execute(sql`
-        SELECT id, question_id, answer_text, order_index
-        FROM qb_question_parts
-        WHERE question_id IN (SELECT id FROM qb_questions WHERE TRIM(explanation) LIKE '{%')
-        ORDER BY order_index ASC;
-      `);
-      const allParts = (allPartsResult as unknown as Array<{
-        id: string;
-        question_id: string;
-        answer_text: string | null;
-        order_index: number;
-      }>);
-      const partsByQ = new Map<string, typeof allParts>();
-      for (const part of allParts) {
-        if (!partsByQ.has(part.question_id)) partsByQ.set(part.question_id, []);
-        partsByQ.get(part.question_id)!.push(part);
-      }
-
-      await Promise.all(
-        jsonQuestions.map(async (q) => {
-          let parsed: Record<string, string> = {};
-          try {
-            parsed = JSON.parse(q.explanation.trim());
-          } catch {
-            return;
-          }
-          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return;
-
-          const getAnswerForIndex = (idx: number): string | null => {
-            const keys = keyMap[idx] || [];
-            for (const k of keys) {
-              if (parsed[k]) return parsed[k];
-            }
-            const rawKeys = Object.keys(parsed);
-            if (rawKeys[idx]) return parsed[rawKeys[idx]];
-            return null;
-          };
-
-          if (q.qType === "mcq") {
-            const opts = optsByQ.get(q.id) || [];
-            if (opts.length > 0) {
-              await db.execute(sql`DELETE FROM qb_question_parts WHERE question_id = ${q.id};`);
-              for (let i = 0; i < opts.length; i++) {
-                const opt = opts[i];
-                const ans = getAnswerForIndex(i);
-                await db.execute(sql`
-                  INSERT INTO qb_question_parts (id, question_id, part_text, answer_text, marks, order_index)
-                  VALUES (gen_random_uuid(), ${q.id}, ${opt.option_text}, ${ans ?? null}, ${String(i === 0 ? 2 : 4)}, ${i + 1});
-                `);
-              }
-              await db.execute(sql`DELETE FROM qb_question_options WHERE question_id = ${q.id};`);
-              await db.execute(sql`UPDATE qb_questions SET q_type = 'written', updated_at = NOW() WHERE id = ${q.id};`);
-            }
-          } else if (q.qType === "written") {
-            const parts = partsByQ.get(q.id) || [];
-            for (let i = 0; i < parts.length; i++) {
-              const part = parts[i];
-              if (!part.answer_text || part.answer_text.trim() === "") {
-                const ans = getAnswerForIndex(i);
-                if (ans) {
-                  await db.execute(sql`
-                    UPDATE qb_question_parts
-                    SET answer_text = ${ans}
-                    WHERE id = ${part.id};
-                  `);
-                }
-              }
-            }
-          }
-        }),
-      );
+  for (const q of jsonQuestions) {
+    let parsed: Record<string, string> = {};
+    try {
+      parsed = JSON.parse(q.explanation.trim());
+    } catch {
+      continue;
     }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) continue;
+
+    const getAnswerForIndex = (idx: number): string | null => {
+      const keys = keyMap[idx] || [];
+      for (const k of keys) {
+        if (parsed[k]) return parsed[k];
+      }
+      const rawKeys = Object.keys(parsed);
+      if (rawKeys[idx]) return parsed[rawKeys[idx]];
+      return null;
+    };
+
+    // Only convert if it is already a written question with parts, to populate answers
+    if (q.qType === "written") {
+      const partsResult = await db.execute(sql`
+        SELECT id, order_index, answer_text
+        FROM qb_question_parts
+        WHERE question_id = ${q.id}
+        ORDER BY order_index ASC;
+      `);
+      const parts = partsResult as unknown as Array<{ id: string; order_index: number; answer_text: string | null }>;
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        if (!part.answer_text || part.answer_text.trim() === "") {
+          const ans = getAnswerForIndex(i);
+          if (ans) {
+            await db.execute(sql`
+              UPDATE qb_question_parts
+              SET answer_text = ${ans}
+              WHERE id = ${part.id};
+            `);
+          }
+        }
+      }
+    }
+  }
   console.log("  ✓ CQ questions and subpart solutions linked.\n");
 
   // STEP 5: Clean empty HTML wrapper artifacts in question and explanation texts
