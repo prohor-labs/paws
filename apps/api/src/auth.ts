@@ -19,11 +19,14 @@ export const auth = betterAuth({
     database: {
       generateId: () => uuidv7(),
     },
-    defaultCookieAttributes: {
-      sameSite: "none",
-      secure: true,
-      partitioned: true,
+    ipAddress: {
+      ipAddressHeaders: ["x-forwarded-for", "x-real-ip", "cf-connecting-ip"],
     },
+    defaultCookieAttributes: {
+      sameSite: "lax",
+      secure: true,
+    },
+    useSecureCookies: true,
   },
   emailAndPassword: {
     enabled: true,
