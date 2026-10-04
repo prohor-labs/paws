@@ -14,7 +14,9 @@ export const STATIC_TRUSTED_ORIGINS: readonly string[] = [
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3003",
+  "https://localhost:3003",
   "http://79.143.185.101:3003",
+  "https://79.143.185.101:3003",
 ];
 
 export function isTrustedOrigin(origin: string | undefined): boolean {

@@ -20,7 +20,16 @@ export interface UpdateUserInput {
 }
 
 function resolveApiUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || getDefaultApiUrl();
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  return (
+    process.env.INTERNAL_API_URL ||
+    process.env.API_INTERNAL_URL ||
+    process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    getDefaultApiUrl()
+  );
 }
 
 let apiClient: AppApiClient | undefined;

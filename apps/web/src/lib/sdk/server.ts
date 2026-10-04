@@ -3,7 +3,13 @@ import { type ApiClient, createApiClient, getDefaultApiUrl } from "@paws/sdk";
 import { cookies } from "next/headers";
 
 function resolveApiUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || getDefaultApiUrl();
+  return (
+    process.env.INTERNAL_API_URL ||
+    process.env.API_INTERNAL_URL ||
+    process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    getDefaultApiUrl()
+  );
 }
 
 export async function getServerApiClient(): Promise<ApiClient<ApiRoutesType>> {

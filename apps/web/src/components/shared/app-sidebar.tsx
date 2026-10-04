@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { PawsLogo } from "@/components/icons";
 import { SidebarFooter } from "@/components/shared/sidebar-footer";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -44,14 +44,7 @@ export function AppSidebar({
           className="flex items-center justify-center size-10 transition-transform hover:scale-110"
           aria-label="Home"
         >
-          <Image
-            src="/icons/paws-logo.png"
-            alt="Paws Academy Logo"
-            width={36}
-            height={36}
-            className="size-9 object-contain invert dark:invert-0"
-            priority
-          />
+          <PawsLogo className="size-9 text-foreground" />
         </Link>
 
         <div className="w-8 h-px bg-border/60" />

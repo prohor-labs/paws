@@ -75,7 +75,7 @@ export default function QBSubSlugPage() {
   const activeLabel =
     matchedExamSheet?.title ??
     matchedChapter?.name ??
-    (subSlug === "all" ? `${item?.name} (টপিক ভিত্তিক)` : item?.name ?? "অনুশীলন");
+    (subSlug === "all" ? item?.name ?? "টপিক ভিত্তিক" : item?.name ?? "অনুশীলন");
 
   const handleStartExam = async () => {
     try {
@@ -148,7 +148,7 @@ export default function QBSubSlugPage() {
               className="rounded-xl px-4 h-9 text-xs font-bold border-border/80 bg-card hover:bg-muted/60 text-foreground shadow-2xs gap-2 cursor-pointer"
             >
               <BookOpen className="size-4 shrink-0 text-primary" />
-              <span>প্রশ্নপত্রসমূহ (Exam-Wise)</span>
+              <span>প্রশ্নপত্রসমূহ</span>
             </Button>
 
             <Button

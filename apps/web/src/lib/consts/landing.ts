@@ -42,21 +42,21 @@ export const LANDING_STATS: StatCardItem[] = [
     count: "75K+",
     description: "শিক্ষার্থী নিয়মিত প্র্যাকটিস ও মক টেস্টে অংশ নিচ্ছে।",
     highlight: "সারা দেশে",
-    bgImage: "/images/paws/card3.f1aad12f.png",
+    bgImage: "/images/paws/stat-card-3.png",
   },
   {
     tag: "প্রশ্নব্যাংক ও মক টেস্ট",
     count: "50K+",
     description: "বিশেষজ্ঞদের তৈরি নির্ভুল প্রশ্ন ও বিস্তারিত ব্যাখ্যা।",
     highlight: "মানসম্মত",
-    bgImage: "/images/paws/card2.3f5848a2.png",
+    bgImage: "/images/paws/stat-card-2.png",
   },
   {
     tag: "সাফল্যের হার",
     count: "95%",
     description: "শিক্ষার্থী তাদের লক্ষ্য অর্জনে আত্মবিশ্বাসী হয়ে উঠেছে।",
     highlight: "ধারাবাহিক",
-    bgImage: "/images/paws/card1.b679e064.png",
+    bgImage: "/images/paws/stat-card-1.png",
   },
 ];
 
@@ -108,6 +108,5 @@ export const LANDING_FAQS: FaqItem[] = [
   },
 ];
 
-export const LANDING_PARTNERS: PartnerItem[] = [
-  { name: "Magic Eden", logo: "/images/paws/magicEden.7741e5c3.png" },
-];
+export const LANDING_PARTNERS: PartnerItem[] = [];
+

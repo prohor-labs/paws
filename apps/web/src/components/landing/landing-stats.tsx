@@ -17,7 +17,7 @@ export function LandingStats() {
           {LANDING_STATS.map((stat) => (
             <Card
               key={stat.tag}
-              className="group relative flex min-h-[360px] flex-col justify-end overflow-hidden border-border/60 bg-card p-0 transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
+              className="group relative flex min-h-[360px] flex-col justify-end overflow-hidden border-border/60 bg-card/80 backdrop-blur-xs p-0 transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5"
             >
               <div className="absolute inset-0 z-0">
                 <Image
@@ -25,9 +25,9 @@ export function LandingStats() {
                   alt={stat.tag}
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover opacity-40 transition-transform duration-700 group-hover:scale-105"
+                  className="object-cover opacity-35 transition-transform duration-700 group-hover:scale-105 group-hover:opacity-45"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-card via-card/70 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-card via-card/85 to-card/20" />
               </div>
 
               <CardHeader className="relative z-10 pb-1">

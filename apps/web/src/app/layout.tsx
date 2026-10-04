@@ -33,18 +33,43 @@ const hindSiliguri = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://paws.academy"),
   title: {
     default: "Paws Academy",
     template: "%s | Paws Academy",
   },
   description:
     "Next-generation smart question bank, AI tutor, and model test platform for students.",
+  openGraph: {
+    title: "Paws Academy",
+    description:
+      "Next-generation smart question bank, AI tutor, and model test platform for students.",
+    url: "https://paws.academy",
+    siteName: "Paws Academy",
+    images: [
+      {
+        url: "/images/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Paws Academy",
+      },
+    ],
+    locale: "bn_BD",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Paws Academy",
+    description:
+      "Next-generation smart question bank, AI tutor, and model test platform for students.",
+    images: ["/images/og-image.jpg"],
+  },
   icons: {
     icon: [
-      { url: "/icons/paws-logo-dark.png", type: "image/png" },
+      { url: "/icons/paws-logo.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "any" },
     ],
-    apple: "/icons/paws-logo-dark.png",
+    apple: "/icons/paws-logo.svg",
   },
   other: {
     "rights-statement":

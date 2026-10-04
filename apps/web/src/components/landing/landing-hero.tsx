@@ -31,7 +31,7 @@ export function LandingHero() {
           style={{ transform: `translate(${mousePos.x}px, ${mousePos.y}px)` }}
         >
           <Image
-            src="/images/paws/planet.6ad20553.png"
+            src="/images/paws/hero-planet.png"
             alt="PAWS Planet"
             fill
             sizes="(max-width: 768px) 100vw, 620px"
@@ -81,12 +81,12 @@ export function LandingHero() {
         </div>
       </div>
 
-      <div className="z-20 flex flex-col items-center gap-3">
+      <div className="z-20 mb-8 flex flex-col items-center sm:mb-12">
         <Link
           href="#about"
-          className="group flex flex-col items-center gap-1.5 pt-2 text-xs font-semibold tracking-widest text-muted-foreground uppercase transition-colors hover:text-foreground"
+          className="group flex flex-col items-center gap-2 pt-2 text-sm font-bold tracking-widest text-muted-foreground uppercase transition-colors hover:text-foreground"
         >
-          <ArrowDown className="size-4 animate-bounce text-primary" />
+          <ArrowDown className="size-5 animate-bounce text-primary" />
           <span>নিচে স্ক্রোল করুন</span>
         </Link>
       </div>

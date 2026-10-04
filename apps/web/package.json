@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "RUST_BACKTRACE=1 next dev",
+    "dev": "RUST_BACKTRACE=1 next dev -p 3003",
+    "dev:https": "RUST_BACKTRACE=1 next dev --experimental-https -p 3003",
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
