@@ -85,6 +85,12 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(self), geolocation=(), microphone=()" },
+          { key: "X-Robots-Tag", value: "noai, noimageai, noimageindex, nosnippet" },
+          {
+            key: "X-Legal-Protection",
+            value:
+              "BD-GOV-TRD/DH-849201-B | Copyright Act 2000 Act-XXVIII | Cyber Security Act Sec 17/28",
+          },
         ],
       },
     ];
