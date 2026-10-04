@@ -43,6 +43,7 @@ export const env = {
   ),
   webUrl: process.env.NEXT_PUBLIC_APP_URL ?? process.env.CORS_ORIGIN ?? "http://localhost:7001",
   trustedOrigins: readCsv(process.env.TRUSTED_ORIGINS),
+  internalProxySecret: process.env.INTERNAL_PROXY_SECRET ?? "",
   uploadMaxBytes: readNumber(process.env.UPLOAD_MAX_BYTES, 10 * 1024 * 1024),
   aws: {
     region: process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION ?? "garage",

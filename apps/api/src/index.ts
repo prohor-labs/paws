@@ -19,6 +19,28 @@ const app = new Hono()
   .use("*", secureHeaders())
   .use("*", compress())
   .use("*", async (c, next) => {
+    if (c.req.method === "OPTIONS") {
+      return next();
+    }
+    const secret = env.internalProxySecret;
+    if (secret) {
+      const incoming = c.req.header("x-internal-proxy-secret");
+      if (incoming !== secret) {
+        return c.json(
+          {
+            success: false,
+            error: {
+              code: "FORBIDDEN",
+              message: "Direct access forbidden",
+            },
+          },
+          403,
+        );
+      }
+    }
+    await next();
+  })
+  .use("*", async (c, next) => {
     if (env.isProduction) {
       await next();
       return;

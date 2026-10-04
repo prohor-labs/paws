@@ -12,7 +12,8 @@
     "AWS_BUCKET_NAME",
     "AWS_PUBLIC_URL",
     "API_URL",
-    "INTERNAL_API_URL"
+    "INTERNAL_API_URL",
+    "INTERNAL_PROXY_SECRET"
   ],
   "tasks": {
     "build": {

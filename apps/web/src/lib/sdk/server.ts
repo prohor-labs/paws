@@ -10,6 +10,11 @@ export async function getServerApiClient(): Promise<ApiClient<ApiRoutesType>> {
   const cookieStore = await cookies();
   return createApiClient<ApiRoutesType>({
     baseUrl: resolveApiUrl(),
-    headers: { cookie: cookieStore.toString() },
+    headers: {
+      cookie: cookieStore.toString(),
+      ...(process.env.INTERNAL_PROXY_SECRET
+        ? { "x-internal-proxy-secret": process.env.INTERNAL_PROXY_SECRET }
+        : {}),
+    },
   });
 }
