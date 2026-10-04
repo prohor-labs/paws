@@ -415,6 +415,37 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
           .where(eq(qbChapters.containerItemId, item.id))
           .orderBy(asc(qbChapters.orderIndex));
 
+    const targetSourceTypeMap: Record<string, "medical" | "engineering" | "university" | "board"> = {
+      medical: "medical",
+      engineering: "engineering",
+      general: "university",
+      varsity: "university",
+      "hsc-science": "board",
+      "hsc-general": "board",
+    };
+    const targetSourceType = targetSourceTypeMap[target.slug];
+
+    if (subject && targetSourceType && chapters.length > 0) {
+      const chIds = chapters.map((c) => c.id);
+      const scopedChapterCounts = await db
+        .select({
+          chapterId: qbQuestionChapters.chapterId,
+          total: count(qbQuestionChapters.questionId),
+        })
+        .from(qbQuestionChapters)
+        .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestionChapters.questionId))
+        .innerJoin(qbSources, and(eq(qbSources.id, qbQuestionSources.sourceId), eq(qbSources.type, targetSourceType)))
+        .innerJoin(qbQuestions, and(eq(qbQuestions.id, qbQuestionChapters.questionId), eq(qbQuestions.status, "published")))
+        .where(inArray(qbQuestionChapters.chapterId, chIds))
+        .groupBy(qbQuestionChapters.chapterId);
+
+      const scopedMap = new Map(scopedChapterCounts.map((sc) => [sc.chapterId, Number(sc.total)]));
+      chapters = chapters.map((ch) => ({
+        ...ch,
+        questionCount: scopedMap.get(ch.id) ?? 0,
+      }));
+    }
+
     const examSheets = await db
       .select()
       .from(qbExamSheets)
@@ -709,6 +740,16 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
             : []
         : [chapter.id];
 
+      const targetSourceTypeMap: Record<string, "medical" | "engineering" | "university" | "board"> = {
+        medical: "medical",
+        engineering: "engineering",
+        general: "university",
+        varsity: "university",
+        "hsc-science": "board",
+        "hsc-general": "board",
+      };
+      const targetSourceType = target?.slug ? targetSourceTypeMap[target.slug] : undefined;
+
       const [allTopics, allChapters, allSubjects, sourcesList, examSheetsList, chapterTopicCounts] = await Promise.all([
         db.select().from(qbTopics).orderBy(asc(qbTopics.orderIndex)),
         db.select().from(qbChapters).orderBy(asc(qbChapters.orderIndex)),
@@ -731,11 +772,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
               .where(
                 and(
                   inArray(qbChapterSources.chapterId, subChapterIds),
-                  target?.group === "academic"
-                    ? eq(qbSources.sourceGroup, "academic")
-                    : target?.group === "admission"
-                      ? eq(qbSources.sourceGroup, "admission")
-                      : undefined,
+                  targetSourceType ? eq(qbSources.type, targetSourceType) : undefined,
                 ),
               )
               .orderBy(desc(qbSources.year), asc(qbSources.name))
@@ -754,21 +791,39 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
                 .orderBy(asc(qbExamSheets.orderIndex), asc(qbExamSheets.title))
             : [],
         subChapterIds.length > 0
-          ? db
-              .select({
-                topicId: qbQuestions.topicId,
-                total: count(qbQuestions.id),
-              })
-              .from(qbQuestions)
-              .innerJoin(
-                qbQuestionChapters,
-                and(
-                  eq(qbQuestionChapters.questionId, qbQuestions.id),
-                  inArray(qbQuestionChapters.chapterId, subChapterIds),
-                ),
-              )
-              .where(eq(qbQuestions.status, "published"))
-              .groupBy(qbQuestions.topicId)
+          ? targetSourceType
+            ? db
+                .select({
+                  topicId: qbQuestions.topicId,
+                  total: count(qbQuestions.id),
+                })
+                .from(qbQuestions)
+                .innerJoin(
+                  qbQuestionChapters,
+                  and(
+                    eq(qbQuestionChapters.questionId, qbQuestions.id),
+                    inArray(qbQuestionChapters.chapterId, subChapterIds),
+                  ),
+                )
+                .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestions.id))
+                .innerJoin(qbSources, and(eq(qbSources.id, qbQuestionSources.sourceId), eq(qbSources.type, targetSourceType)))
+                .where(eq(qbQuestions.status, "published"))
+                .groupBy(qbQuestions.topicId)
+            : db
+                .select({
+                  topicId: qbQuestions.topicId,
+                  total: count(qbQuestions.id),
+                })
+                .from(qbQuestions)
+                .innerJoin(
+                  qbQuestionChapters,
+                  and(
+                    eq(qbQuestionChapters.questionId, qbQuestions.id),
+                    inArray(qbQuestionChapters.chapterId, subChapterIds),
+                  ),
+                )
+                .where(eq(qbQuestions.status, "published"))
+                .groupBy(qbQuestions.topicId)
           : [],
       ]);
 
@@ -921,6 +976,21 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
               .where(inArray(qbQuestionChapters.chapterId, subChapterIds)),
           ),
         );
+
+        if (targetSourceType && !sourceId && !sourceType) {
+          conditions.push(
+            inArray(
+              qbQuestions.id,
+              db
+                .select({ questionId: qbQuestionSources.questionId })
+                .from(qbQuestionSources)
+                .innerJoin(
+                  qbSources,
+                  and(eq(qbSources.id, qbQuestionSources.sourceId), eq(qbSources.type, targetSourceType)),
+                ),
+            ),
+          );
+        }
       } else if (containerItem) {
         const esIds = examSheetsList.map((e) => e.id);
         if (esIds.length > 0) {

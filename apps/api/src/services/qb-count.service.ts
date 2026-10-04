@@ -74,9 +74,23 @@ export async function recalculateAllCounts(): Promise<void> {
         FROM public.qb_exam_sheets es
         WHERE es.container_item_id = ci.id
       ), 0) + COALESCE((
-        SELECT s.question_count
-        FROM public.qb_subjects s
-        WHERE s.id = ci.subject_id
+        SELECT COUNT(DISTINCT qc.question_id)
+        FROM public.qb_question_chapters qc
+        JOIN public.qb_chapters ch ON ch.id = qc.chapter_id
+        JOIN public.qb_question_sources qs ON qs.question_id = qc.question_id
+        JOIN public.qb_sources src ON src.id = qs.source_id
+        JOIN public.qb_containers cont ON cont.id = ci.container_id
+        JOIN public.qb_targets targ ON targ.id = cont.target_id
+        JOIN public.qb_questions q ON q.id = qc.question_id
+        WHERE ch.subject_id = ci.subject_id
+          AND q.status = 'published'
+          AND (
+            (targ.slug = 'medical' AND src.type = 'medical') OR
+            (targ.slug = 'engineering' AND src.type = 'engineering') OR
+            (targ.slug IN ('general', 'varsity') AND src.type = 'university') OR
+            (targ.slug IN ('hsc-science', 'hsc-general', 'academic') AND src.type = 'board') OR
+            (targ.slug NOT IN ('medical', 'engineering', 'general', 'varsity', 'hsc-science', 'hsc-general', 'academic'))
+          )
       ), 0),
       exam_sheet_count = COALESCE((
         SELECT COUNT(*)
@@ -104,18 +118,15 @@ export async function recalculateAllCounts(): Promise<void> {
     UPDATE public.qb_targets t
     SET 
       question_count = COALESCE((
-        SELECT COALESCE(SUM(s.question_count), 0)
-        FROM public.qb_subjects s
-        WHERE s.target_id = t.id
-      ), 0) + COALESCE((
-        SELECT COALESCE(SUM(c.question_count), 0)
+        SELECT SUM(c.question_count)
         FROM public.qb_containers c
         WHERE c.target_id = t.id
       ), 0),
       subject_count = COALESCE((
-        SELECT COUNT(*)
-        FROM public.qb_subjects s
-        WHERE s.target_id = t.id
+        SELECT COUNT(DISTINCT ci.subject_id)
+        FROM public.qb_containers c
+        JOIN public.qb_container_items ci ON ci.container_id = c.id
+        WHERE c.target_id = t.id AND ci.subject_id IS NOT NULL
       ), 0);
   `);
 }
