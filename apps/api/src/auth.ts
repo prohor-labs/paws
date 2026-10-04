@@ -15,6 +15,15 @@ export const auth = betterAuth({
     provider: "pg",
     schema,
   }),
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+      requireLocalEmailVerified: false,
+      updateUserInfoOnLink: true,
+    },
+    skipStateCookieCheck: true,
+  },
   advanced: {
     database: {
       generateId: () => uuidv7(),
