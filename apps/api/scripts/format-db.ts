@@ -98,14 +98,16 @@ async function formatDatabase() {
 
   // STEP 4.5: Convert Creative (CQ) questions misclassified as MCQ and link JSON explanation parts
   console.log("[4.5/7] Converting Creative (CQ) questions and linking subpart solutions...");
-  const jsonQuestions = await db
-    .select({
-      id: sql<string>`id`,
-      qType: sql<string>`q_type`,
-      explanation: sql<string>`explanation`,
-    })
-    .from(sql`qb_questions`)
-    .where(sql`TRIM(explanation) LIKE '{%'`);
+  const rawJsonQuestions = await db.execute(sql`
+    SELECT id, q_type as "qType", explanation
+    FROM qb_questions
+    WHERE TRIM(explanation) LIKE '{%';
+  `);
+  const jsonQuestions = (rawJsonQuestions as unknown as Array<{
+    id: string;
+    qType: string;
+    explanation: string;
+  }>);
 
   const keyMap = [
     ["A", "a", "ক", "১", "1"],
@@ -115,75 +117,98 @@ async function formatDatabase() {
     ["E", "e", "ঙ", "৫", "5"],
   ];
 
-  for (const q of jsonQuestions) {
-    let parsed: Record<string, string> = {};
-    try {
-      parsed = JSON.parse(q.explanation.trim());
-    } catch {
-      continue;
-    }
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) continue;
-
-    const getAnswerForIndex = (idx: number): string | null => {
-      const keys = keyMap[idx] || [];
-      for (const k of keys) {
-        if (parsed[k]) return parsed[k];
-      }
-      const rawKeys = Object.keys(parsed);
-      if (rawKeys[idx]) return parsed[rawKeys[idx]];
-      return null;
-    };
-
-    if (q.qType === "mcq") {
-      const optsResult = await db.execute(sql`
-        SELECT id, option_text, order_index
+    const idList = jsonQuestions.map((q) => q.id);
+    if (idList.length > 0) {
+      const allOptsResult = await db.execute(sql`
+        SELECT id, question_id, option_text, order_index
         FROM qb_question_options
-        WHERE question_id = ${q.id}
+        WHERE question_id IN (SELECT id FROM qb_questions WHERE TRIM(explanation) LIKE '{%')
         ORDER BY order_index ASC;
       `);
-      const opts = (optsResult as unknown as Array<{ id: string; option_text: string; order_index: number }>);
-
-      if (opts.length > 0) {
-        await db.execute(sql`DELETE FROM qb_question_parts WHERE question_id = ${q.id};`);
-
-        for (let i = 0; i < opts.length; i++) {
-          const opt = opts[i];
-          const ans = getAnswerForIndex(i);
-          await db.execute(sql`
-            INSERT INTO qb_question_parts (id, question_id, part_text, answer_text, marks, order_index)
-            VALUES (gen_random_uuid(), ${q.id}, ${opt.option_text}, ${ans}, ${String(i === 0 ? 2 : 4)}, ${i + 1});
-          `);
-        }
-
-        await db.execute(sql`DELETE FROM qb_question_options WHERE question_id = ${q.id};`);
-        await db.execute(sql`UPDATE qb_questions SET q_type = 'written', updated_at = NOW() WHERE id = ${q.id};`);
+      const allOpts = (allOptsResult as unknown as Array<{
+        id: string;
+        question_id: string;
+        option_text: string;
+        order_index: number;
+      }>);
+      const optsByQ = new Map<string, typeof allOpts>();
+      for (const opt of allOpts) {
+        if (!optsByQ.has(opt.question_id)) optsByQ.set(opt.question_id, []);
+        optsByQ.get(opt.question_id)!.push(opt);
       }
-    } else if (q.qType === "written") {
-      const partsResult = await db.execute(sql`
-        SELECT id, answer_text, order_index
+
+      const allPartsResult = await db.execute(sql`
+        SELECT id, question_id, answer_text, order_index
         FROM qb_question_parts
-        WHERE question_id = ${q.id}
+        WHERE question_id IN (SELECT id FROM qb_questions WHERE TRIM(explanation) LIKE '{%')
         ORDER BY order_index ASC;
       `);
-      const parts = (partsResult as unknown as Array<{ id: string; answer_text: string | null; order_index: number }>);
+      const allParts = (allPartsResult as unknown as Array<{
+        id: string;
+        question_id: string;
+        answer_text: string | null;
+        order_index: number;
+      }>);
+      const partsByQ = new Map<string, typeof allParts>();
+      for (const part of allParts) {
+        if (!partsByQ.has(part.question_id)) partsByQ.set(part.question_id, []);
+        partsByQ.get(part.question_id)!.push(part);
+      }
 
-      if (parts.length > 0) {
-        for (let i = 0; i < parts.length; i++) {
-          const part = parts[i];
-          if (!part.answer_text || part.answer_text.trim() === "") {
-            const ans = getAnswerForIndex(i);
-            if (ans) {
-              await db.execute(sql`
-                UPDATE qb_question_parts
-                SET answer_text = ${ans}
-                WHERE id = ${part.id};
-              `);
+      await Promise.all(
+        jsonQuestions.map(async (q) => {
+          let parsed: Record<string, string> = {};
+          try {
+            parsed = JSON.parse(q.explanation.trim());
+          } catch {
+            return;
+          }
+          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return;
+
+          const getAnswerForIndex = (idx: number): string | null => {
+            const keys = keyMap[idx] || [];
+            for (const k of keys) {
+              if (parsed[k]) return parsed[k];
+            }
+            const rawKeys = Object.keys(parsed);
+            if (rawKeys[idx]) return parsed[rawKeys[idx]];
+            return null;
+          };
+
+          if (q.qType === "mcq") {
+            const opts = optsByQ.get(q.id) || [];
+            if (opts.length > 0) {
+              await db.execute(sql`DELETE FROM qb_question_parts WHERE question_id = ${q.id};`);
+              for (let i = 0; i < opts.length; i++) {
+                const opt = opts[i];
+                const ans = getAnswerForIndex(i);
+                await db.execute(sql`
+                  INSERT INTO qb_question_parts (id, question_id, part_text, answer_text, marks, order_index)
+                  VALUES (gen_random_uuid(), ${q.id}, ${opt.option_text}, ${ans ?? null}, ${String(i === 0 ? 2 : 4)}, ${i + 1});
+                `);
+              }
+              await db.execute(sql`DELETE FROM qb_question_options WHERE question_id = ${q.id};`);
+              await db.execute(sql`UPDATE qb_questions SET q_type = 'written', updated_at = NOW() WHERE id = ${q.id};`);
+            }
+          } else if (q.qType === "written") {
+            const parts = partsByQ.get(q.id) || [];
+            for (let i = 0; i < parts.length; i++) {
+              const part = parts[i];
+              if (!part.answer_text || part.answer_text.trim() === "") {
+                const ans = getAnswerForIndex(i);
+                if (ans) {
+                  await db.execute(sql`
+                    UPDATE qb_question_parts
+                    SET answer_text = ${ans}
+                    WHERE id = ${part.id};
+                  `);
+                }
+              }
             }
           }
-        }
-      }
+        }),
+      );
     }
-  }
   console.log("  ✓ CQ questions and subpart solutions linked.\n");
 
   // STEP 5: Clean empty HTML wrapper artifacts in question and explanation texts
@@ -237,8 +262,181 @@ async function formatDatabase() {
   `);
   console.log("  ✓ Removed internal metadata tags.\n");
 
-  // STEP 7: Recalculate all counts across the system
-  console.log("[7/7] Recalculating system-wide counts and aggregations...");
+  // STEP 7: Migrate external images (Chorcha / external assets) to self-hosted S3
+  console.log("[7/8] Migrating external assets (Chorcha images) to self-hosted S3...");
+  const { storageService } = await import("../src/services/storage.service");
+  const { env } = await import("../src/lib/env");
+
+  const chorchaUrlRegex = /https?:\/\/assets\.chorcha\.net\/[^\s"'<>\)]+/g;
+  const sanitizeUrl = (raw: string) => raw.replace(/(&quot;|\\&quot;|["'\\><)]|&amp;)+$/, "");
+
+  // 7a. Find all unique Chorcha image URLs in DB
+  const rawQuestions = await db.execute(sql`
+    SELECT id, question_text, context_text, explanation
+    FROM qb_questions
+    WHERE question_text ~ 'assets\.chorcha\.net'
+       OR context_text ~ 'assets\.chorcha\.net'
+       OR explanation ~ 'assets\.chorcha\.net';
+  `);
+  const qList = (rawQuestions as unknown as Array<{
+    id: string;
+    question_text: string | null;
+    context_text: string | null;
+    explanation: string | null;
+  }>);
+
+  const rawOptions = await db.execute(sql`
+    SELECT id, option_text
+    FROM qb_question_options
+    WHERE option_text ~ 'assets\.chorcha\.net';
+  `);
+  const oList = (rawOptions as unknown as Array<{ id: string; option_text: string }>);
+
+  const rawParts = await db.execute(sql`
+    SELECT id, part_text, answer_text
+    FROM qb_question_parts
+    WHERE part_text ~ 'assets\.chorcha\.net'
+       OR answer_text ~ 'assets\.chorcha\.net';
+  `);
+  const pList = (rawParts as unknown as Array<{
+    id: string;
+    part_text: string;
+    answer_text: string | null;
+  }>);
+
+  const uniqueUrls = new Set<string>();
+  for (const q of qList) {
+    (q.question_text?.match(chorchaUrlRegex) || []).forEach((u) => uniqueUrls.add(sanitizeUrl(u)));
+    (q.context_text?.match(chorchaUrlRegex) || []).forEach((u) => uniqueUrls.add(sanitizeUrl(u)));
+    (q.explanation?.match(chorchaUrlRegex) || []).forEach((u) => uniqueUrls.add(sanitizeUrl(u)));
+  }
+  for (const o of oList) {
+    (o.option_text?.match(chorchaUrlRegex) || []).forEach((u) => uniqueUrls.add(sanitizeUrl(u)));
+  }
+  for (const p of pList) {
+    (p.part_text?.match(chorchaUrlRegex) || []).forEach((u) => uniqueUrls.add(sanitizeUrl(u)));
+    (p.answer_text?.match(chorchaUrlRegex) || []).forEach((u) => uniqueUrls.add(sanitizeUrl(u)));
+  }
+
+  const urlArray = Array.from(uniqueUrls);
+  console.log(`  Found ${urlArray.length} unique external image assets to migrate to S3.`);
+
+  if (urlArray.length > 0) {
+    const urlMap = new Map<string, string>(); // oldUrl -> s3Url
+    let completedCount = 0;
+    const concurrency = 10;
+
+    // Helper to upload a single asset
+    const processUrl = async (url: string) => {
+      try {
+        const cleanUrl = sanitizeUrl(url);
+        const parsed = new URL(cleanUrl);
+        const filename = parsed.pathname.replace(/^\/+/, "");
+        const s3Key = `qb/images/${filename}`;
+        const s3PublicUrl = `${env.aws.publicUrl.replace(/\/+$/, "")}/${s3Key}`;
+
+        // Check if already in S3
+        let alreadyExists = false;
+        try {
+          const headRes = await fetch(s3PublicUrl, { method: "HEAD" });
+          if (headRes.ok) {
+            alreadyExists = true;
+          }
+        } catch {}
+
+        if (!alreadyExists) {
+          const res = await fetch(cleanUrl);
+          if (!res.ok) {
+            console.warn(`    ⚠️ Failed to download ${cleanUrl}: status ${res.status}`);
+            return;
+          }
+          const contentType = res.headers.get("content-type") || "image/png";
+          const buffer = Buffer.from(await res.arrayBuffer());
+          await storageService.upload(buffer, s3Key, contentType);
+        }
+
+        urlMap.set(cleanUrl, s3PublicUrl);
+      } catch (err) {
+        console.error(`    ❌ Error migrating image ${url}:`, err);
+      } finally {
+        completedCount++;
+        if (completedCount % 50 === 0 || completedCount === urlArray.length) {
+          console.log(`    Progress: ${completedCount}/${urlArray.length} assets processed.`);
+        }
+      }
+    };
+
+    // Run pool
+    for (let i = 0; i < urlArray.length; i += concurrency) {
+      const chunk = urlArray.slice(i, i + concurrency);
+      await Promise.all(chunk.map((u) => processUrl(u)));
+    }
+
+    console.log(`  ✓ Successfully uploaded ${urlMap.size}/${urlArray.length} images to S3.`);
+    console.log("  Replacing image URLs in database records...");
+
+    // Helper to replace URLs in a text
+    const replaceUrls = (text: string | null): string | null => {
+      if (!text) return null;
+      let res = text;
+      for (const [oldUrl, newUrl] of urlMap.entries()) {
+        if (res.includes(oldUrl)) {
+          res = res.replaceAll(oldUrl, newUrl);
+        }
+      }
+      return res;
+    };
+
+    // Update matching questions by primary key
+    const qUpdates = qList.map(async (q) => {
+      const newQt = replaceUrls(q.question_text);
+      const newCtx = replaceUrls(q.context_text);
+      const newExp = replaceUrls(q.explanation);
+      if (newQt !== q.question_text || newCtx !== q.context_text || newExp !== q.explanation) {
+        await db.execute(sql`
+          UPDATE qb_questions
+          SET question_text = ${newQt!},
+              context_text = ${newCtx},
+              explanation = ${newExp}
+          WHERE id = ${q.id};
+        `);
+      }
+    });
+
+    // Update matching options by primary key
+    const oUpdates = oList.map(async (o) => {
+      const newOt = replaceUrls(o.option_text);
+      if (newOt !== o.option_text) {
+        await db.execute(sql`
+          UPDATE qb_question_options
+          SET option_text = ${newOt!}
+          WHERE id = ${o.id};
+        `);
+      }
+    });
+
+    // Update matching parts by primary key
+    const pUpdates = pList.map(async (p) => {
+      const newPt = replaceUrls(p.part_text);
+      const newAt = replaceUrls(p.answer_text);
+      if (newPt !== p.part_text || newAt !== p.answer_text) {
+        await db.execute(sql`
+          UPDATE qb_question_parts
+          SET part_text = ${newPt!},
+              answer_text = ${newAt}
+          WHERE id = ${p.id};
+        `);
+      }
+    });
+
+    await Promise.all([...qUpdates, ...oUpdates, ...pUpdates]);
+    console.log("  ✓ Database image URLs migrated to S3.\n");
+  } else {
+    console.log("  ✓ No external image URLs found. Database is clean.\n");
+  }
+
+  // STEP 8: Recalculate all counts across the system
+  console.log("[8/8] Recalculating system-wide counts and aggregations...");
   await recalculateAllCounts();
   console.log("  ✓ All counts synchronized.\n");
 
