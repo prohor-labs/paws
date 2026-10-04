@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
 import type { ReactNode } from "react";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { ConfirmProvider } from "@/components/shared/confirm-provider";
 import { QueryProvider } from "@/components/shared/query-provider";
 import { ThemeProvider } from "@/components/shared/theme-provider";
@@ -95,6 +96,7 @@ export default function RootLayout({
             </TooltipProvider>
           </ThemeProvider>
         </QueryProvider>
+        <GoogleAnalytics gaId="G-MPR0GX8E8T" />
       </body>
     </html>
   );
