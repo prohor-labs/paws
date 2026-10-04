@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["79.143.185.101"],
   poweredByHeader: false,
   compress: true,
+  productionBrowserSourceMaps: false,
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production" ? { exclude: ["error"] } : false,
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 86400,
