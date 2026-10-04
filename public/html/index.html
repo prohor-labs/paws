@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paws Academy QB (Question Bank) Architecture & Schema Graph</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' },
+            darkbg: '#0f172a',
+            cardbg: '#1e293b',
+            bordercol: '#334155'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    #network-container { height: calc(100vh - 120px); width: 100%; background: #0b0f19; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .glass-panel { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(12px); }
+  </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col overflow-hidden">
+
+  <!-- Header -->
+  <header class="bg-[#0f172a] border-b border-slate-800 px-6 py-3.5 flex items-center justify-between shrink-0 shadow-md">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-xl shadow-lg shadow-blue-500/20">
+        <i class="fa-solid fa-diagram-project"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+          Question Bank (QB) Architecture
+          <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium border border-blue-500/30">apps/api/src/db</span>
+        </h1>
+        <p class="text-xs text-slate-400">Interactive Schema Topology, Data Flows, and System Taxonomy</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs & Actions -->
+    <div class="flex items-center space-x-2">
+      <div class="flex bg-slate-900/80 p-1 rounded-lg border border-slate-800 text-xs font-medium">
+        <button id="tab-graph" onclick="switchView('graph')" class="px-3 py-1.5 rounded-md bg-blue-600 text-white shadow transition-all">
+          <i class="fa-solid fa-circle-nodes mr-1.5"></i>Interactive Graph
+        </button>
+        <button id="tab-erd" onclick="switchView('erd')" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition-all">
+          <i class="fa-solid fa-table-cells mr-1.5"></i>ERD & Architecture
+        </button>
+        <button id="tab-pipeline" onclick="switchView('pipeline')" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition-all">
+          <i class="fa-solid fa-arrows-split-up-and-left mr-1.5"></i>Data Flow & Lifecycle
+        </button>
+        <button id="tab-docs" onclick="switchView('docs')" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition-all">
+          <i class="fa-solid fa-book-open mr-1.5"></i>Schema Reference
+        </button>
+      </div>
+      <button onclick="resetGraphZoom()" title="Reset Zoom" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg border border-slate-800 transition">
+        <i class="fa-solid fa-arrows-to-dot"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Viewport -->
+  <main class="flex-1 flex relative overflow-hidden">
+    
+    <!-- VIEW 1: Interactive Network Graph -->
+    <div id="view-graph" class="w-full flex h-full">
+      <!-- Left Controls Sidebar -->
+      <aside class="w-80 bg-[#0f172a]/95 border-r border-slate-800/80 flex flex-col p-4 shrink-0 overflow-y-auto custom-scrollbar z-10 glass-panel">
+        
+        <!-- Search & Filter -->
+        <div class="mb-4">
+          <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">Search Schema Entities</label>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+            <input id="search-input" oninput="filterNodes()" type="text" placeholder="Search table, enum, or column..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500 transition">
+          </div>
+        </div>
+
+        <!-- Presets -->
+        <div class="mb-4">
+          <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-2">Focus Presets</label>
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            <button onclick="applyPreset('all')" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-left transition border border-slate-700/50">
+              <i class="fa-solid fa-globe text-blue-400 mr-1"></i> Full Ecosystem
+            </button>
+            <button onclick="applyPreset('taxonomy')" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-left transition border border-slate-700/50">
+              <i class="fa-solid fa-sitemap text-emerald-400 mr-1"></i> Taxonomy Tree
+            </button>
+            <button onclick="applyPreset('questions')" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-left transition border border-slate-700/50">
+              <i class="fa-solid fa-circle-question text-amber-400 mr-1"></i> Question Core
+            </button>
+            <button onclick="applyPreset('exams')" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-left transition border border-slate-700/50">
+              <i class="fa-solid fa-file-signature text-purple-400 mr-1"></i> Exam Sheets
+            </button>
+            <button onclick="applyPreset('submissions')" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-left transition border border-slate-700/50">
+              <i class="fa-solid fa-square-poll-vertical text-rose-400 mr-1"></i> User Submissions
+            </button>
+            <button onclick="applyPreset('sources')" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-left transition border border-slate-700/50">
+              <i class="fa-solid fa-tags text-cyan-400 mr-1"></i> Source Junctions
+            </button>
+          </div>
+        </div>
+
+        <!-- Domain Layer Legend -->
+        <div class="mb-4">
+          <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-2">Layers & Subsystems</label>
+          <div class="space-y-1.5 text-xs">
+            <div class="flex items-center justify-between p-1.5 rounded bg-slate-900/60 border border-slate-800/80">
+              <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block shadow-sm shadow-emerald-500/50"></span> Academic Taxonomy</span>
+              <span class="text-[10px] text-slate-500 font-mono">5 tables</span>
+            </div>
+            <div class="flex items-center justify-between p-1.5 rounded bg-slate-900/60 border border-slate-800/80">
+              <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block shadow-sm shadow-amber-500/50"></span> Questions & Content</span>
+              <span class="text-[10px] text-slate-500 font-mono">3 tables</span>
+            </div>
+            <div class="flex items-center justify-between p-1.5 rounded bg-slate-900/60 border border-slate-800/80">
+              <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-cyan-500 inline-block shadow-sm shadow-cyan-500/50"></span> Sources & Junctions</span>
+              <span class="text-[10px] text-slate-500 font-mono">3 tables</span>
+            </div>
+            <div class="flex items-center justify-between p-1.5 rounded bg-slate-900/60 border border-slate-800/80">
+              <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-500 inline-block shadow-sm shadow-purple-500/50"></span> Exam Curations</span>
+              <span class="text-[10px] text-slate-500 font-mono">2 tables</span>
+            </div>
+            <div class="flex items-center justify-between p-1.5 rounded bg-slate-900/60 border border-slate-800/80">
+              <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block shadow-sm shadow-rose-500/50"></span> Custom Exams & Eval</span>
+              <span class="text-[10px] text-slate-500 font-mono">4 tables</span>
+            </div>
+            <div class="flex items-center justify-between p-1.5 rounded bg-slate-900/60 border border-slate-800/80">
+              <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-slate-400 inline-block shadow-sm"></span> External / Users</span>
+              <span class="text-[10px] text-slate-500 font-mono">auth.user</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Summary Stats -->
+        <div class="mt-auto pt-3 border-t border-slate-800 text-[11px] text-slate-400 space-y-1">
+          <div class="flex justify-between"><span>Total DB Tables:</span> <strong class="text-slate-200">17 entities</strong></div>
+          <div class="flex justify-between"><span>Enums Defined:</span> <strong class="text-slate-200">7 pgEnums</strong></div>
+          <div class="flex justify-between"><span>ORM:</span> <strong class="text-slate-200">Drizzle PostgreSQL</strong></div>
+        </div>
+      </aside>
+
+      <!-- Interactive Canvas -->
+      <div class="flex-1 relative flex flex-col h-full bg-[#070b14]">
+        <div id="network-container" class="flex-1"></div>
+        
+        <!-- Canvas Hint Overlay -->
+        <div class="absolute bottom-4 left-4 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-400 backdrop-blur pointer-events-none flex items-center gap-3">
+          <span><i class="fa-solid fa-computer-mouse mr-1 text-blue-400"></i> Click a node to view full table details</span>
+          <span class="text-slate-600">|</span>
+          <span><i class="fa-solid fa-arrows-up-down-left-right mr-1 text-blue-400"></i> Drag & Scroll to zoom/pan</span>
+        </div>
+      </div>
+
+      <!-- Right Detail Inspector Panel -->
+      <aside id="inspector" class="w-96 bg-[#0f172a] border-l border-slate-800 flex flex-col shrink-0 overflow-y-auto custom-scrollbar p-5">
+        <div id="inspector-placeholder" class="h-full flex flex-col items-center justify-center text-center text-slate-500 p-6">
+          <div class="w-14 h-14 rounded-2xl bg-slate-800/60 flex items-center justify-center text-2xl text-slate-600 mb-3 border border-slate-700/50">
+            <i class="fa-solid fa-hand-pointer"></i>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-400 mb-1">Select an Entity</h3>
+          <p class="text-xs text-slate-500 leading-relaxed">Click any table node on the graph canvas to inspect its schema, column types, foreign keys, relationships, and indexing.</p>
+        </div>
+
+        <div id="inspector-content" class="hidden space-y-4">
+          <div class="flex items-start justify-between border-b border-slate-800 pb-3">
+            <div>
+              <span id="insp-category" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 inline-block mb-1"></span>
+              <h2 id="insp-name" class="text-lg font-bold text-white font-mono"></h2>
+              <p id="insp-desc" class="text-xs text-slate-400 mt-1 leading-normal"></p>
+            </div>
+          </div>
+
+          <!-- Column Table -->
+          <div>
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2 flex items-center justify-between">
+              <span>Schema Columns</span>
+              <span id="insp-col-count" class="text-[10px] text-slate-500 font-mono"></span>
+            </h4>
+            <div class="bg-slate-900/90 rounded-lg border border-slate-800 overflow-hidden text-xs">
+              <table class="w-full text-left">
+                <thead class="bg-slate-800/50 text-[10px] text-slate-400 uppercase">
+                  <tr>
+                    <th class="py-1.5 px-2.5">Field</th>
+                    <th class="py-1.5 px-2">Type</th>
+                    <th class="py-1.5 px-2 text-right">Attributes</th>
+                  </tr>
+                </thead>
+                <tbody id="insp-columns" class="divide-y divide-slate-800/60"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Relationships -->
+          <div>
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Foreign Relations</h4>
+            <div id="insp-relations" class="space-y-1.5 text-xs"></div>
+          </div>
+
+          <!-- Performance & Indexes -->
+          <div>
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Indexes & Constraints</h4>
+            <div id="insp-indexes" class="space-y-1 text-xs font-mono text-slate-400 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800"></div>
+          </div>
+
+          <!-- Code Snippet -->
+          <div>
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Drizzle Definition</h4>
+            <pre class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-[11px] font-mono text-blue-300 overflow-x-auto custom-scrollbar"><code id="insp-code"></code></pre>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- VIEW 2: ERD & Architecture Diagrams -->
+    <div id="view-erd" class="hidden w-full h-full p-6 overflow-y-auto custom-scrollbar bg-[#0b0f19]">
+      <div class="max-w-6xl mx-auto space-y-8">
+        <div>
+          <h2 class="text-xl font-bold text-white mb-1">Entity Relationship & Structural Architecture</h2>
+          <p class="text-xs text-slate-400">Complete architectural map of the Question Bank, detailing taxonomy hierarchies, question models, test engines, and evaluation pipelines.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Taxonomy Architecture Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+            <h3 class="text-sm font-bold text-emerald-400 mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-network-wired"></i> 1. Hierarchical Taxonomy System
+            </h3>
+            <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+              Provides the multi-tier taxonomy classification. Content is grouped by Target (e.g. Academic HSC, Admission BUET, Job BCS), then split into flexible Containers & ContainerItems or direct Subjects & Chapters.
+            </p>
+            <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-xs text-emerald-300 leading-relaxed">
+              <span class="text-purple-400">qbTargets</span> (Target Group: Academic | Admission | Job)<br>
+              &nbsp;&nbsp;├── <span class="text-blue-400">qbContainers</span> (e.g. Board Questions, Model Tests, Books)<br>
+              &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="text-cyan-400">qbContainerItems</span> (e.g. Dhaka Board 2023, Test Paper 1)<br>
+              &nbsp;&nbsp;└── <span class="text-blue-400">qbSubjects</span> (e.g. Physics 1st Paper, Higher Math)<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="text-cyan-400">qbChapters</span> (e.g. Vector, Mechanics)<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="text-amber-400">qbTopics</span> (Self-referential recursive Tree)
+            </div>
+          </div>
+
+          <!-- Question Core Architecture Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+            <h3 class="text-sm font-bold text-amber-400 mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-cube"></i> 2. Polymorphic Question Engine
+            </h3>
+            <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+              Supports both multiple choice (MCQ with options and correctness) and composite written questions (sub-parts with marks, markdown, and KaTeX math formatting).
+            </p>
+            <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-xs text-amber-300 leading-relaxed">
+              <span class="text-amber-400 font-bold">qbQuestions</span> (qType: mcq | written, status: published)<br>
+              &nbsp;&nbsp;├── <span class="text-blue-400">qbQuestionOptions</span> (For MCQ: optionText, isCorrect)<br>
+              &nbsp;&nbsp;├── <span class="text-purple-400">qbQuestionParts</span> (For Written: partText, answer, marks)<br>
+              &nbsp;&nbsp;├── <span class="text-cyan-400">qbQuestionSources</span> ── <span class="text-cyan-400">qbSources</span> (Year, Unit, Board)<br>
+              &nbsp;&nbsp;└── <span class="text-emerald-400">qbQuestionChapters</span> ── <span class="text-emerald-400">qbChapters</span>
+            </div>
+          </div>
+
+          <!-- Exam Sheets Architecture Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+            <h3 class="text-sm font-bold text-purple-400 mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-file-invoice"></i> 3. Curated Exam Sheets
+            </h3>
+            <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+              Pre-compiled test sheets attached to specific ContainerItems (e.g. Board Papers) or Chapters. Designed for instant practice with timer, negative marking, and ordered question sequences.
+            </p>
+            <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-xs text-purple-300 leading-relaxed">
+              <span class="text-purple-400 font-bold">qbExamSheets</span> (durationMinutes, totalMarks, negativeMarks)<br>
+              &nbsp;&nbsp;├── references <span class="text-cyan-400">qbContainerItems</span> (Exam collections)<br>
+              &nbsp;&nbsp;├── references <span class="text-emerald-400">qbChapters</span> (Chapter-specific test)<br>
+              &nbsp;&nbsp;└── ── <span class="text-amber-400">qbExamSheetQuestions</span> ── <span class="text-amber-400">qbQuestions</span>
+            </div>
+          </div>
+
+          <!-- Custom Exam & Submissions Architecture Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+            <h3 class="text-sm font-bold text-rose-400 mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-graduation-cap"></i> 4. Dynamic Exams & Grading Pipeline
+            </h3>
+            <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+              Users generate custom exams with custom subject/topic filters. Submissions support instant MCQ auto-evaluation and written submission handling with annotated image uploads.
+            </p>
+            <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-xs text-rose-300 leading-relaxed">
+              <span class="text-rose-400 font-bold">qbCustomExams</span> (Created by User, filters, config JSON)<br>
+              &nbsp;&nbsp;├── <span class="text-amber-400">qbCustomExamQuestions</span> (Selected Question IDs)<br>
+              &nbsp;&nbsp;└── <span class="text-pink-400">qbCustomExamSubmissions</span> (Score, time, auto/manual)<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="text-indigo-400">qbCustomExamWrittenSubmissions</span> (Images, marks, evaluator feedback)
+            </div>
+          </div>
+
+        </div>
+
+        <!-- High-Level Flow Mermaid Diagram -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+          <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-code-commit text-blue-400"></i> Entity Relationship Diagram (ERD Schema)
+          </h3>
+          <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 overflow-x-auto text-xs">
+            <pre class="mermaid">
+erDiagram
+    qbTargets ||--o{ qbContainers : has
+    qbTargets ||--o{ qbSubjects : has
+    qbContainers ||--o{ qbContainerItems : contains
+    qbSubjects ||--o{ qbChapters : contains
+    qbContainerItems ||--o{ qbChapters : groups
+    qbChapters ||--o{ qbTopics : organizes
+    qbTopics ||--o{ qbTopics : subtopics
+    qbTopics ||--o{ qbQuestions : classifies
+    
+    qbQuestions ||--o{ qbQuestionOptions : "has options"
+    qbQuestions ||--o{ qbQuestionParts : "has parts"
+    qbQuestions ||--o{ qbQuestionSources : tagged_with
+    qbSources ||--o{ qbQuestionSources : references
+    qbChapters ||--o{ qbChapterSources : links
+    qbSources ||--o{ qbChapterSources : references
+    
+    qbContainerItems ||--o{ qbExamSheets : contains
+    qbChapters ||--o{ qbExamSheets : contains
+    qbExamSheets ||--o{ qbExamSheetQuestions : includes
+    qbQuestions ||--o{ qbExamSheetQuestions : populated_in
+    
+    qbCustomExams ||--o{ qbCustomExamQuestions : includes
+    qbQuestions ||--o{ qbCustomExamQuestions : selected_in
+    qbCustomExams ||--o{ qbCustomExamSubmissions : submitted_to
+    qbCustomExamSubmissions ||--o{ qbCustomExamWrittenSubmissions : contains_written
+            </pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: Data Flow & Lifecycle Pipeline -->
+    <div id="view-pipeline" class="hidden w-full h-full p-6 overflow-y-auto custom-scrollbar bg-[#0b0f19]">
+      <div class="max-w-6xl mx-auto space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-white mb-1">Data Processing Pipelines & Service Lifecycles</h2>
+          <p class="text-xs text-slate-400">Deep dive into the background services, counter aggregation, scrapers synchronization, and exam execution workflows.</p>
+        </div>
+
+        <!-- 3 Pipeline Columns -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          
+          <!-- Pipeline 1 -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col">
+            <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center mb-3">
+              <i class="fa-solid fa-calculator text-sm"></i>
+            </div>
+            <h3 class="text-sm font-bold text-white mb-1">Denormalized Rollup Engine</h3>
+            <p class="text-[11px] text-slate-400 mb-3 font-mono">services/qb-count.service.ts</p>
+            <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+              Maintains high-performance query latency for millions of questions by updating precomputed counts up the hierarchy:
+            </p>
+            <ol class="space-y-2 text-xs text-slate-300 font-mono bg-slate-950 p-3 rounded-lg border border-slate-800">
+              <li class="flex items-start gap-2"><span class="text-blue-400 font-bold">1.</span> <span>qb_topics.question_count</span></li>
+              <li class="flex items-start gap-2"><span class="text-blue-400 font-bold">2.</span> <span>qb_sources.question_count</span></li>
+              <li class="flex items-start gap-2"><span class="text-blue-400 font-bold">3.</span> <span>qb_chapters.question_count</span></li>
+              <li class="flex items-start gap-2"><span class="text-blue-400 font-bold">4.</span> <span>qb_subjects.question_count</span></li>
+              <li class="flex items-start gap-2"><span class="text-blue-400 font-bold">5.</span> <span>qb_exam_sheets.question_count</span></li>
+              <li class="flex items-start gap-2"><span class="text-blue-400 font-bold">6.</span> <span>qb_container_items.question_count</span></li>
+              <li class="flex items-start gap-2"><span class="text-blue-400 font-bold">7.</span> <span>qb_targets (sum of subjects + containers)</span></li>
+            </ol>
+          </div>
+
+          <!-- Pipeline 2 -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3">
+              <i class="fa-solid fa-cloud-arrow-down text-sm"></i>
+            </div>
+            <h3 class="text-sm font-bold text-white mb-1">Scraper Sync & Ingestion</h3>
+            <p class="text-[11px] text-slate-400 mb-3 font-mono">db/sync-scraped-qb.ts</p>
+            <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+              Automated ingestion pipelines transform raw curriculum JSON and scraped test papers into standard Drizzle entities:
+            </p>
+            <ul class="space-y-2 text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800">
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400 text-[10px]"></i> Math/KaTeX normalization</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400 text-[10px]"></i> Deduplication by slug & hash</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400 text-[10px]"></i> Automatic source extraction (Year, Board)</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400 text-[10px]"></i> Recursive topic hierarchy building</li>
+            </ul>
+          </div>
+
+          <!-- Pipeline 3 -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col">
+            <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center mb-3">
+              <i class="fa-solid fa-stopwatch-20 text-sm"></i>
+            </div>
+            <h3 class="text-sm font-bold text-white mb-1">Exam & Evaluation Cycle</h3>
+            <p class="text-[11px] text-slate-400 mb-3 font-mono">routes/qb.route.ts</p>
+            <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+              Handles test creation, timed answer submission, real-time grading, and teacher evaluation:
+            </p>
+            <ul class="space-y-2 text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800">
+              <li class="flex items-center gap-2"><i class="fa-solid fa-arrow-right text-rose-400 text-[10px]"></i> Generate Random/Filtered Custom Exam</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-arrow-right text-rose-400 text-[10px]"></i> Auto-Evaluation with negative mark deduction</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-arrow-right text-rose-400 text-[10px]"></i> Written Script OCR / Image Canvas Review</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-arrow-right text-rose-400 text-[10px]"></i> Teacher feedback & final score publishing</li>
+            </ul>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VIEW 4: Full Documentation & Reference -->
+    <div id="view-docs" class="hidden w-full h-full p-6 overflow-y-auto custom-scrollbar bg-[#0b0f19]">
+      <div class="max-w-5xl mx-auto space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-white mb-1">Question Bank (QB) Technical Architecture Document</h2>
+          <p class="text-xs text-slate-400">Complete architectural documentation for apps/api/src/db/schema/qb.ts and related modules.</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4 text-xs text-slate-300 leading-relaxed">
+          <h3 class="text-base font-bold text-white border-b border-slate-800 pb-2">Overview</h3>
+          <p>
+            The <strong>Question Bank (QB)</strong> in Paws Academy is a multi-tenant, high-throughput educational database subsystem designed to store, classify, search, practice, and evaluate academic and competitive exam questions for Bangladesh's education landscape (SSC, HSC, University Admissions like BUET/Medical/DU, BCS, and Job exams).
+          </p>
+
+          <h3 class="text-base font-bold text-white border-b border-slate-800 pb-2 pt-2">Database Design Principles</h3>
+          <ul class="list-disc pl-5 space-y-2">
+            <li><strong>Polymorphic Content Delivery:</strong> Unified storage for both Single/Multiple Choice Questions (<code class="bg-slate-800 px-1 py-0.5 rounded text-amber-300">mcq</code>) and Descriptive/Creative Written Questions (<code class="bg-slate-800 px-1 py-0.5 rounded text-amber-300">written</code>) using sub-options and sub-parts.</li>
+            <li><strong>Dual Hierarchy Pathways:</strong>
+              <ul class="list-circle pl-5 mt-1 space-y-1">
+                <li><em>Standard Curriculum Tree:</em> Target &rarr; Subject &rarr; Chapter &rarr; Topic (recursive tree).</li>
+                <li><em>Collection / Exam Set Tree:</em> Target &rarr; Container &rarr; ContainerItem &rarr; ExamSheet.</li>
+              </ul>
+            </li>
+            <li><strong>Denormalized Performance Caching:</strong> Pre-calculated <code class="bg-slate-800 px-1 py-0.5 rounded text-blue-300">question_count</code>, <code class="bg-slate-800 px-1 py-0.5 rounded text-blue-300">subject_count</code>, and <code class="bg-slate-800 px-1 py-0.5 rounded text-blue-300">exam_sheet_count</code> maintained via the <code class="bg-slate-800 px-1 py-0.5 rounded text-blue-300">recalculateAllCounts()</code> engine to avoid recursive <code class="bg-slate-800 px-1 py-0.5 rounded text-slate-300">COUNT(*)</code> queries on massive production tables.</li>
+            <li><strong>Multi-Dimensional Tagging:</strong> Many-to-many associations between Questions, Chapters, and Historical Exam Sources (<code class="bg-slate-800 px-1 py-0.5 rounded text-cyan-300">qb_question_sources</code>, <code class="bg-slate-800 px-1 py-0.5 rounded text-cyan-300">qb_chapter_sources</code>).</li>
+            <li><strong>Comprehensive Assessment Engine:</strong> Supports timed exam generation, student answer persistence, negative marking calculation, and manual evaluation workflows with written image uploads.</li>
+          </ul>
+
+          <h3 class="text-base font-bold text-white border-b border-slate-800 pb-2 pt-2">Schema Enums Reference</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-[11px]">
+            <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
+              <span class="text-blue-400 font-bold">qb_question_type:</span> ['mcq', 'written']
+            </div>
+            <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
+              <span class="text-emerald-400 font-bold">qb_status:</span> ['draft', 'review', 'published', 'archived']
+            </div>
+            <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
+              <span class="text-cyan-400 font-bold">qb_target_group:</span> ['academic', 'admission', 'job']
+            </div>
+            <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
+              <span class="text-purple-400 font-bold">qb_exam_type:</span> ['mcq', 'written', 'mixed']
+            </div>
+            <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
+              <span class="text-amber-400 font-bold">qb_source_group:</span> ['academic', 'admission', 'job', 'other']
+            </div>
+            <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
+              <span class="text-rose-400 font-bold">qb_submission_status:</span> ['pending_evaluation', 'evaluated', 'auto_evaluated']
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Node & Graph Data Script -->
+  <script>
+    // Schema Graph Data Definition
+    const schemaData = {
+      nodes: [
+        // Category 1: Taxonomy (Emerald)
+        { id: 'qbTargets', label: 'qbTargets\n(Root)', group: 'taxonomy', category: 'Taxonomy', desc: 'Top-level educational categories (e.g. SSC, HSC, Admission, BCS)', shape: 'box', color: '#10b981', font: { color: '#ffffff', face: 'monospace', bold: true } },
+        { id: 'qbContainers', label: 'qbContainers', group: 'taxonomy', category: 'Taxonomy', desc: 'Organizational containers inside targets (e.g. Board Questions, Model Tests)', shape: 'box', color: '#059669', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbContainerItems', label: 'qbContainerItems', group: 'taxonomy', category: 'Taxonomy', desc: 'Specific item collections (e.g. Dhaka Board 2023, Test Paper 1)', shape: 'box', color: '#047857', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbSubjects', label: 'qbSubjects', group: 'taxonomy', category: 'Taxonomy', desc: 'Academic subjects (e.g. Physics 1st Paper, Chemistry, Higher Math)', shape: 'box', color: '#10b981', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbChapters', label: 'qbChapters', group: 'taxonomy', category: 'Taxonomy', desc: 'Subject chapters (e.g. Vectors, Thermodynamics, Calculus)', shape: 'box', color: '#059669', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbTopics', label: 'qbTopics\n(Recursive Tree)', group: 'taxonomy', category: 'Taxonomy', desc: 'Hierarchical topic and sub-topic tree with self-referential parentId', shape: 'box', color: '#34d399', font: { color: '#0f172a', face: 'monospace', bold: true } },
+
+        // Category 2: Questions Core (Amber)
+        { id: 'qbQuestions', label: 'qbQuestions\n(Core Entity)', group: 'questions', category: 'Questions Core', desc: 'Central question entity storing MCQ and written questions with math/markdown content', shape: 'box', color: '#f59e0b', font: { color: '#ffffff', face: 'monospace', bold: true }, size: 25 },
+        { id: 'qbQuestionOptions', label: 'qbQuestionOptions', group: 'questions', category: 'Questions Core', desc: 'MCQ multiple choice options with isCorrect flag and orderIndex', shape: 'box', color: '#d97706', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbQuestionParts', label: 'qbQuestionParts', group: 'questions', category: 'Questions Core', desc: 'Sub-parts for written/creative questions (marks, text, model answer)', shape: 'box', color: '#b45309', font: { color: '#ffffff', face: 'monospace' } },
+
+        // Category 3: Sources & Junctions (Cyan)
+        { id: 'qbSources', label: 'qbSources', group: 'sources', category: 'Sources & Tagging', desc: 'Historical exam sources, board tags, university admission years (e.g. BUET 2022)', shape: 'box', color: '#06b6d4', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbQuestionSources', label: 'qbQuestionSources\n(Junction)', group: 'sources', category: 'Sources & Tagging', desc: 'Many-to-Many junction between Questions and Exam Sources', shape: 'ellipse', color: '#0891b2', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbChapterSources', label: 'qbChapterSources\n(Junction)', group: 'sources', category: 'Sources & Tagging', desc: 'Many-to-Many junction linking Chapters with Exam Sources', shape: 'ellipse', color: '#0e7490', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbQuestionChapters', label: 'qbQuestionChapters\n(Junction)', group: 'sources', category: 'Sources & Tagging', desc: 'Many-to-Many mapping of questions across multiple chapters', shape: 'ellipse', color: '#0e7490', font: { color: '#ffffff', face: 'monospace' } },
+
+        // Category 4: Exam Curations (Purple)
+        { id: 'qbExamSheets', label: 'qbExamSheets', group: 'exams', category: 'Exam Sheets', desc: 'Preset curated practice exam sheets with duration, negative marking, and total marks', shape: 'box', color: '#a855f7', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbExamSheetQuestions', label: 'qbExamSheetQuestions\n(Junction)', group: 'exams', category: 'Exam Sheets', desc: 'Ordered questions assigned to an Exam Sheet', shape: 'ellipse', color: '#9333ea', font: { color: '#ffffff', face: 'monospace' } },
+
+        // Category 5: Custom Exams & Evaluation (Rose)
+        { id: 'qbCustomExams', label: 'qbCustomExams', group: 'submissions', category: 'Custom Exams & Eval', desc: 'User-created custom exams with dynamic topic selection and duration config', shape: 'box', color: '#f43f5e', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbCustomExamQuestions', label: 'qbCustomExamQuestions\n(Junction)', group: 'submissions', category: 'Custom Exams & Eval', desc: 'Questions populated in a dynamic custom exam', shape: 'ellipse', color: '#e11d48', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbCustomExamSubmissions', label: 'qbCustomExamSubmissions', group: 'submissions', category: 'Custom Exams & Eval', desc: 'User attempt submissions with automatic score calculation, time spent, correct/wrong stats', shape: 'box', color: '#be123c', font: { color: '#ffffff', face: 'monospace' } },
+        { id: 'qbCustomExamWrittenSubmissions', label: 'qbCustomExamWrittenSubmissions', group: 'submissions', category: 'Custom Exams & Eval', desc: 'Written student script pages with uploaded images, canvas annotations, and teacher scores', shape: 'box', color: '#9f1239', font: { color: '#ffffff', face: 'monospace' } },
+
+        // Category 6: External Auth User
+        { id: 'user', label: 'user\n(auth.user)', group: 'external', category: 'External Auth', desc: 'System user account from auth table', shape: 'box', color: '#64748b', font: { color: '#ffffff', face: 'monospace' } }
+      ],
+      edges: [
+        // Taxonomy Edges
+        { from: 'qbTargets', to: 'qbContainers', label: '1 : N', arrows: 'to', color: { color: '#10b981' } },
+        { from: 'qbTargets', to: 'qbSubjects', label: '1 : N', arrows: 'to', color: { color: '#10b981' } },
+        { from: 'qbContainers', to: 'qbContainerItems', label: '1 : N', arrows: 'to', color: { color: '#10b981' } },
+        { from: 'qbSubjects', to: 'qbChapters', label: '1 : N', arrows: 'to', color: { color: '#10b981' } },
+        { from: 'qbSubjects', to: 'qbContainerItems', label: '0..1 : N', arrows: 'to', dashes: true, color: { color: '#047857' } },
+        { from: 'qbContainerItems', to: 'qbChapters', label: '0..1 : N', arrows: 'to', dashes: true, color: { color: '#047857' } },
+        { from: 'qbChapters', to: 'qbTopics', label: '1 : N', arrows: 'to', color: { color: '#10b981' } },
+        { from: 'qbTopics', to: 'qbTopics', label: 'parent_id (Tree)', arrows: 'to', color: { color: '#34d399' } },
+
+        // Question Associations
+        { from: 'qbTopics', to: 'qbQuestions', label: 'topic_id', arrows: 'to', color: { color: '#f59e0b' } },
+        { from: 'qbQuestions', to: 'qbQuestionOptions', label: '1 : N', arrows: 'to', color: { color: '#f59e0b' } },
+        { from: 'qbQuestions', to: 'qbQuestionParts', label: '1 : N', arrows: 'to', color: { color: '#f59e0b' } },
+
+        // Sources & Junctions
+        { from: 'qbQuestions', to: 'qbQuestionSources', label: 'question_id', arrows: 'to', color: { color: '#06b6d4' } },
+        { from: 'qbSources', to: 'qbQuestionSources', label: 'source_id', arrows: 'to', color: { color: '#06b6d4' } },
+        { from: 'qbChapters', to: 'qbChapterSources', label: 'chapter_id', arrows: 'to', color: { color: '#06b6d4' } },
+        { from: 'qbSources', to: 'qbChapterSources', label: 'source_id', arrows: 'to', color: { color: '#06b6d4' } },
+        { from: 'qbQuestions', to: 'qbQuestionChapters', label: 'question_id', arrows: 'to', color: { color: '#06b6d4' } },
+        { from: 'qbChapters', to: 'qbQuestionChapters', label: 'chapter_id', arrows: 'to', color: { color: '#06b6d4' } },
+
+        // Exam Sheets
+        { from: 'qbContainerItems', to: 'qbExamSheets', label: 'container_item_id', arrows: 'to', color: { color: '#a855f7' } },
+        { from: 'qbChapters', to: 'qbExamSheets', label: 'chapter_id', arrows: 'to', color: { color: '#a855f7' } },
+        { from: 'qbExamSheets', to: 'qbExamSheetQuestions', label: 'exam_sheet_id', arrows: 'to', color: { color: '#a855f7' } },
+        { from: 'qbQuestions', to: 'qbExamSheetQuestions', label: 'question_id', arrows: 'to', color: { color: '#a855f7' } },
+
+        // Custom Exams & Submissions
+        { from: 'user', to: 'qbCustomExams', label: 'user_id', arrows: 'to', color: { color: '#64748b' } },
+        { from: 'qbCustomExams', to: 'qbCustomExamQuestions', label: 'custom_exam_id', arrows: 'to', color: { color: '#f43f5e' } },
+        { from: 'qbQuestions', to: 'qbCustomExamQuestions', label: 'question_id', arrows: 'to', color: { color: '#f43f5e' } },
+        { from: 'qbCustomExams', to: 'qbCustomExamSubmissions', label: 'custom_exam_id', arrows: 'to', color: { color: '#f43f5e' } },
+        { from: 'user', to: 'qbCustomExamSubmissions', label: 'user_id', arrows: 'to', color: { color: '#64748b' } },
+        { from: 'qbCustomExamSubmissions', to: 'qbCustomExamWrittenSubmissions', label: 'submission_id', arrows: 'to', color: { color: '#f43f5e' } },
+        { from: 'qbQuestions', to: 'qbCustomExamWrittenSubmissions', label: 'question_id', arrows: 'to', color: { color: '#f43f5e' } },
+        { from: 'qbQuestionParts', to: 'qbCustomExamWrittenSubmissions', label: 'part_id', arrows: 'to', dashes: true, color: { color: '#f43f5e' } }
+      ]
+    };
+
+    // Detailed Table Metadata Dictionary
+    const entityDetails = {
+      qbTargets: {
+        category: 'Taxonomy Root',
+        desc: 'Top-level classification container representing major educational sectors (SSC, HSC, University Admission, Medical, BCS, Job Exams).',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'group', type: 'qb_target_group', attr: 'NOT NULL (academic|admission|job)' },
+          { name: 'name', type: 'text', attr: 'NOT NULL' },
+          { name: 'slug', type: 'text', attr: 'UNIQUE, NOT NULL' },
+          { name: 'order_index', type: 'integer', attr: 'default(0)' },
+          { name: 'subject_count', type: 'integer', attr: 'denormalized count' },
+          { name: 'question_count', type: 'integer', attr: 'denormalized count' },
+          { name: 'created_at', type: 'timestamp', attr: 'defaultNow()' }
+        ],
+        relations: ['1:N with qbContainers (cascade)', '1:N with qbSubjects (set null)'],
+        indexes: ['UNIQUE(slug)'],
+        code: `export const qbTargets = pgTable("qb_targets", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  group: qbTargetGroupEnum("group").notNull().default("academic"),\n  name: text("name").notNull(),\n  slug: text("slug").notNull().unique(),\n  orderIndex: integer("order_index").notNull().default(0),\n  subjectCount: integer("subject_count").notNull().default(0),\n  questionCount: integer("question_count").notNull().default(0)\n});`
+      },
+      qbContainers: {
+        category: 'Taxonomy Grouping',
+        desc: 'Sub-groupings under a target to bundle collections like Board Exams, Model Tests, or Subject Books.',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'target_id', type: 'uuid', attr: 'FK -> qbTargets.id (CASCADE)' },
+          { name: 'name', type: 'text', attr: 'NOT NULL' },
+          { name: 'slug', type: 'text', attr: 'NOT NULL' },
+          { name: 'description', type: 'text', attr: 'optional' },
+          { name: 'icon_url', type: 'text', attr: 'optional' },
+          { name: 'order_index', type: 'integer', attr: 'default(0)' },
+          { name: 'item_count', type: 'integer', attr: 'denormalized count' },
+          { name: 'question_count', type: 'integer', attr: 'denormalized count' }
+        ],
+        relations: ['belongs to qbTargets', '1:N with qbContainerItems (cascade)'],
+        indexes: ['UNIQUE(target_id, slug)', 'INDEX(target_id, order_index)'],
+        code: `export const qbContainers = pgTable("qb_containers", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  targetId: uuid("target_id").notNull().references(() => qbTargets.id, { onDelete: "cascade" }),\n  name: text("name").notNull(),\n  slug: text("slug").notNull()\n}, (t) => [unique().on(t.targetId, t.slug)]);`
+      },
+      qbContainerItems: {
+        category: 'Taxonomy Collection Item',
+        desc: 'Concrete question bundles or specific exam papers (e.g. Dhaka Board 2023, Test Paper 1) under a container.',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'container_id', type: 'uuid', attr: 'FK -> qbContainers.id (CASCADE)' },
+          { name: 'subject_id', type: 'uuid', attr: 'FK -> qbSubjects.id (SET NULL)' },
+          { name: 'name', type: 'text', attr: 'NOT NULL' },
+          { name: 'slug', type: 'text', attr: 'NOT NULL' },
+          { name: 'exam_sheet_count', type: 'integer', attr: 'denormalized count' },
+          { name: 'question_count', type: 'integer', attr: 'denormalized count' }
+        ],
+        relations: ['belongs to qbContainers', 'optional FK to qbSubjects', '1:N with qbExamSheets', '1:N with qbChapters'],
+        indexes: ['UNIQUE(container_id, slug)', 'INDEX(container_id, order_index)', 'INDEX(subject_id)'],
+        code: `export const qbContainerItems = pgTable("qb_container_items", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  containerId: uuid("container_id").notNull().references(() => qbContainers.id, { onDelete: "cascade" }),\n  subjectId: uuid("subject_id").references(() => qbSubjects.id, { onDelete: "set null" }),\n  name: text("name").notNull(),\n  slug: text("slug").notNull()\n});`
+      },
+      qbSubjects: {
+        category: 'Taxonomy Subject',
+        desc: 'Standard academic subject entity (Physics 1st Paper, General Math, English).',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'target_id', type: 'uuid', attr: 'FK -> qbTargets.id (SET NULL)' },
+          { name: 'name', type: 'text', attr: 'NOT NULL' },
+          { name: 'slug', type: 'text', attr: 'UNIQUE, NOT NULL' },
+          { name: 'code', type: 'text', attr: 'Subject Code (optional)' },
+          { name: 'chapter_count', type: 'integer', attr: 'denormalized count' },
+          { name: 'question_count', type: 'integer', attr: 'denormalized count' }
+        ],
+        relations: ['belongs to qbTargets', '1:N with qbChapters (cascade)', '1:N with qbContainerItems'],
+        indexes: ['UNIQUE(slug)'],
+        code: `export const qbSubjects = pgTable("qb_subjects", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  targetId: uuid("target_id").references(() => qbTargets.id, { onDelete: "set null" }),\n  name: text("name").notNull(),\n  slug: text("slug").notNull().unique()\n});`
+      },
+      qbChapters: {
+        category: 'Taxonomy Chapter',
+        desc: 'Curriculum chapter under a subject (e.g. Vector, Newtonian Mechanics, Matrices).',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'subject_id', type: 'uuid', attr: 'FK -> qbSubjects.id (CASCADE)' },
+          { name: 'container_item_id', type: 'uuid', attr: 'FK -> qbContainerItems.id (SET NULL)' },
+          { name: 'name', type: 'text', attr: 'NOT NULL' },
+          { name: 'slug', type: 'text', attr: 'NOT NULL' },
+          { name: 'topic_count', type: 'integer', attr: 'denormalized count' },
+          { name: 'question_count', type: 'integer', attr: 'denormalized count' }
+        ],
+        relations: ['belongs to qbSubjects', '1:N with qbTopics', 'N:M with qbSources via qbChapterSources', 'N:M with qbQuestions via qbQuestionChapters', '1:N with qbExamSheets'],
+        indexes: ['UNIQUE(subject_id, slug)', 'INDEX(subject_id, order_index)', 'INDEX(container_item_id)'],
+        code: `export const qbChapters = pgTable("qb_chapters", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  subjectId: uuid("subject_id").notNull().references(() => qbSubjects.id, { onDelete: "cascade" }),\n  containerItemId: uuid("container_item_id").references(() => qbContainerItems.id, { onDelete: "set null" }),\n  name: text("name").notNull(),\n  slug: text("slug").notNull()\n});`
+      },
+      qbTopics: {
+        category: 'Taxonomy Recursive Tree',
+        desc: 'Fine-grained concept / topic taxonomy supporting unbounded depth through self-referential parent_id.',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'parent_id', type: 'uuid', attr: 'Self-referential FK -> qbTopics.id' },
+          { name: 'name', type: 'text', attr: 'NOT NULL' },
+          { name: 'slug', type: 'text', attr: 'UNIQUE, NOT NULL' },
+          { name: 'question_count', type: 'integer', attr: 'denormalized count' }
+        ],
+        relations: ['Self 1:N subtopics', '1:N with qbQuestions'],
+        indexes: ['INDEX(parent_id)', 'INDEX(slug)', 'INDEX(order_index)'],
+        code: `export const qbTopics = pgTable("qb_topics", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  parentId: uuid("parent_id"),\n  name: text("name").notNull(),\n  slug: text("slug").notNull().unique()\n});`
+      },
+      qbQuestions: {
+        category: 'Core Entity',
+        desc: 'The fundamental question entity. Stores prompt text, context stems, comprehensive explanations, question type (MCQ or Written), and lifecycle status.',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'topic_id', type: 'uuid', attr: 'FK -> qbTopics.id (SET NULL)' },
+          { name: 'q_type', type: 'qb_question_type', attr: 'mcq | written (default mcq)' },
+          { name: 'question_text', type: 'text', attr: 'NOT NULL (supports KaTeX math)' },
+          { name: 'context_text', type: 'text', attr: 'Optional stem / passage context' },
+          { name: 'explanation', type: 'text', attr: 'Full step-by-step solution' },
+          { name: 'status', type: 'qb_status', attr: 'draft | review | published | archived' },
+          { name: 'parent_question_id', type: 'uuid', attr: 'For composite passages' },
+          { name: 'order_index', type: 'integer', attr: 'Ordering index' },
+          { name: 'created_at / updated_at', type: 'timestamp', attr: 'withTimezone: true' }
+        ],
+        relations: [
+          '1:N with qbQuestionOptions (MCQ)',
+          '1:N with qbQuestionParts (Written)',
+          'N:M with qbSources via qbQuestionSources',
+          'N:M with qbChapters via qbQuestionChapters',
+          'N:M with qbExamSheets via qbExamSheetQuestions',
+          'N:M with qbCustomExams via qbCustomExamQuestions'
+        ],
+        indexes: ['INDEX(topic_id)', 'INDEX(order_index, id)', 'INDEX(status, order_index, id)'],
+        code: `export const qbQuestions = pgTable("qb_questions", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  topicId: uuid("topic_id").references(() => qbTopics.id, { onDelete: "set null" }),\n  qType: qbQuestionTypeEnum("q_type").notNull().default("mcq"),\n  questionText: text("question_text").notNull(),\n  status: qbStatusEnum("status").notNull().default("published")\n});`
+      },
+      qbQuestionOptions: {
+        category: 'Questions Core',
+        desc: 'Answer choices for MCQ questions with correctness boolean flag and ordering.',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'question_id', type: 'uuid', attr: 'FK -> qbQuestions.id (CASCADE)' },
+          { name: 'option_text', type: 'text', attr: 'NOT NULL' },
+          { name: 'is_correct', type: 'boolean', attr: 'default(false)' },
+          { name: 'order_index', type: 'integer', attr: 'default(0)' }
+        ],
+        relations: ['belongs to qbQuestions'],
+        indexes: ['INDEX(question_id, order_index)'],
+        code: `export const qbQuestionOptions = pgTable("qb_question_options", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  questionId: uuid("question_id").notNull().references(() => qbQuestions.id, { onDelete: "cascade" }),\n  optionText: text("option_text").notNull(),\n  isCorrect: boolean("is_correct").notNull().default(false)\n});`
+      },
+      qbQuestionParts: {
+        category: 'Questions Core',
+        desc: 'Sub-parts for Creative / Descriptive Written questions (e.g. Part A (1 mark), Part B (2 marks), Part C (3 marks), Part D (4 marks)).',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'question_id', type: 'uuid', attr: 'FK -> qbQuestions.id (CASCADE)' },
+          { name: 'part_text', type: 'text', attr: 'NOT NULL' },
+          { name: 'answer_text', type: 'text', attr: 'Sample/Model answer' },
+          { name: 'marks', type: 'numeric', attr: 'Allocated marks' },
+          { name: 'order_index', type: 'integer', attr: 'default(0)' }
+        ],
+        relations: ['belongs to qbQuestions', '1:N with qbCustomExamWrittenSubmissions'],
+        indexes: ['UNIQUE(question_id, order_index)', 'INDEX(question_id, order_index)'],
+        code: `export const qbQuestionParts = pgTable("qb_question_parts", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  questionId: uuid("question_id").notNull().references(() => qbQuestions.id, { onDelete: "cascade" }),\n  partText: text("part_text").notNull(),\n  marks: numeric("marks")\n});`
+      },
+      qbSources: {
+        category: 'Sources & Metadata',
+        desc: 'Historical and competitive examination origin metadata (e.g. Board Exam Dhaka 2023, BUET Admission 2021-22, 45th BCS).',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'source_group', type: 'qb_source_group', attr: 'academic | admission | job | other' },
+          { name: 'type', type: 'qb_source_type', attr: 'board | university | medical | engineering | bcs | bank_job | model_test' },
+          { name: 'name', type: 'text', attr: 'NOT NULL' },
+          { name: 'slug', type: 'text', attr: 'UNIQUE, NOT NULL' },
+          { name: 'institution', type: 'text', attr: 'optional' },
+          { name: 'unit', type: 'text', attr: 'e.g. KA, KHA, A Unit' },
+          { name: 'year', type: 'integer', attr: 'e.g. 2023' },
+          { name: 'question_count', type: 'integer', attr: 'denormalized count' }
+        ],
+        relations: ['N:M with qbQuestions via qbQuestionSources', 'N:M with qbChapters via qbChapterSources'],
+        indexes: ['UNIQUE(slug)'],
+        code: `export const qbSources = pgTable("qb_sources", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  sourceGroup: qbSourceGroupEnum("source_group").notNull().default("academic"),\n  type: qbSourceTypeEnum("type").notNull().default("board"),\n  name: text("name").notNull(),\n  slug: text("slug").notNull().unique()\n});`
+      },
+      qbExamSheets: {
+        category: 'Exam Curations',
+        desc: 'Curated test paper ready for test-taking with timers, negative marks configuration, and ordered question composition.',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'container_item_id', type: 'uuid', attr: 'FK -> qbContainerItems.id (CASCADE)' },
+          { name: 'chapter_id', type: 'uuid', attr: 'FK -> qbChapters.id (CASCADE)' },
+          { name: 'title', type: 'text', attr: 'NOT NULL' },
+          { name: 'slug', type: 'text', attr: 'NOT NULL' },
+          { name: 'exam_type', type: 'qb_exam_type', attr: 'mcq | written | mixed' },
+          { name: 'duration_minutes', type: 'integer', attr: 'default(30)' },
+          { name: 'total_marks', type: 'numeric', attr: 'Total score' },
+          { name: 'negative_marks', type: 'text', attr: 'default "0.25"' },
+          { name: 'question_count', type: 'integer', attr: 'denormalized count' }
+        ],
+        relations: ['belongs to qbContainerItems or qbChapters', '1:N with qbExamSheetQuestions'],
+        indexes: ['INDEX(container_item_id)', 'INDEX(chapter_id, order_index)'],
+        code: `export const qbExamSheets = pgTable("qb_exam_sheets", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  containerItemId: uuid("container_item_id").references(() => qbContainerItems.id, { onDelete: "cascade" }),\n  chapterId: uuid("chapter_id").references(() => qbChapters.id, { onDelete: "cascade" }),\n  title: text("title").notNull(),\n  examType: qbExamTypeEnum("exam_type").notNull().default("mcq")\n});`
+      },
+      qbCustomExams: {
+        category: 'Custom Exams',
+        desc: 'Dynamically generated test created by a student with customizable topics, question count, and timer settings.',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'user_id', type: 'uuid', attr: 'FK -> auth.user.id (SET NULL)' },
+          { name: 'title', type: 'text', attr: 'NOT NULL' },
+          { name: 'exam_type', type: 'qb_exam_type', attr: 'mcq | written | mixed' },
+          { name: 'question_count', type: 'integer', attr: 'NOT NULL' },
+          { name: 'duration_minutes', type: 'integer', attr: 'NOT NULL' },
+          { name: 'negative_marks', type: 'text', attr: 'default "0.25"' },
+          { name: 'total_marks', type: 'integer', attr: 'default(0)' },
+          { name: 'config', type: 'text', attr: 'JSON filter configuration' }
+        ],
+        relations: ['belongs to auth.user', '1:N with qbCustomExamQuestions', '1:N with qbCustomExamSubmissions'],
+        indexes: ['INDEX(user_id, created_at)', 'INDEX(created_at)', 'INDEX(exam_type)'],
+        code: `export const qbCustomExams = pgTable("qb_custom_exams", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  userId: uuid("user_id").references(() => user.id, { onDelete: "set null" }),\n  title: text("title").notNull(),\n  config: text("config")\n});`
+      },
+      qbCustomExamSubmissions: {
+        category: 'Submissions & Eval',
+        desc: 'Student exam execution record containing selected answers, time spent, auto-graded MCQ score, and evaluation status.',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'custom_exam_id', type: 'uuid', attr: 'FK -> qbCustomExams.id (CASCADE)' },
+          { name: 'user_id', type: 'uuid', attr: 'FK -> auth.user.id (SET NULL)' },
+          { name: 'status', type: 'qb_submission_status', attr: 'pending_evaluation | evaluated | auto_evaluated' },
+          { name: 'score', type: 'text', attr: 'Overall score' },
+          { name: 'written_score', type: 'text', attr: 'Written section score' },
+          { name: 'correct_count', type: 'integer', attr: 'Correct answers' },
+          { name: 'wrong_count', type: 'integer', attr: 'Wrong answers' },
+          { name: 'unanswered_count', type: 'integer', attr: 'Unanswered' },
+          { name: 'time_spent_seconds', type: 'integer', attr: 'Duration' },
+          { name: 'answers', type: 'text', attr: 'JSON string of responses' },
+          { name: 'evaluator_id', type: 'uuid', attr: 'Teacher / Evaluator ID' },
+          { name: 'evaluator_feedback', type: 'text', attr: 'Review comments' }
+        ],
+        relations: ['belongs to qbCustomExams', 'belongs to auth.user', '1:N with qbCustomExamWrittenSubmissions'],
+        indexes: ['INDEX(user_id, submitted_at)', 'INDEX(custom_exam_id, submitted_at)', 'INDEX(status)', 'INDEX(evaluator_id)'],
+        code: `export const qbCustomExamSubmissions = pgTable("qb_custom_exam_submissions", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  customExamId: uuid("custom_exam_id").notNull().references(() => qbCustomExams.id, { onDelete: "cascade" }),\n  status: qbSubmissionStatusEnum("status").notNull().default("auto_evaluated"),\n  score: text("score").notNull().default("0")\n});`
+      },
+      qbCustomExamWrittenSubmissions: {
+        category: 'Written Evaluation',
+        desc: 'Uploaded written exam answer sheets with image URLs, teacher annotation canvas overlays, assigned marks, and feedback.',
+        columns: [
+          { name: 'id', type: 'uuid', attr: 'PK, defaultRandom()' },
+          { name: 'submission_id', type: 'uuid', attr: 'FK -> qbCustomExamSubmissions.id (CASCADE)' },
+          { name: 'question_id', type: 'uuid', attr: 'FK -> qbQuestions.id (CASCADE)' },
+          { name: 'part_id', type: 'uuid', attr: 'FK -> qbQuestionParts.id (SET NULL)' },
+          { name: 'page_number', type: 'integer', attr: 'default 1' },
+          { name: 'image_url', type: 'text', attr: 'Uploaded script image' },
+          { name: 'annotated_image_url', type: 'text', attr: 'Teacher markup / grading overlay' },
+          { name: 'marks_awarded', type: 'text', attr: 'Score given' },
+          { name: 'max_marks', type: 'integer', attr: 'Max possible marks' },
+          { name: 'feedback', type: 'text', attr: 'Specific feedback' }
+        ],
+        relations: ['belongs to qbCustomExamSubmissions', 'references qbQuestions', 'references qbQuestionParts'],
+        indexes: ['INDEX(submission_id)', 'INDEX(question_id)', 'INDEX(part_id)'],
+        code: `export const qbCustomExamWrittenSubmissions = pgTable("qb_custom_exam_written_submissions", {\n  id: uuid("id").primaryKey().defaultRandom(),\n  submissionId: uuid("submission_id").notNull().references(() => qbCustomExamSubmissions.id, { onDelete: "cascade" }),\n  imageUrl: text("image_url").notNull(),\n  annotatedImageUrl: text("annotated_image_url"),\n  marksAwarded: text("marks_awarded")\n});`
+      }
+    };
+
+    let network = null;
+    let nodesDataSet = null;
+    let edgesDataSet = null;
+
+    function initNetwork() {
+      const container = document.getElementById('network-container');
+      nodesDataSet = new vis.DataSet(schemaData.nodes);
+      edgesDataSet = new vis.DataSet(schemaData.edges);
+
+      const data = { nodes: nodesDataSet, edges: edgesDataSet };
+      const options = {
+        nodes: {
+          shape: 'box',
+          margin: 10,
+          borderWidth: 2,
+          shadow: true,
+          font: { color: '#ffffff', size: 12, face: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }
+        },
+        edges: {
+          width: 1.5,
+          smooth: { type: 'cubicBezier', forceDirection: 'none', roundness: 0.2 },
+          font: { size: 9, color: '#94a3b8', align: 'middle', background: '#0b0f19' },
+          arrows: { to: { enabled: true, scaleFactor: 0.7 } }
+        },
+        physics: {
+          solver: 'forceAtlas2Based',
+          forceAtlas2Based: {
+            gravitationalConstant: -70,
+            centralGravity: 0.015,
+            springLength: 120,
+            springConstant: 0.08,
+            damping: 0.4
+          },
+          stabilization: { iterations: 150 }
+        },
+        interaction: { hover: true, tooltipDelay: 100, zoomView: true, dragView: true }
+      };
+
+      network = new vis.Network(container, data, options);
+
+      network.on('click', function(params) {
+        if (params.nodes.length > 0) {
+          const selectedId = params.nodes[0];
+          inspectEntity(selectedId);
+        }
+      });
+    }
+
+    function inspectEntity(nodeId) {
+      const info = entityDetails[nodeId];
+      if (!info) return;
+
+      document.getElementById('inspector-placeholder').classList.add('hidden');
+      const content = document.getElementById('inspector-content');
+      content.classList.remove('hidden');
+
+      document.getElementById('insp-category').innerText = info.category;
+      document.getElementById('insp-name').innerText = nodeId;
+      document.getElementById('insp-desc').innerText = info.desc;
+      document.getElementById('insp-col-count').innerText = `${info.columns.length} columns`;
+
+      // Render columns
+      const colTbody = document.getElementById('insp-columns');
+      colTbody.innerHTML = info.columns.map(c => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="py-1.5 px-2.5 font-mono text-blue-400 font-medium">${c.name}</td>
+          <td class="py-1.5 px-2 font-mono text-emerald-400 text-[10px]">${c.type}</td>
+          <td class="py-1.5 px-2 text-right text-slate-400 text-[10px]">${c.attr}</td>
+        </tr>
+      `).join('');
+
+      // Render relations
+      const relDiv = document.getElementById('insp-relations');
+      relDiv.innerHTML = info.relations.map(r => `
+        <div class="p-1.5 rounded bg-slate-900 border border-slate-800 text-slate-300 font-mono text-[11px] flex items-center gap-2">
+          <i class="fa-solid fa-link text-blue-400 text-[10px]"></i> ${r}
+        </div>
+      `).join('');
+
+      // Render indexes
+      const idxDiv = document.getElementById('insp-indexes');
+      idxDiv.innerHTML = info.indexes.map(i => `<div>• ${i}</div>`).join('');
+
+      // Render code
+      document.getElementById('insp-code').innerText = info.code;
+    }
+
+    function switchView(viewName) {
+      const views = ['graph', 'erd', 'pipeline', 'docs'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const tab = document.getElementById(`tab-${v}`);
+        if (v === viewName) {
+          el.classList.remove('hidden');
+          tab.classList.remove('text-slate-400');
+          tab.classList.add('bg-blue-600', 'text-white', 'shadow');
+        } else {
+          el.classList.add('hidden');
+          tab.classList.remove('bg-blue-600', 'text-white', 'shadow');
+          tab.classList.add('text-slate-400');
+        }
+      });
+
+      if (viewName === 'graph' && network) {
+        setTimeout(() => network.fit(), 100);
+      }
+    }
+
+    function applyPreset(preset) {
+      if (!network || !nodesDataSet) return;
+
+      if (preset === 'all') {
+        nodesDataSet.forEach(node => nodesDataSet.update({ id: node.id, hidden: false }));
+        network.fit();
+        return;
+      }
+
+      const activeGroup = {
+        taxonomy: ['taxonomy'],
+        questions: ['questions'],
+        exams: ['exams'],
+        submissions: ['submissions', 'external'],
+        sources: ['sources', 'questions']
+      }[preset] || [];
+
+      nodesDataSet.forEach(node => {
+        const isMatch = activeGroup.includes(node.group);
+        nodesDataSet.update({ id: node.id, hidden: !isMatch });
+      });
+
+      network.fit();
+    }
+
+    function filterNodes() {
+      const q = document.getElementById('search-input').value.toLowerCase().trim();
+      if (!q) {
+        nodesDataSet.forEach(n => nodesDataSet.update({ id: n.id, hidden: false }));
+        return;
+      }
+
+      nodesDataSet.forEach(n => {
+        const match = n.id.toLowerCase().includes(q) || (n.desc && n.desc.toLowerCase().includes(q)) || (n.category && n.category.toLowerCase().includes(q));
+        nodesDataSet.update({ id: n.id, hidden: !match });
+      });
+    }
+
+    function resetGraphZoom() {
+      if (network) network.fit({ animation: { duration: 600, easingFunction: 'easeInOutQuad' } });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initNetwork();
+      mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "rules": {
+    "react-doctor/nextjs-no-client-side-redirect": "off"
+  },
+  "ignore": {
+    "files": [
+      "**/components/ui/**",
+      "**/src/components/ui/**",
+      "apps/api/**",
+      "apps/sdk/**",
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**"
+    ]
+  }
+}

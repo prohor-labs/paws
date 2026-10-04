@@ -1,0 +1,202 @@
+[
+  {
+    "id": "01a1021c-854e-7398-9f58-312ac2eca512",
+    "target_id": null,
+    "name": "বাংলা ১ম পত্র",
+    "slug": "bang_1",
+    "code": null,
+    "order_index": 9,
+    "chapter_count": 3,
+    "question_count": 383
+  },
+  {
+    "id": "01a1021c-854f-707d-8d64-fea74657909e",
+    "target_id": null,
+    "name": "বাংলা ২য় পত্র",
+    "slug": "bang_2",
+    "code": null,
+    "order_index": 10,
+    "chapter_count": 15,
+    "question_count": 1301
+  },
+  {
+    "id": "01a1021c-854f-707d-8d65-019381514c32",
+    "target_id": null,
+    "name": "English 1st Paper",
+    "slug": "eng_1",
+    "code": null,
+    "order_index": 11,
+    "chapter_count": 2,
+    "question_count": 0
+  },
+  {
+    "id": "01a1021c-854f-707d-8d65-078b6121f773",
+    "target_id": null,
+    "name": "English 2nd Paper",
+    "slug": "eng_2",
+    "code": null,
+    "order_index": 12,
+    "chapter_count": 2,
+    "question_count": 3
+  },
+  {
+    "id": "01a1021c-854f-707d-8d65-081d98bb4c1e",
+    "target_id": null,
+    "name": "সাধারণ জ্ঞান",
+    "slug": "gen",
+    "code": null,
+    "order_index": 14,
+    "chapter_count": 10,
+    "question_count": 1316
+  },
+  {
+    "id": "01a1021c-8550-75c8-bbc1-20e4e2ecbc92",
+    "target_id": null,
+    "name": "পরিসংখ্যান",
+    "slug": "odvYWoIl5E",
+    "code": null,
+    "order_index": 15,
+    "chapter_count": 2,
+    "question_count": 81
+  },
+  {
+    "id": "01a1021c-8550-75c8-bbc1-270f4854c968",
+    "target_id": null,
+    "name": "পদার্থবিজ্ঞান ১ম পত্র",
+    "slug": "phys_1",
+    "code": null,
+    "order_index": 1,
+    "chapter_count": 10,
+    "question_count": 444
+  },
+  {
+    "id": "01a1021c-8550-75c8-bbc1-2b2e8ec77f70",
+    "target_id": null,
+    "name": "পদার্থবিজ্ঞান ২য় পত্র",
+    "slug": "phys_2",
+    "code": null,
+    "order_index": 2,
+    "chapter_count": 11,
+    "question_count": 500
+  },
+  {
+    "id": "01a1021c-8550-75c8-bbc1-2eed97f70ee3",
+    "target_id": null,
+    "name": "কৃষিশিক্ষা",
+    "slug": "AFC7-zTQLw",
+    "code": null,
+    "order_index": 15,
+    "chapter_count": 2,
+    "question_count": 0
+  },
+  {
+    "id": "01a1021c-8551-731e-b967-1fa3be09cfb1",
+    "target_id": null,
+    "name": "রসায়ন ১ম পত্র",
+    "slug": "chem_1",
+    "code": null,
+    "order_index": 3,
+    "chapter_count": 5,
+    "question_count": 401
+  },
+  {
+    "id": "01a1021c-8551-731e-b967-23fb749406ef",
+    "target_id": null,
+    "name": "রসায়ন ২য় পত্র",
+    "slug": "chem_2",
+    "code": null,
+    "order_index": 4,
+    "chapter_count": 5,
+    "question_count": 464
+  },
+  {
+    "id": "01a1021c-8551-731e-b967-278803b6ad9e",
+    "target_id": null,
+    "name": "গার্হস্থ্য বিজ্ঞান",
+    "slug": "1n3Ctz-wRS",
+    "code": null,
+    "order_index": 15,
+    "chapter_count": 2,
+    "question_count": 0
+  },
+  {
+    "id": "01a1021c-8551-731e-b967-28b43a3bc549",
+    "target_id": null,
+    "name": "জীববিজ্ঞান ১ম পত্র (উদ্ভিদবিজ্ঞান)",
+    "slug": "bio_1",
+    "code": null,
+    "order_index": 7,
+    "chapter_count": 12,
+    "question_count": 386
+  },
+  {
+    "id": "01a1021c-8551-731e-b967-2f1b9b7cb2ee",
+    "target_id": null,
+    "name": "জীববিজ্ঞান ২য় পত্র (প্রাণিবিজ্ঞান)",
+    "slug": "bio_2",
+    "code": null,
+    "order_index": 8,
+    "chapter_count": 12,
+    "question_count": 282
+  },
+  {
+    "id": "01a1021c-8551-731e-b967-304138cbe6db",
+    "target_id": null,
+    "name": "উচ্চতর গণিত ১ম পত্র",
+    "slug": "math_1",
+    "code": null,
+    "order_index": 5,
+    "chapter_count": 10,
+    "question_count": 440
+  },
+  {
+    "id": "01a1021c-8552-71d9-b732-9194aeecd1ce",
+    "target_id": null,
+    "name": "উচ্চতর গণিত ২য় পত্র",
+    "slug": "math_2",
+    "code": null,
+    "order_index": 6,
+    "chapter_count": 10,
+    "question_count": 310
+  },
+  {
+    "id": "01a1021c-8552-71d9-b732-94aee55c7fdf",
+    "target_id": null,
+    "name": "মনোবিজ্ঞান",
+    "slug": "CsYRG1aQ-g",
+    "code": null,
+    "order_index": 15,
+    "chapter_count": 2,
+    "question_count": 0
+  },
+  {
+    "id": "01a1021c-8552-71d9-b732-99a2736fd16c",
+    "target_id": null,
+    "name": "তথ্য ও যোগাযোগ প্রযুক্তি (ICT)",
+    "slug": "ict",
+    "code": null,
+    "order_index": 13,
+    "chapter_count": 6,
+    "question_count": 45
+  },
+  {
+    "id": "01a1021c-8552-71d9-b732-9c5146b9b667",
+    "target_id": null,
+    "name": "মানসিক দক্ষতা",
+    "slug": "KL5eoLHIFq",
+    "code": null,
+    "order_index": 15,
+    "chapter_count": 12,
+    "question_count": 0
+  },
+  {
+    "id": "01a1021c-8552-71d9-b732-a375b9513eb8",
+    "target_id": null,
+    "name": "IBA",
+    "slug": "eECagaOiXe",
+    "code": null,
+    "order_index": 15,
+    "chapter_count": 9,
+    "question_count": 0
+  }
+]

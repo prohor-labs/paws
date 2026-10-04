@@ -1,0 +1,52 @@
+[
+  {
+    "id": "01a1020e-d552-73b9-8a35-58b607813068",
+    "group": "academic",
+    "name": "HSC Science (উচ্চ মাধ্যমিক বিজ্ঞান)",
+    "slug": "hsc-science",
+    "order_index": 1,
+    "subject_count": 0,
+    "question_count": 62,
+    "created_at": "2026-10-03T13:58:08.581Z"
+  },
+  {
+    "id": "01a1020e-dc00-70a5-a95e-072e457b70cc",
+    "group": "academic",
+    "name": "HSC General (বাধ্যতামূলক ও সাধারণ বিষয়)",
+    "slug": "hsc-general",
+    "order_index": 2,
+    "subject_count": 0,
+    "question_count": 0,
+    "created_at": "2026-10-03T13:58:08.581Z"
+  },
+  {
+    "id": "01a1020e-e210-7011-924f-dfecab866b18",
+    "group": "admission",
+    "name": "Engineering (প্রকৌশল ভর্তি প্রস্তুতি)",
+    "slug": "engineering",
+    "order_index": 3,
+    "subject_count": 0,
+    "question_count": 0,
+    "created_at": "2026-10-03T13:58:08.581Z"
+  },
+  {
+    "id": "01a1020e-e80b-7674-bd74-736f038464ad",
+    "group": "admission",
+    "name": "Medical (মেডিকেল ও ডেন্টাল ভর্তি প্রস্তুতি)",
+    "slug": "medical",
+    "order_index": 4,
+    "subject_count": 0,
+    "question_count": 0,
+    "created_at": "2026-10-03T13:58:08.581Z"
+  },
+  {
+    "id": "01a1020e-ee0c-76e6-b2c6-63b46c86fd18",
+    "group": "admission",
+    "name": "Varsity & General (বিশ্ববিদ্যালয় ও সাধারণ জ্ঞান)",
+    "slug": "general",
+    "order_index": 5,
+    "subject_count": 0,
+    "question_count": 10604,
+    "created_at": "2026-10-03T13:58:08.581Z"
+  }
+]

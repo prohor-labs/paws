@@ -1,0 +1,21 @@
+DROP TABLE IF EXISTS "custom_exam_written_submissions" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "custom_exam_questions" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "custom_exam_submissions" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "custom_exams" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "exam_questions" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "exam_sections" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "exams" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "question_chapters" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "question_options" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "question_parts" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "question_sources" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "question_topics" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "questions" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "chapters" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "subjects" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "programs" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "institutions" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "sources" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "topics" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "users" CASCADE;--> statement-breakpoint
+DROP TYPE IF EXISTS "qb_difficulty" CASCADE;

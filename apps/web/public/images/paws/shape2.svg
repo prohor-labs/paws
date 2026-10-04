@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <radialGradient id="g2" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.95"/>
+      <stop offset="60%" stop-color="#7e22ce" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#3b0764" stop-opacity="0.25"/>
+    </radialGradient>
+    <filter id="f2" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <polygon points="60,16 98,48 84,98 36,98 22,48" fill="url(#g2)" filter="url(#f2)"/>
+  <polygon points="60,16 98,48 60,65" fill="#ffffff" fill-opacity="0.35"/>
+</svg>
