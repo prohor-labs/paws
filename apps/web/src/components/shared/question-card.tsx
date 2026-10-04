@@ -388,15 +388,18 @@ function QuestionAnswers({
         />
       )}
 
-      {isWritten && (
-        <WrittenAnswerUploader
-          questionId={question.id}
-          writtenPages={writtenPages}
-          onWrittenPagesChange={onWrittenPagesChange}
-          evaluatedScripts={evaluatedScripts}
-          interactiveMode={interactiveMode}
-        />
-      )}
+      {isWritten &&
+        (interactiveMode === "live_exam" ||
+          (writtenPages && writtenPages.length > 0) ||
+          (evaluatedScripts && evaluatedScripts.length > 0)) && (
+          <WrittenAnswerUploader
+            questionId={question.id}
+            writtenPages={writtenPages}
+            onWrittenPagesChange={onWrittenPagesChange}
+            evaluatedScripts={evaluatedScripts}
+            interactiveMode={interactiveMode}
+          />
+        )}
 
       {isRevealed && parts.length === 0 && question.explanation && (
         <QuestionExplanation explanation={question.explanation} title="সমাধান / ব্যাখ্যা" />
