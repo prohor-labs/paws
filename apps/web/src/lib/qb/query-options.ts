@@ -78,6 +78,8 @@ async function fetchQBChapter(
   const query: Record<string, string> = {};
   if (params?.page) query.page = String(params.page);
   if (params?.limit) query.limit = String(params.limit);
+  if (params?.targetSlug) query.targetSlug = params.targetSlug;
+  if (params?.sourceType) query.sourceType = params.sourceType;
   if (params?.topicId && params.topicId !== "all") query.topicId = params.topicId;
   if (params?.source && params.source !== "all") query.source = params.source;
   if (params?.sourceId) query.sourceId = params.sourceId;

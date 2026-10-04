@@ -617,6 +617,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         examSheetSlug: z.string().optional(),
         examSheet: z.string().optional(),
         subjectSlug: z.string().optional(),
+        targetSlug: z.string().optional(),
         sourceType: z
           .enum([
             "board",
@@ -647,6 +648,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         examSheetSlug,
         examSheet,
         subjectSlug: querySubjectSlug,
+        targetSlug,
         qType,
       } = c.req.valid("query");
 
@@ -748,7 +750,8 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         "hsc-science": "board",
         "hsc-general": "board",
       };
-      const targetSourceType = target?.slug ? targetSourceTypeMap[target.slug] : undefined;
+      const effectiveTargetSlug = targetSlug || target?.slug;
+      const targetSourceType = effectiveTargetSlug ? targetSourceTypeMap[effectiveTargetSlug] : undefined;
 
       const [allTopics, allChapters, allSubjects, sourcesList, examSheetsList, chapterTopicCounts] = await Promise.all([
         db.select().from(qbTopics).orderBy(asc(qbTopics.orderIndex)),
@@ -1111,6 +1114,8 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         effectiveTopicId ||
           qType ||
           sourceType ||
+          targetSlug ||
+          targetSourceType ||
           effectiveSource ||
           effectiveExamSheet ||
           querySubjectSlug ||

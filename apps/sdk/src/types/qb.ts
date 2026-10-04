@@ -181,6 +181,7 @@ export interface QBPagination {
 export interface QBChapterQueryParams {
   page?: number;
   limit?: number;
+  targetSlug?: string;
   source?: string;
   sourceId?: string;
   sourceSlug?: string;

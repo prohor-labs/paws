@@ -52,12 +52,13 @@ export default function QBSubSlugPage() {
     () => ({
       page: currentPage,
       limit: 100,
+      targetSlug,
       examSheet: matchedExamSheet ? (matchedExamSheet.slug || matchedExamSheet.id) : undefined,
       subjectSlug: selectedSubjectSlug !== "all" ? selectedSubjectSlug : undefined,
       topicId: selectedTopicId !== "all" ? selectedTopicId : undefined,
       qType: qTypeFilter !== "all" ? qTypeFilter : undefined,
     }),
-    [currentPage, matchedExamSheet, selectedSubjectSlug, selectedTopicId, qTypeFilter],
+    [currentPage, targetSlug, matchedExamSheet, selectedSubjectSlug, selectedTopicId, qTypeFilter],
   );
 
   const { data, isLoading, error } = useQBChapterDetail(
