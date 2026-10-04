@@ -8,7 +8,7 @@ export function TrustStrip() {
         শীর্ষস্থানীয় শিক্ষার্থীদের পছন্দের প্ল্যাটফর্ম
       </p>
       <ul
-        className="grid w-full grid-cols-5 place-items-center items-center gap-x-4 gap-y-5 opacity-80 sm:gap-x-6 sm:gap-y-6"
+        className="flex items-center justify-center gap-4 opacity-80"
         aria-label="Customer logos"
       >
         {CUSTOMER_LOGOS.map((item) => (
