@@ -109,7 +109,9 @@ export function QbItemContent() {
 
   const handleConfirmReadExam = (exam: ExamSet) => {
     setIsDialogOpen(false);
-    router.push(`/qb/${target?.slug || targetSlug}/${container?.slug || containerSlug}/${item?.slug || itemSlug}/${exam.slug || exam.id}`);
+    router.push(
+      `/qb/${target?.slug || targetSlug}/${container?.slug || containerSlug}/${item?.slug || itemSlug}/${exam.slug || exam.id}`,
+    );
   };
 
   if (isLoading) return <PageLoading />;
@@ -133,7 +135,10 @@ export function QbItemContent() {
           items={[
             { label: "প্রশ্নব্যাংক", href: "/qb" },
             { label: target.name, href: `/qb/${target.slug}` },
-            { label: container.name, href: `/qb/${target.slug}/${container.slug}` },
+            {
+              label: container.name,
+              href: `/qb/${target.slug}/${container.slug}`,
+            },
             { label: item.name },
           ]}
         />
@@ -222,7 +227,9 @@ export function QbItemContent() {
                   title={ch.name}
                   subtitle={item.name}
                   category={subject?.name || container.name}
-                  badge={ch.questionCount ? `${toBengaliNumber(ch.questionCount)} টি প্রশ্ন` : undefined}
+                  badge={
+                    ch.questionCount ? `${toBengaliNumber(ch.questionCount)} টি প্রশ্ন` : undefined
+                  }
                   eventLabel={`Chapter_${ch.name}`}
                 />
               ))}

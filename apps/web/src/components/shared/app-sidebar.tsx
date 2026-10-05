@@ -112,7 +112,9 @@ export function MobileNav({
   return (
     <div
       className="block md:hidden fixed bottom-0 inset-x-0 z-50 px-3 pointer-events-none"
-      style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0.75rem))" }}
+      style={{
+        paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0.75rem))",
+      }}
     >
       <nav
         className="w-full bg-card/95 backdrop-blur-xl border border-border shadow-md rounded-2xl flex items-stretch px-1 pointer-events-auto max-w-md mx-auto"

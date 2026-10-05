@@ -26,7 +26,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     const isIos = navigator.userAgent.match(/ipad|iphone/i);
     const textarea = document.createElement("textarea");
     textarea.value = text;
-    
+
     // Prevent zooming and scrolling on mobile
     textarea.style.fontSize = "12pt";
     textarea.style.border = "0";

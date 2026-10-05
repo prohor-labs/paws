@@ -1,14 +1,14 @@
+import { eq, sql } from "drizzle-orm";
+import { v7 as uuidv7 } from "uuid";
 import { db } from "../src/db";
 import {
-  qbSubjects,
   qbChapters,
-  qbTopics,
-  qbQuestionChapters,
   qbContainerItems,
+  qbQuestionChapters,
   qbQuestions,
+  qbSubjects,
+  qbTopics,
 } from "../src/db/schema";
-import { v7 as uuidv7 } from "uuid";
-import { eq, sql } from "drizzle-orm";
 import { recalculateAllCounts } from "../src/services/qb-count.service";
 
 const CHAPTERS_CONFIG = [
@@ -17,28 +17,33 @@ const CHAPTERS_CONFIG = [
     slug: "parts-of-speech",
     orderIndex: 1,
     matcher: (text: string) =>
-      /noun|pronoun|adjective|adverb|conjunction|interjection|determiner|part of speech|abstract noun|collective noun/i.test(text),
+      /noun|pronoun|adjective|adverb|conjunction|interjection|determiner|part of speech|abstract noun|collective noun/i.test(
+        text,
+      ),
   },
   {
     name: "Preposition & Appropriate Preposition",
     slug: "prepositions",
     orderIndex: 2,
     matcher: (text: string) =>
-      /preposition|appropriate preposition|accustomed to|abide by|absorb in|adhere to|agree with|afraid of/i.test(text),
+      /preposition|appropriate preposition|accustomed to|abide by|absorb in|adhere to|agree with|afraid of/i.test(
+        text,
+      ),
   },
   {
     name: "Synonyms & Antonyms",
     slug: "synonyms-antonyms",
     orderIndex: 3,
-    matcher: (text: string) =>
-      /synonym|antonym|same meaning|opposite meaning/i.test(text),
+    matcher: (text: string) => /synonym|antonym|same meaning|opposite meaning/i.test(text),
   },
   {
     name: "Right Form of Verbs, Tenses & Conditionals",
     slug: "verbs-tenses-conditionals",
     orderIndex: 4,
     matcher: (text: string) =>
-      /right form of verb|subject-verb agreement|tenses|conditional|subjunctive|gerund|participle|infinitive/i.test(text),
+      /right form of verb|subject-verb agreement|tenses|conditional|subjunctive|gerund|participle|infinitive/i.test(
+        text,
+      ),
   },
   {
     name: "Voice Change & Narration",
@@ -52,14 +57,18 @@ const CHAPTERS_CONFIG = [
     slug: "idioms-phrases-clauses",
     orderIndex: 6,
     matcher: (text: string) =>
-      /idiom|phrase|clause|subordinate clause|principal clause|call it a day|apple of eye|at a loss/i.test(text),
+      /idiom|phrase|clause|subordinate clause|principal clause|call it a day|apple of eye|at a loss/i.test(
+        text,
+      ),
   },
   {
     name: "Sentence Correction & Transformation",
     slug: "sentence-correction",
     orderIndex: 7,
     matcher: (text: string) =>
-      /correct sentence|incorrect sentence|grammatically correct|transformation|affirmative|negative|interrogative|complex|compound|simple sentence/i.test(text),
+      /correct sentence|incorrect sentence|grammatically correct|transformation|affirmative|negative|interrogative|complex|compound|simple sentence/i.test(
+        text,
+      ),
   },
   {
     name: "Spelling & Vocabulary Usage",
@@ -140,7 +149,9 @@ async function setupMedicalEnglish() {
     let [chapter] = await db
       .select()
       .from(qbChapters)
-      .where(sql`${qbChapters.subjectId} = ${subject.id} AND ${qbChapters.slug} = ${chConfig.slug}`);
+      .where(
+        sql`${qbChapters.subjectId} = ${subject.id} AND ${qbChapters.slug} = ${chConfig.slug}`,
+      );
 
     if (!chapter) {
       const newChId = uuidv7();
@@ -210,7 +221,9 @@ async function setupMedicalEnglish() {
     linkedCount++;
   }
 
-  console.log(`Successfully mapped and linked ${linkedCount} English questions to Medical English chapters!`);
+  console.log(
+    `Successfully mapped and linked ${linkedCount} English questions to Medical English chapters!`,
+  );
 
   console.log("\nRecalculating all question & exam counts across database...");
   await recalculateAllCounts();

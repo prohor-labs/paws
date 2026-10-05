@@ -43,7 +43,11 @@ export function createApiClient<TAppType extends HcApp>(
   return {
     baseUrl,
     fetch: apiFetch,
-    rpc: createRpcClient<TAppType>({ baseUrl, headers: config.headers, fetch: apiFetch }),
+    rpc: createRpcClient<TAppType>({
+      baseUrl,
+      headers: config.headers,
+      fetch: apiFetch,
+    }),
     health: {
       check: async () => {
         const response = await withCredentialsFetch(apiFetch, `${baseUrl}/api/v1/health`);

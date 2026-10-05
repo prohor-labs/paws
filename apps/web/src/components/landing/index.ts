@@ -2,7 +2,6 @@ export * from "./landing-faq";
 export * from "./landing-footer";
 export * from "./landing-header";
 export * from "./landing-hero";
-export * from "./landing-join";
 export * from "./landing-roadmap";
 export * from "./landing-stats";
 export * from "./landing-story";

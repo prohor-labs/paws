@@ -1,22 +1,22 @@
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { eq } from "drizzle-orm";
+import { v7 as uuidv7 } from "uuid";
 import { db } from "../src/db";
 import {
-  qbExamSheets,
-  qbExamSheetQuestions,
-  qbQuestions,
-  qbQuestionOptions,
-  qbQuestionParts,
-  qbQuestionChapters,
-  qbSources,
-  qbQuestionSources,
   qbChapterSources,
-  qbTopics,
   qbChapters,
   qbContainerItems,
+  qbExamSheetQuestions,
+  qbExamSheets,
+  qbQuestionChapters,
+  qbQuestionOptions,
+  qbQuestionParts,
+  qbQuestionSources,
+  qbQuestions,
+  qbSources,
+  qbTopics,
 } from "../src/db/schema";
-import { v7 as uuidv7 } from "uuid";
-import { eq } from "drizzle-orm";
 import { recalculateAllCounts } from "../src/services/qb-count.service";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const CHORCHA_TOKEN = process.env.CHORCHA_TOKEN;
 const S3_ENDPOINT = process.env.S3_ENDPOINT || "https://s3.prohor.dev";
@@ -24,7 +24,10 @@ const S3_BUCKET = process.env.S3_BUCKET || "study";
 const S3_REGION = process.env.S3_REGION || "us-east-1";
 const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || "";
 const S3_SECRET_KEY = process.env.S3_SECRET_KEY || "";
-const S3_PUBLIC_URL = (process.env.S3_PUBLIC_URL || "https://study.storage.prohor.dev").replace(/\/+$/, "");
+const S3_PUBLIC_URL = (process.env.S3_PUBLIC_URL || "https://study.storage.prohor.dev").replace(
+  /\/+$/,
+  "",
+);
 
 const s3Client = new S3Client({
   endpoint: S3_ENDPOINT,
@@ -97,7 +100,7 @@ async function migrateImagesInText(html: string | null | undefined): Promise<str
             Body: buffer,
             ContentType: contentType,
             CacheControl: "public, max-age=31536000, immutable",
-          })
+          }),
         );
 
         imageCache.set(fullUrl, s3Url);
@@ -230,7 +233,9 @@ async function scrapeSeries(config: SeriesConfig) {
         allQuestions.push(q);
       }
 
-      console.log(`  Fetched page ${page}: ${questions.length} questions (Accumulated: ${allQuestions.length})`);
+      console.log(
+        `  Fetched page ${page}: ${questions.length} questions (Accumulated: ${allQuestions.length})`,
+      );
       page++;
       await new Promise((r) => setTimeout(r, 100)); // rate limit safety
     } catch (err) {
@@ -330,10 +335,26 @@ async function scrapeSeries(config: SeriesConfig) {
       // Insert Options
       if (qType === "mcq") {
         const optTexts = [
-          { key: "A", text: await migrateImagesInText(q._decryptedA), orderIndex: 1 },
-          { key: "B", text: await migrateImagesInText(q._decryptedB), orderIndex: 2 },
-          { key: "C", text: await migrateImagesInText(q._decryptedC), orderIndex: 3 },
-          { key: "D", text: await migrateImagesInText(q._decryptedD), orderIndex: 4 },
+          {
+            key: "A",
+            text: await migrateImagesInText(q._decryptedA),
+            orderIndex: 1,
+          },
+          {
+            key: "B",
+            text: await migrateImagesInText(q._decryptedB),
+            orderIndex: 2,
+          },
+          {
+            key: "C",
+            text: await migrateImagesInText(q._decryptedC),
+            orderIndex: 3,
+          },
+          {
+            key: "D",
+            text: await migrateImagesInText(q._decryptedD),
+            orderIndex: 4,
+          },
         ].filter((o) => o.text && o.text.trim().length > 0);
 
         for (const opt of optTexts) {
@@ -368,8 +389,10 @@ async function scrapeSeries(config: SeriesConfig) {
       // Link Sources / Tags
       const rawTags: string[] = [];
       if (q.tags) {
-        if (typeof q.tags === "string") rawTags.push(...q.tags.split(",").map((s: string) => s.trim()));
-        else if (Array.isArray(q.tags)) rawTags.push(...q.tags.map((s: unknown) => String(s).trim()));
+        if (typeof q.tags === "string")
+          rawTags.push(...q.tags.split(",").map((s: string) => s.trim()));
+        else if (Array.isArray(q.tags))
+          rawTags.push(...q.tags.map((s: unknown) => String(s).trim()));
       }
       if (q.tag) rawTags.push(String(q.tag).trim());
 
@@ -379,7 +402,8 @@ async function scrapeSeries(config: SeriesConfig) {
         let source = sourceSlugMap.get(tagSlug);
         if (!source) {
           const yearMatch = tagStr.match(/\d{2,4}/)?.[0] || "2024";
-          const parsedYear = yearMatch.length === 2 ? 2000 + parseInt(yearMatch, 10) : parseInt(yearMatch, 10);
+          const parsedYear =
+            yearMatch.length === 2 ? 2000 + parseInt(yearMatch, 10) : parseInt(yearMatch, 10);
 
           [source] = await db
             .insert(qbSources)

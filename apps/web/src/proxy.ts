@@ -69,7 +69,7 @@ export function proxy(request: NextRequest) {
             "Content-Type": "text/plain; charset=utf-8",
             "X-Robots-Tag": "noindex, nofollow, noai, noimageai",
           },
-        }
+        },
       );
     }
   }

@@ -30,7 +30,7 @@ async function proxyHandler(request: NextRequest) {
 
     const responseHeaders = new Headers(response.headers);
     const rawSetCookies = response.headers.getSetCookie ? response.headers.getSetCookie() : [];
-    
+
     const nextResponse = new NextResponse(response.body, {
       status: response.status,
       statusText: response.statusText,
@@ -55,7 +55,7 @@ async function proxyHandler(request: NextRequest) {
           message: "Failed to communicate with backend API",
         },
       },
-      { status: 502 }
+      { status: 502 },
     );
   }
 }

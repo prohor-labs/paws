@@ -21,7 +21,6 @@ import {
   Leaf,
   Lightbulb,
   Pulse,
-  ShieldCheck,
 } from "@/components/icons";
 import {
   Accordion,
@@ -36,7 +35,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import type { CustomExamSourceOption, CustomExamSubject } from "@/lib/consts/custom-exam";
+import type { CustomExamSubject } from "@/lib/consts/custom-exam";
 import { cn, toBengaliNumber } from "@/lib/utils";
 
 export type QTypeSelection = "mcq" | "written" | "mixed";
@@ -249,9 +248,7 @@ export function CustomExamStep1({
     const q = query.toLowerCase().trim();
     if (!q) return subjects;
     return subjects.filter(
-      (sub) =>
-        sub.name.toLowerCase().includes(q) ||
-        (sub.targetName && sub.targetName.toLowerCase().includes(q)),
+      (sub) => sub.name.toLowerCase().includes(q) || sub.targetName?.toLowerCase().includes(q),
     );
   }, [subjects, query]);
 
@@ -260,9 +257,7 @@ export function CustomExamStep1({
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-foreground">
-              বিষয় নির্বাচন করো
-            </h2>
+            <h2 className="text-base sm:text-lg font-bold text-foreground">বিষয় নির্বাচন করো</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               যে যে বিষয়ে পরীক্ষা দিতে চাও সেগুলো সিলেক্ট করো
             </p>
@@ -427,7 +422,9 @@ export function CustomExamStep2({
         className="flex flex-col gap-3 mt-1"
       >
         {chapterGroups.map((group) => {
-          const groupSelectedCount = group.chapters.filter((c) => selectedChapterSet.has(c.id)).length;
+          const groupSelectedCount = group.chapters.filter((c) =>
+            selectedChapterSet.has(c.id),
+          ).length;
           const isGroupAllSelected =
             group.chapters.length > 0 && groupSelectedCount === group.chapters.length;
 
@@ -493,11 +490,12 @@ export function CustomExamStep2({
                                 : "border-border/60 bg-background",
                             )}
                           >
-                            <div
-                              onClick={() => onToggleChapter(chapter.id)}
-                              className="px-3.5 py-2.5 flex items-center justify-between gap-2 cursor-pointer hover:bg-muted/30"
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                            <div className="w-full text-left px-3.5 py-2.5 flex items-center justify-between gap-2 hover:bg-muted/30">
+                              <button
+                                type="button"
+                                onClick={() => onToggleChapter(chapter.id)}
+                                className="flex items-center gap-2.5 min-w-0 pr-2 cursor-pointer bg-transparent border-none text-left flex-1"
+                              >
                                 <Checkbox
                                   checked={isChapterChecked}
                                   onCheckedChange={() => onToggleChapter(chapter.id)}
@@ -507,7 +505,7 @@ export function CustomExamStep2({
                                 <span className="text-xs sm:text-sm font-semibold text-foreground truncate">
                                   {chapter.name}
                                 </span>
-                              </div>
+                              </button>
 
                               <div className="flex items-center gap-2 shrink-0">
                                 <span className="text-[11px] text-muted-foreground font-mono">
@@ -517,8 +515,10 @@ export function CustomExamStep2({
                                   <button
                                     type="button"
                                     onClick={(e) => toggleTopicExpand(chapter.id, e)}
-                                    className="p-1 rounded-md hover:bg-muted/60 text-muted-foreground hover:text-foreground text-[11px] flex items-center gap-0.5"
+                                    className="p-1 rounded-md hover:bg-muted/60 text-muted-foreground hover:text-foreground text-[11px] flex items-center gap-0.5 cursor-pointer border-none bg-transparent"
                                     title="টপিক দেখুন"
+                                    aria-expanded={isTopicsOpen}
+                                    aria-label={`${chapter.name} টপিক দেখুন`}
                                   >
                                     <span>টপিক</span>
                                     <ChevronDown
@@ -538,10 +538,11 @@ export function CustomExamStep2({
                                   const isTopicChecked =
                                     isChapterChecked || selectedTopicSet.has(topic.id);
                                   return (
-                                    <div
+                                    <button
+                                      type="button"
                                       key={topic.id}
                                       onClick={() => onToggleTopic(topic.id, chapter.id)}
-                                      className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg hover:bg-muted/40 cursor-pointer text-xs"
+                                      className="w-full text-left flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg hover:bg-muted/40 cursor-pointer text-xs border-none bg-transparent"
                                     >
                                       <div className="flex items-center gap-2 min-w-0">
                                         <Checkbox
@@ -559,7 +560,7 @@ export function CustomExamStep2({
                                       <span className="text-[10px] text-muted-foreground shrink-0">
                                         {toBengaliNumber(topic.questionCount)} Q
                                       </span>
-                                    </div>
+                                    </button>
                                   );
                                 })}
                               </div>
@@ -627,7 +628,8 @@ export function CustomExamStepStandard({
   onBack,
   onNext,
 }: CustomExamStepStandardProps) {
-  const activeStandardObj = EXAM_STANDARDS.find((s) => s.id === selectedStandard) || EXAM_STANDARDS[0];
+  const activeStandardObj =
+    EXAM_STANDARDS.find((s) => s.id === selectedStandard) || EXAM_STANDARDS[0];
 
   return (
     <div className="flex flex-col gap-4">
@@ -661,14 +663,21 @@ export function CustomExamStepStandard({
                   <div
                     className={cn(
                       "size-10 rounded-xl flex items-center justify-center shrink-0 transition-colors mt-0.5",
-                      isSelected ? "bg-primary/20 text-primary" : "bg-muted/80 text-muted-foreground group-hover:text-primary",
+                      isSelected
+                        ? "bg-primary/20 text-primary"
+                        : "bg-muted/80 text-muted-foreground group-hover:text-primary",
                     )}
                   >
                     <Icon className="size-5" />
                   </div>
                   <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-2">
-                      <h4 className={cn("text-xs sm:text-sm font-bold truncate", isSelected ? "text-primary" : "text-foreground")}>
+                      <h4
+                        className={cn(
+                          "text-xs sm:text-sm font-bold truncate",
+                          isSelected ? "text-primary" : "text-foreground",
+                        )}
+                      >
                         {std.title}
                       </h4>
                       {std.badgeText && (
@@ -1000,7 +1009,8 @@ export function CustomExamStep4({
               <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between text-xs">
                 <span className="font-semibold text-foreground">মোট মিশ্র প্রশ্ন:</span>
                 <span className="font-bold text-primary">
-                  {toBengaliNumber(mcqCount + writtenCount)} টি ({toBengaliNumber(mcqCount)} MCQ + {toBengaliNumber(writtenCount)} CQ)
+                  {toBengaliNumber(mcqCount + writtenCount)} টি ({toBengaliNumber(mcqCount)} MCQ +{" "}
+                  {toBengaliNumber(writtenCount)} CQ)
                 </span>
               </div>
             </CardContent>
@@ -1021,7 +1031,9 @@ export function CustomExamStep4({
                   max={180}
                   value={durationMinutes}
                   onChange={(e) =>
-                    onDurationMinutesChange(Math.max(1, Math.min(180, Number(e.target.value) || 20)))
+                    onDurationMinutesChange(
+                      Math.max(1, Math.min(180, Number(e.target.value) || 20)),
+                    )
                   }
                   className="w-full rounded-xl pr-8 h-9 font-bold text-center bg-muted/20"
                 />
@@ -1056,7 +1068,9 @@ export function CustomExamStep4({
             <div className="flex flex-col">
               <span className="text-xs sm:text-sm font-bold text-foreground">নেগেটিভ মার্কিং</span>
               <span className="text-[11px] text-muted-foreground mt-0.5">
-                {isNegativeMarking ? "চালু (প্রতি ভুল উত্তরে ০.২৫ মার্ক কাটা যাবে)" : "বন্ধ (ভুল উত্তরের জন্য কোনো মার্ক কাটা যাবে না)"}
+                {isNegativeMarking
+                  ? "চালু (প্রতি ভুল উত্তরে ০.২৫ মার্ক কাটা যাবে)"
+                  : "বন্ধ (ভুল উত্তরের জন্য কোনো মার্ক কাটা যাবে না)"}
               </span>
             </div>
             <Switch
@@ -1072,7 +1086,8 @@ export function CustomExamStep4({
           <AccordionItem value="selected-summary" className="border-none">
             <AccordionTrigger className="px-4 py-3.5 text-xs sm:text-sm font-medium hover:no-underline">
               <span>
-                নির্বাচিত বিবরণ দেখুন ({standardObj.title} · {toBengaliNumber(selectedChapters.length)} টি অধ্যায়)
+                নির্বাচিত বিবরণ দেখুন ({standardObj.title} · {toBengaliNumber(selectedChapters.length)}{" "}
+                টি অধ্যায়)
               </span>
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-4">
@@ -1107,7 +1122,8 @@ export function CustomExamStep4({
         <div className="pointer-events-auto w-full max-w-3xl flex items-center justify-between gap-2 sm:gap-4 p-2.5 sm:p-3.5 rounded-xl sm:rounded-full border border-border/80 bg-card/95 backdrop-blur-xl shadow-xl ring-1 ring-black/5 dark:ring-white/10">
           <div className="flex flex-col min-w-0 pl-1 sm:pl-2">
             <span className="text-xs sm:text-sm font-bold text-foreground truncate">
-              {toBengaliNumber(totalEffectiveQuestions)} টি প্রশ্ন · {toBengaliNumber(durationMinutes)} মিনিট
+              {toBengaliNumber(totalEffectiveQuestions)} টি প্রশ্ন ·{" "}
+              {toBengaliNumber(durationMinutes)} মিনিট
             </span>
             <span className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
               {standardObj.title} {isNegativeMarking ? "• নেগেটিভ ০.২৫" : ""}

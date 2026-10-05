@@ -8,8 +8,7 @@ const nextConfig: NextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   compiler: {
-    removeConsole:
-      process.env.NODE_ENV === "production" ? { exclude: ["error"] } : false,
+    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error"] } : false,
   },
   images: {
     formats: ["image/avif", "image/webp"],
@@ -37,7 +36,27 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "*.neon.tech",
+        hostname: "i.ytimg.com",
+      },
+      {
+        protocol: "https",
+        hostname: "img.youtube.com",
+      },
+      {
+        protocol: "https",
+        hostname: "yt3.ggpht.com",
+      },
+      {
+        protocol: "https",
+        hostname: "yt3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
       },
     ],
   },
@@ -89,8 +108,14 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy", value: "camera=(self), geolocation=(), microphone=()" },
-          { key: "X-Robots-Tag", value: "noai, noimageai, noimageindex, nosnippet" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(self), geolocation=(), microphone=()",
+          },
+          {
+            key: "X-Robots-Tag",
+            value: "noai, noimageai, noimageindex, nosnippet",
+          },
           {
             key: "X-Legal-Protection",
             value:

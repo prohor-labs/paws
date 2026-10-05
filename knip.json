@@ -1,20 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignore": ["ecosystem.config.cjs"],
   "workspaces": {
     "apps/api": {
-      "entry": [
-        "src/index.ts",
-        "src/db/flush.ts",
-        "src/db/seed-qb.ts",
-        "src/db/clear-qb.ts",
-        "src/db/migrate-qb.ts",
-        "src/db/migrate-container-category.ts",
-        "src/db/migrate-topics-hierarchy.ts",
-        "src/scripts/**/*.ts"
-      ],
-      "ignore": [
-        "src/db/**"
-      ],
+      "entry": ["src/index.ts"],
       "project": ["src/**/*.ts"]
     },
     "apps/web": {

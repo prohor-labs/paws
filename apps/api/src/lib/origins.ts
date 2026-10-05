@@ -46,4 +46,3 @@ export function isTrustedOrigin(origin: string | undefined): boolean {
     return false;
   }
 }
-

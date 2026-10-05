@@ -1,30 +1,35 @@
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { eq, inArray } from "drizzle-orm";
+import { v7 as uuidv7 } from "uuid";
 import { db } from "../src/db";
 import {
-  qbExamSheets,
-  qbExamSheetQuestions,
-  qbQuestions,
-  qbQuestionOptions,
-  qbQuestionParts,
-  qbQuestionChapters,
-  qbSources,
-  qbQuestionSources,
   qbChapterSources,
-  qbTopics,
   qbChapters,
   qbContainerItems,
+  qbExamSheetQuestions,
+  qbExamSheets,
+  qbQuestionChapters,
+  qbQuestionOptions,
+  qbQuestionParts,
+  qbQuestionSources,
+  qbQuestions,
+  qbSources,
+  qbTopics,
 } from "../src/db/schema";
-import { v7 as uuidv7 } from "uuid";
-import { eq, inArray } from "drizzle-orm";
 import { recalculateAllCounts } from "../src/services/qb-count.service";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const CHORCHA_TOKEN = process.env.CHORCHA_TOKEN;
-const S3_ENDPOINT = process.env.AWS_ENDPOINT_URL_S3 || process.env.AWS_ENDPOINT || "https://s3.prohor.dev";
+const S3_ENDPOINT =
+  process.env.AWS_ENDPOINT_URL_S3 || process.env.AWS_ENDPOINT || "https://s3.prohor.dev";
 const S3_BUCKET = process.env.S3_BUCKET_NAME || process.env.AWS_BUCKET_NAME || "study";
 const S3_REGION = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "garage";
 const S3_ACCESS_KEY = process.env.AWS_ACCESS_KEY_ID || process.env.S3_ACCESS_KEY || "";
 const S3_SECRET_KEY = process.env.AWS_SECRET_ACCESS_KEY || process.env.S3_SECRET_KEY || "";
-const S3_PUBLIC_URL = (process.env.AWS_PUBLIC_URL || process.env.S3_BUCKET_URL || "https://study.storage.prohor.dev").replace(/\/+$/, "");
+const S3_PUBLIC_URL = (
+  process.env.AWS_PUBLIC_URL ||
+  process.env.S3_BUCKET_URL ||
+  "https://study.storage.prohor.dev"
+).replace(/\/+$/, "");
 
 const s3Client = new S3Client({
   endpoint: S3_ENDPOINT,
@@ -48,8 +53,13 @@ function decodeChorcha(text: string | null | undefined, key: string | null): str
 
 function isDummyOption(text: string | null | undefined): boolean {
   if (!text) return true;
-  const clean = text.replace(/<[^>]+>/g, "").trim().toLowerCase();
-  return clean === "done" || clean === "skip" || clean === "পেরেছি" || clean === "পারিনি" || clean === "";
+  const clean = text
+    .replace(/<[^>]+>/g, "")
+    .trim()
+    .toLowerCase();
+  return (
+    clean === "done" || clean === "skip" || clean === "পেরেছি" || clean === "পারিনি" || clean === ""
+  );
 }
 
 function cleanSolutionText(text: string | null | undefined): string | null {
@@ -112,7 +122,7 @@ async function migrateImagesInText(html: string | null | undefined): Promise<str
             Body: buffer,
             ContentType: contentType,
             CacheControl: "public, max-age=31536000, immutable",
-          })
+          }),
         );
 
         imageCache.set(fullUrl, s3Url);
@@ -237,7 +247,10 @@ async function scrapeSeries(config: EngineeringSeriesConfig) {
   const parentMap = topicJson.data?.data?.parent || {};
   console.log(`Chorcha nodes mapped: ${Object.keys(nodesMap).length}`);
 
-  function resolveChapterAndTopic(chorchaTopicSlug: string | null | undefined): { topicId: string | null; chapterId: string | null } {
+  function resolveChapterAndTopic(chorchaTopicSlug: string | null | undefined): {
+    topicId: string | null;
+    chapterId: string | null;
+  } {
     if (!chorchaTopicSlug) return { topicId: null, chapterId: null };
 
     const dbTopic = topicSlugMap.get(chorchaTopicSlug);
@@ -312,7 +325,9 @@ async function scrapeSeries(config: EngineeringSeriesConfig) {
         allQuestions.push(q);
       }
 
-      console.log(`  Fetched page ${page}: ${questions.length} questions (Accumulated: ${allQuestions.length})`);
+      console.log(
+        `  Fetched page ${page}: ${questions.length} questions (Accumulated: ${allQuestions.length})`,
+      );
       page++;
       await new Promise((r) => setTimeout(r, 60));
     } catch (err) {
@@ -357,12 +372,18 @@ async function scrapeSeries(config: EngineeringSeriesConfig) {
     for (const q of qList) {
       const decA = (q._decryptedA || "").trim();
       const decB = (q._decryptedB || "").trim();
-      const isMCQ = decA.length > 0 && decB.length > 0 && !isDummyOption(decA) && !isDummyOption(decB);
+      const isMCQ =
+        decA.length > 0 && decB.length > 0 && !isDummyOption(decA) && !isDummyOption(decB);
       if (isMCQ) hasMCQInSheet = true;
       else hasWrittenInSheet = true;
     }
 
-    const sheetExamType = (hasMCQInSheet && !hasWrittenInSheet) ? "mcq" : (hasWrittenInSheet && !hasMCQInSheet ? "written" : "mcq");
+    const sheetExamType =
+      hasMCQInSheet && !hasWrittenInSheet
+        ? "mcq"
+        : hasWrittenInSheet && !hasMCQInSheet
+          ? "written"
+          : "mcq";
 
     // Check if sheet already exists
     const [existingSheet] = await db
@@ -388,7 +409,9 @@ async function scrapeSeries(config: EngineeringSeriesConfig) {
           questionCount: qList.length,
         })
         .returning();
-      console.log(`\nCreated Exam Sheet: "${sheetTitle}" [${sheetExamType.toUpperCase()}] (${qList.length} questions)`);
+      console.log(
+        `\nCreated Exam Sheet: "${sheetTitle}" [${sheetExamType.toUpperCase()}] (${qList.length} questions)`,
+      );
     } else {
       console.log(`\nExam Sheet "${sheetTitle}" exists (${examSheet.id}). Checking questions...`);
     }
@@ -398,20 +421,32 @@ async function scrapeSeries(config: EngineeringSeriesConfig) {
       .select({ questionId: qbExamSheetQuestions.questionId })
       .from(qbExamSheetQuestions)
       .where(eq(qbExamSheetQuestions.examSheetId, examSheet.id));
-    
+
     if (existingSheetQuestions.length > 0) {
       if (existingSheetQuestions.length >= qList.length) {
-        console.log(`  Exam Sheet already has ${existingSheetQuestions.length} questions. Skipping.`);
+        console.log(
+          `  Exam Sheet already has ${existingSheetQuestions.length} questions. Skipping.`,
+        );
         continue;
       }
       const qIdsToDelete = existingSheetQuestions.map((esq) => esq.questionId);
       if (qIdsToDelete.length > 0) {
-        await db.delete(qbExamSheetQuestions).where(eq(qbExamSheetQuestions.examSheetId, examSheet.id));
-        await db.delete(qbQuestionOptions).where(inArray(qbQuestionOptions.questionId, qIdsToDelete));
-        await db.delete(qbQuestionChapters).where(inArray(qbQuestionChapters.questionId, qIdsToDelete));
-        await db.delete(qbQuestionSources).where(inArray(qbQuestionSources.questionId, qIdsToDelete));
+        await db
+          .delete(qbExamSheetQuestions)
+          .where(eq(qbExamSheetQuestions.examSheetId, examSheet.id));
+        await db
+          .delete(qbQuestionOptions)
+          .where(inArray(qbQuestionOptions.questionId, qIdsToDelete));
+        await db
+          .delete(qbQuestionChapters)
+          .where(inArray(qbQuestionChapters.questionId, qIdsToDelete));
+        await db
+          .delete(qbQuestionSources)
+          .where(inArray(qbQuestionSources.questionId, qIdsToDelete));
         await db.delete(qbQuestions).where(inArray(qbQuestions.id, qIdsToDelete));
-        console.log(`  Cleaned up ${qIdsToDelete.length} partial questions from previous incomplete run.`);
+        console.log(
+          `  Cleaned up ${qIdsToDelete.length} partial questions from previous incomplete run.`,
+        );
       }
     }
 
@@ -424,7 +459,9 @@ async function scrapeSeries(config: EngineeringSeriesConfig) {
 
       // Clean HTML & Migrate images to S3
       const cleanQuestion = await migrateImagesInText(q._decryptedQuestion);
-      const cleanSolution = q._decryptedSolution ? await migrateImagesInText(q._decryptedSolution) : null;
+      const cleanSolution = q._decryptedSolution
+        ? await migrateImagesInText(q._decryptedSolution)
+        : null;
 
       const decA = (q._decryptedA || "").trim();
       const decB = (q._decryptedB || "").trim();
@@ -432,7 +469,8 @@ async function scrapeSeries(config: EngineeringSeriesConfig) {
       const decD = (q._decryptedD || "").trim();
 
       // Precise MCQ detection: has real options that are not dummy placeholder buttons
-      const isMCQ = decA.length > 0 && decB.length > 0 && !isDummyOption(decA) && !isDummyOption(decB);
+      const isMCQ =
+        decA.length > 0 && decB.length > 0 && !isDummyOption(decA) && !isDummyOption(decB);
       const qType = isMCQ ? "mcq" : "written";
 
       await db.insert(qbQuestions).values({
@@ -486,8 +524,10 @@ async function scrapeSeries(config: EngineeringSeriesConfig) {
       // Link Sources / Tags
       const rawTags: string[] = [];
       if (q.tags) {
-        if (typeof q.tags === "string") rawTags.push(...q.tags.split(",").map((s: string) => s.trim()));
-        else if (Array.isArray(q.tags)) rawTags.push(...q.tags.map((s: unknown) => String(s).trim()));
+        if (typeof q.tags === "string")
+          rawTags.push(...q.tags.split(",").map((s: string) => s.trim()));
+        else if (Array.isArray(q.tags))
+          rawTags.push(...q.tags.map((s: unknown) => String(s).trim()));
       }
       if (q.tag) rawTags.push(String(q.tag).trim());
 
@@ -497,7 +537,8 @@ async function scrapeSeries(config: EngineeringSeriesConfig) {
         let source = sourceSlugMap.get(tagSlug);
         if (!source) {
           const yearMatch = tagStr.match(/\d{2,4}/)?.[0] || "2024";
-          const parsedYear = yearMatch.length === 2 ? 2000 + parseInt(yearMatch, 10) : parseInt(yearMatch, 10);
+          const parsedYear =
+            yearMatch.length === 2 ? 2000 + parseInt(yearMatch, 10) : parseInt(yearMatch, 10);
 
           [source] = await db
             .insert(qbSources)

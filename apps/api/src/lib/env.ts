@@ -48,9 +48,7 @@ export const env = {
   aws: {
     region: process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION ?? "garage",
     endpoint:
-      process.env.AWS_ENDPOINT ||
-      process.env.AWS_ENDPOINT_URL_S3 ||
-      process.env.AWS_ENDPOINT_URL,
+      process.env.AWS_ENDPOINT || process.env.AWS_ENDPOINT_URL_S3 || process.env.AWS_ENDPOINT_URL,
     accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
     bucket: process.env.AWS_BUCKET_NAME ?? process.env.S3_BUCKET_NAME ?? "study",

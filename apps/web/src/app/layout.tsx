@@ -1,8 +1,8 @@
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
 import type { ReactNode } from "react";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import { ConfirmProvider } from "@/components/shared/confirm-provider";
 import { QueryProvider } from "@/components/shared/query-provider";
 import { ThemeProvider } from "@/components/shared/theme-provider";
@@ -128,15 +128,19 @@ export default function RootLayout({
         {/* Preconnect & DNS-Prefetch for fastest image & asset loading */}
         <link rel="preconnect" href="https://study.storage.prohor.dev" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://study.storage.prohor.dev" />
+        <link rel="preconnect" href="https://i.ytimg.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://i.ytimg.com" />
+        <link rel="preconnect" href="https://yt3.ggpht.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://yt3.ggpht.com" />
+        <link rel="preconnect" href="https://yt3.googleusercontent.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://yt3.googleusercontent.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
       </head>
       <body className="min-h-full flex flex-col font-sans select-none">
-        <div
-          dangerouslySetInnerHTML={{
-            __html: ANTI_AI_SCRAPER_NOTICE,
-          }}
-        />
+        <script type="text/plain" id="scraper-policy" data-security="anti-crawler">
+          {ANTI_AI_SCRAPER_NOTICE}
+        </script>
         <noscript>
           <div
             style={{

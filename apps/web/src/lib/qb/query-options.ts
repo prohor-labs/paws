@@ -50,7 +50,7 @@ async function fetchQBContainer(
   containerSlug: string,
 ): Promise<QBContainerDetailData> {
   return unwrap<QBContainerDetailData>(
-    await (api.rpc.qb as any).targets[":targetSlug"].containers[":containerSlug"].$get({
+    await api.rpc.qb.targets[":targetSlug"].containers[":containerSlug"].$get({
       param: { targetSlug, containerSlug },
     }),
     "Failed to fetch container details",
@@ -63,7 +63,7 @@ async function fetchQBItem(
   itemSlug: string,
 ): Promise<QBItemDetailData> {
   return unwrap<QBItemDetailData>(
-    await (api.rpc.qb as any).targets[":targetSlug"].containers[":containerSlug"].items[":itemSlug"].$get({
+    await api.rpc.qb.targets[":targetSlug"].containers[":containerSlug"].items[":itemSlug"].$get({
       param: { targetSlug, containerSlug, itemSlug },
     }),
     "Failed to fetch item details",

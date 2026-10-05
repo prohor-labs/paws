@@ -3,6 +3,7 @@ import {
   DocumentText,
   FileCheck,
   Home,
+  Play,
   ShieldCheck,
   Tag,
   User,
@@ -27,6 +28,11 @@ export const USER_NAV_ITEMS: readonly NavItem[] = [
     name: "প্রশ্নব্যাংক",
     path: "/qb",
     icon: DocumentText,
+  },
+  {
+    name: "ভিডিও ক্লাস",
+    path: "/watch",
+    icon: Play,
   },
   {
     name: "প্রোফাইল",

@@ -24,8 +24,7 @@ export function SignInCard() {
 
   useEffect(() => {
     if (!isSessionPending && session) {
-      const destination =
-        user && !user.onboardingCompleted ? "/onboarding" : redirectTarget;
+      const destination = user && !user.onboardingCompleted ? "/onboarding" : redirectTarget;
       router.replace(destination);
     }
   }, [session, user, isSessionPending, router, redirectTarget]);

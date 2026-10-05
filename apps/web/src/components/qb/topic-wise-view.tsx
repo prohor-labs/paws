@@ -188,7 +188,10 @@ export function TopicWiseView({
     } else {
       setInternalPage(newPage);
     }
-    containerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    containerRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   };
 
   const pageNumbers = React.useMemo(
@@ -221,7 +224,8 @@ export function TopicWiseView({
                 onClick={() => onSelectSubject?.(sub.slug)}
                 className="rounded-full text-xs font-bold cursor-pointer shrink-0 h-8 px-3.5 shadow-2xs border-border/80"
               >
-                {sub.name} {sub.questionCount !== undefined && `(${toBengaliNumber(sub.questionCount)})`}
+                {sub.name}{" "}
+                {sub.questionCount !== undefined && `(${toBengaliNumber(sub.questionCount)})`}
               </Button>
             ))}
           </div>

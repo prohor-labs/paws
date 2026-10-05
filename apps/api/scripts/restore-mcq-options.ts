@@ -1,7 +1,7 @@
-import { db } from "../src/db";
-import { qbQuestions, qbQuestionOptions } from "../src/db/schema";
 import { eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
+import { db } from "../src/db";
+import { qbQuestionOptions, qbQuestions } from "../src/db/schema";
 import { recalculateAllCounts } from "../src/services/qb-count.service";
 
 const CHORCHA_TOKEN = process.env.CHORCHA_TOKEN;
@@ -115,7 +115,9 @@ async function restoreMedicalOptions() {
           }
         }
 
-        console.log(`  ✓ Page ${page}: ${questions.length} fetched (${pageRestored} restored) | Total restored: ${totalRestored}`);
+        console.log(
+          `  ✓ Page ${page}: ${questions.length} fetched (${pageRestored} restored) | Total restored: ${totalRestored}`,
+        );
         page++;
         await new Promise((r) => setTimeout(r, 50));
       } catch (err) {

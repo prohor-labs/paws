@@ -25,12 +25,14 @@ graph TD
 ## 2. API Endpoints Reference
 
 All requests require the Bearer Token from `.env` (`CHORCHA_TOKEN`):
+
 ```http
 Authorization: Bearer <CHORCHA_TOKEN>
 User-Agent: Mozilla/5.0
 ```
 
 ### Endpoint 1: Master Question Bank Index
+
 - **URL:** `GET https://api.chorcha.net/question-bank`
 - **Purpose:** Returns all 58+ series, their category mappings, and display orders.
 - **Key Fields:**
@@ -41,8 +43,9 @@ User-Agent: Mozilla/5.0
 ---
 
 ### Endpoint 2: Topic & Syllabus Hierarchy Tree
+
 - **URL:** `GET https://api.chorcha.net/topics/series/{series_id}`
-  *(e.g., `https://api.chorcha.net/topics/series/6UYZkI` or `tn9B4k`)*
+  _(e.g., `https://api.chorcha.net/topics/series/6UYZkI` or `tn9B4k`)_
 - **Purpose:** Provides the complete hierarchical tree of Subjects, Chapters, and Topics (11,000+ nodes) with titles and question counts.
 - **Key Fields:**
   - `data.data.nodes`: Object mapping each `topic_id` to its human-readable title:
@@ -61,6 +64,7 @@ User-Agent: Mozilla/5.0
 ---
 
 ### Endpoint 3: Paginated Question Fetcher
+
 - **URL:** `GET https://api.chorcha.net/read/series/{series_slug}?topic={topic_id}&page={page}&filters={filters}&label_filter={label_filter}`
 - **Query Parameters:**
   - `topic`: Root topic (`root`), Subject (`phys_1`), Chapter (`phys_1_1`), or Leaf Node (`SnZd7aSXQa`).
@@ -89,10 +93,12 @@ User-Agent: Mozilla/5.0
 ---
 
 ### Endpoint 4: User Practice Heatmap & Streaks
+
 - **URL:** `GET https://api.chorcha.net/users/practice_map`
 - **Purpose:** User study tracking, daily exam count heatmap (`exam_map`), streak counts, and activity logs.
 
 ### Endpoint 5: Live Exams & Paper Ingestion (`/read/:exam_id` & `/live-exam/:exam_id`)
+
 - **Metadata URL:** `GET https://api.chorcha.net/live-exam/{exam_id}`
   - **Purpose:** Exam metadata (name, duration, negative markings, total questions, marks).
 - **Encrypted Content URL:** `GET https://api.chorcha.net/read/{exam_id}`
@@ -105,20 +111,20 @@ User-Agent: Mozilla/5.0
 
 Subject-based series in Chorcha follow the `{subject}_{paper}-{target}` format:
 
-| Subject & Paper | Target / Category | Series Slug |
-| :--- | :--- | :--- |
-| **Physics 1st Paper** | Engineering | `phys_1-engineering` |
-| **Physics 1st Paper** | Medical | `phys_1-medical` |
-| **Physics 2nd Paper** | Engineering | `phys_2-engineering` |
-| **Physics 2nd Paper** | Medical | `phys_2-medical` |
-| **Chemistry 1st Paper** | Engineering | `chem_1-engineering` |
-| **Chemistry 1st Paper** | Medical | `chem_1-medical` |
-| **Chemistry 2nd Paper** | Engineering | `chem_2-engineering` |
-| **Chemistry 2nd Paper** | Medical | `chem_2-medical` |
-| **Higher Math 1st Paper**| Engineering | `math_1-engineering` |
-| **Higher Math 2nd Paper**| Engineering | `math_2-engineering` |
-| **Biology 1st Paper** | Medical | `bio_1-medical` |
-| **Biology 2nd Paper** | Medical | `bio_2-medical` |
+| Subject & Paper           | Target / Category | Series Slug          |
+| :------------------------ | :---------------- | :------------------- |
+| **Physics 1st Paper**     | Engineering       | `phys_1-engineering` |
+| **Physics 1st Paper**     | Medical           | `phys_1-medical`     |
+| **Physics 2nd Paper**     | Engineering       | `phys_2-engineering` |
+| **Physics 2nd Paper**     | Medical           | `phys_2-medical`     |
+| **Chemistry 1st Paper**   | Engineering       | `chem_1-engineering` |
+| **Chemistry 1st Paper**   | Medical           | `chem_1-medical`     |
+| **Chemistry 2nd Paper**   | Engineering       | `chem_2-engineering` |
+| **Chemistry 2nd Paper**   | Medical           | `chem_2-medical`     |
+| **Higher Math 1st Paper** | Engineering       | `math_1-engineering` |
+| **Higher Math 2nd Paper** | Engineering       | `math_2-engineering` |
+| **Biology 1st Paper**     | Medical           | `bio_1-medical`      |
+| **Biology 2nd Paper**     | Medical           | `bio_2-medical`      |
 
 ---
 
@@ -146,17 +152,17 @@ def api_get(url):
 
 def fetch_all_questions_for_series(series_id, series_slug):
     print(f"\n[+] Processing Series: {series_slug} (ID: {series_id})")
-    
+
     # 1. Fetch Topic Hierarchy Tree
     topics_url = f"https://api.chorcha.net/topics/series/{series_id}"
     topic_res = api_get(topics_url)
     nodes_map = topic_res.get("data", {}).get("data", {}).get("nodes", {})
     parent_map = topic_res.get("data", {}).get("data", {}).get("parent", {})
-    
+
     # 2. Iterate through Root/Subject/Chapter nodes
     page = 1
     all_questions = []
-    
+
     while True:
         url = f"https://api.chorcha.net/read/series/{series_slug}?topic=root&page={page}&filters=&label_filter="
         try:
@@ -164,13 +170,13 @@ def fetch_all_questions_for_series(series_id, series_slug):
             questions = res.get("data", {}).get("questions", [])
             if not questions:
                 break
-            
+
             for q in questions:
                 topic_id = q.get("topic")
                 topic_name = nodes_map.get(topic_id, "Unknown Topic")
                 parent_id = parent_map.get(topic_id)
                 chapter_name = nodes_map.get(parent_id, "General Chapter")
-                
+
                 all_questions.append({
                     "id": q.get("_id"),
                     "question": q.get("question"),
@@ -188,14 +194,14 @@ def fetch_all_questions_for_series(series_id, series_slug):
                     "topic_name": topic_name,
                     "chapter_name": chapter_name
                 })
-            
+
             print(f"  Page {page} fetched: {len(questions)} items (Total: {len(all_questions)})")
             page += 1
             time.sleep(0.2)  # Rate limiting safety
         except Exception as e:
             print(f"  Error on page {page}: {e}")
             break
-            
+
     return all_questions
 
 if __name__ == "__main__":
@@ -203,7 +209,7 @@ if __name__ == "__main__":
     qb_data = api_get("https://api.chorcha.net/question-bank")
     series_list = qb_data.get("data", {}).get("series", [])
     print(f"Total Series Found: {len(series_list)}")
-    
+
     # Example: Scraping first series
     if series_list:
         first = series_list[0]
@@ -218,6 +224,7 @@ if __name__ == "__main__":
 ## 6. Complete Ingestion & Database Sync Script (Bun / TypeScript / Drizzle)
 
 Below is the complete, runnable end-to-end script used to:
+
 1. Fetch all Exam IDs (from Chorcha Series / Live Exams).
 2. Decrypt encrypted questions (`decodeChorcha` using `x-chorcha-id` header).
 3. Insert questions, options (MCQ), parts (Written), topics, chapters (`qb_question_chapters`), exam sheets (`qb_exam_sheets`), and historical tags/sources (`qb_sources` & `qb_question_sources`).
@@ -247,7 +254,10 @@ import { recalculateAllCounts } from "./src/services/qb-count.service";
 const token = process.env.CHORCHA_TOKEN;
 
 // 1. Decryption Helper
-function decodeChorcha(text: string | null | undefined, key: string | null): string {
+function decodeChorcha(
+  text: string | null | undefined,
+  key: string | null,
+): string {
   if (!text || !key) return text || "";
   let chars = [];
   for (let i = 0; i < text.length; i++) {
@@ -267,13 +277,39 @@ function slugify(text: string): string {
 
 // 2. All 33 DU A Unit (2000 - 2026) Exam IDs discovered from Chorcha Series "l1MPZkbM3_"
 const DU_EXAM_IDS = [
-  "HKtUZhw2DU1cm3xV", "ud-lRyghJ3JjWWWK", "OhNMTdGxGSrAHwDe", "i3UoCkvRo_mv1Brs", "tPOm--eNfZnYOHQ_",
-  "Wrs7OpBnuCH8RbRV", "QodaTA55h2tDOgaX", "bAFddVQA2d5jooXx", "aVjZbCPobLgct-Y_", "YSR_lqat2DbwU3tN",
-  "qNteVZrDuRoEje0h", "qeexj6e6KBH566-Y", "cciDdnTLDMdl3E-c", "OGv1ICodksuJQkRD", "BCJ0HROdhE3IlBDl",
-  "BmjSLAXbgKQLKGFf", "tnkcBnJ9K16OKcyf", "YuAYYg3hcxKbHbyZ", "-L1UxLZvYXTgVKcn", "7E1v1phnqGOuMCaW",
-  "EEe82Bp4sM7lMSSm", "Wtg8S07uuHBuX6FF", "-M2PY6YfobYisBuu", "q0EajUPAaVutjKiB", "ncwvOg5xGQv6ic45",
-  "Ta6O_KuIw1ai8Htf", "qvdYGtAkHCG0qEc0", "xB-cGyZ5a3v_7Jim", "be-L9K1h_IpNgCpI", "nAsOfOFjTPzGQQvM",
-  "-VrSylPXY1voyKar", "32tGXG_P4umDDG3x", "aw4swzK3FiH4ofVa"
+  "HKtUZhw2DU1cm3xV",
+  "ud-lRyghJ3JjWWWK",
+  "OhNMTdGxGSrAHwDe",
+  "i3UoCkvRo_mv1Brs",
+  "tPOm--eNfZnYOHQ_",
+  "Wrs7OpBnuCH8RbRV",
+  "QodaTA55h2tDOgaX",
+  "bAFddVQA2d5jooXx",
+  "aVjZbCPobLgct-Y_",
+  "YSR_lqat2DbwU3tN",
+  "qNteVZrDuRoEje0h",
+  "qeexj6e6KBH566-Y",
+  "cciDdnTLDMdl3E-c",
+  "OGv1ICodksuJQkRD",
+  "BCJ0HROdhE3IlBDl",
+  "BmjSLAXbgKQLKGFf",
+  "tnkcBnJ9K16OKcyf",
+  "YuAYYg3hcxKbHbyZ",
+  "-L1UxLZvYXTgVKcn",
+  "7E1v1phnqGOuMCaW",
+  "EEe82Bp4sM7lMSSm",
+  "Wtg8S07uuHBuX6FF",
+  "-M2PY6YfobYisBuu",
+  "q0EajUPAaVutjKiB",
+  "ncwvOg5xGQv6ic45",
+  "Ta6O_KuIw1ai8Htf",
+  "qvdYGtAkHCG0qEc0",
+  "xB-cGyZ5a3v_7Jim",
+  "be-L9K1h_IpNgCpI",
+  "nAsOfOFjTPzGQQvM",
+  "-VrSylPXY1voyKar",
+  "32tGXG_P4umDDG3x",
+  "aw4swzK3FiH4ofVa",
 ];
 
 async function ingestDUAQuestionBank() {
@@ -317,15 +353,22 @@ async function ingestDUAQuestionBank() {
     .from(qbExamSheets)
     .where(eq(qbExamSheets.containerItemId, containerItem.id));
 
-  const existingSlugMap = new Map(existingExamSheets.map((es) => [es.slug, es]));
+  const existingSlugMap = new Map(
+    existingExamSheets.map((es) => [es.slug, es]),
+  );
 
   for (let idx = 0; idx < DU_EXAM_IDS.length; idx++) {
     const examId = DU_EXAM_IDS[idx];
-    console.log(`\n[${idx + 1}/${DU_EXAM_IDS.length}] Processing Chorcha Live Exam ID: ${examId}...`);
+    console.log(
+      `\n[${idx + 1}/${DU_EXAM_IDS.length}] Processing Chorcha Live Exam ID: ${examId}...`,
+    );
 
     try {
       const res = await fetch(`https://api.chorcha.net/read/${examId}`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
       });
 
       const key = res.headers.get("x-chorcha-id");
@@ -350,7 +393,9 @@ async function ingestDUAQuestionBank() {
 
       let examSheet = existingSlugMap.get(examSlug);
       if (examSheet) {
-        console.log(`Exam sheet "${examTitle}" already exists (${examSheet.id}). Skipping re-insert.`);
+        console.log(
+          `Exam sheet "${examTitle}" already exists (${examSheet.id}). Skipping re-insert.`,
+        );
         continue;
       }
 
@@ -372,18 +417,24 @@ async function ingestDUAQuestionBank() {
         .returning();
 
       existingSlugMap.set(examSlug, examSheet);
-      console.log(`Created Exam Sheet: "${examTitle}" (${examSlug}) with ${qList.length} questions`);
+      console.log(
+        `Created Exam Sheet: "${examTitle}" (${examSlug}) with ${qList.length} questions`,
+      );
 
       for (let qIdx = 0; qIdx < qList.length; qIdx++) {
         const q = qList[qIdx];
         const qId = uuidv7();
         const chorchaTopicSlug = q.topic;
-        const dbTopic = chorchaTopicSlug ? topicSlugMap.get(chorchaTopicSlug) : null;
+        const dbTopic = chorchaTopicSlug
+          ? topicSlugMap.get(chorchaTopicSlug)
+          : null;
         const qText = decodeChorcha(q.question, key);
         const qSol = q.solution ? decodeChorcha(q.solution, key) : null;
         const ansKey = q.answer ? q.answer.trim() : "";
         const qType =
-          q.type?.includes("CQ") || q.type?.includes("WRITTEN") ? "written" : "mcq";
+          q.type?.includes("CQ") || q.type?.includes("WRITTEN")
+            ? "written"
+            : "mcq";
 
         await db.insert(qbQuestions).values({
           id: qId,
@@ -465,7 +516,9 @@ async function ingestDUAQuestionBank() {
         }
         if (q.tag) rawTags.push(String(q.tag).trim());
 
-        const cleanTags = Array.from(new Set(rawTags.filter((t) => t && t.length > 0)));
+        const cleanTags = Array.from(
+          new Set(rawTags.filter((t) => t && t.length > 0)),
+        );
         for (const tagStr of cleanTags) {
           const tagSlug = slugify(tagStr);
           let source = sourceSlugMap.get(tagSlug);
@@ -532,4 +585,3 @@ ingestDUAQuestionBank()
 - **Can we get all questions across all subjects?** **Yes.** All 58+ question bank series and academic subjects are accessible via standard slugs and the master index.
 - **Is topic & chapter hierarchy available?** **Yes.** The `/topics/series/:seriesId` endpoint contains over 11,000 human-readable node names and full tree relationships.
 - **Are tags (University, Year, Shift, MCQ/Written) structured?** **Yes.** Each question contains a `tags` string and `type` property (`MCQ`, `MCQ_5`, `WRITTEN`) for classification.
-

@@ -14,6 +14,7 @@
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "@next/third-parties": "16.3.6",
+    "@paws/api": "workspace:*",
     "@paws/sdk": "workspace:*",
     "@shadcn/react": "^0.3.1",
     "@tanstack/react-query": "^5.104.0",

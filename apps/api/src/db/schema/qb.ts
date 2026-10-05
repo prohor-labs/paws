@@ -75,7 +75,9 @@ export const qbContainers = pgTable(
 
 export const qbSubjects = pgTable("qb_subjects", {
   id: uuid("id").primaryKey().defaultRandom(),
-  targetId: uuid("target_id").references(() => qbTargets.id, { onDelete: "set null" }),
+  targetId: uuid("target_id").references(() => qbTargets.id, {
+    onDelete: "set null",
+  }),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   code: text("code"),
@@ -91,7 +93,9 @@ export const qbContainerItems = pgTable(
     containerId: uuid("container_id")
       .notNull()
       .references(() => qbContainers.id, { onDelete: "cascade" }),
-    subjectId: uuid("subject_id").references(() => qbSubjects.id, { onDelete: "set null" }),
+    subjectId: uuid("subject_id").references(() => qbSubjects.id, {
+      onDelete: "set null",
+    }),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
     description: text("description"),
@@ -152,7 +156,9 @@ export const qbQuestions = pgTable(
   "qb_questions",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    topicId: uuid("topic_id").references(() => qbTopics.id, { onDelete: "set null" }),
+    topicId: uuid("topic_id").references(() => qbTopics.id, {
+      onDelete: "set null",
+    }),
     qType: qbQuestionTypeEnum("q_type").notNull().default("mcq"),
     questionText: text("question_text").notNull(),
     contextText: text("context_text"),
@@ -245,14 +251,23 @@ export const qbChapterSources = pgTable(
       .references(() => qbSources.id, { onDelete: "cascade" }),
   },
   (table) => [
-    primaryKey({ name: "qb_chapter_sources_pk", columns: [table.chapterId, table.sourceId] }),
+    primaryKey({
+      name: "qb_chapter_sources_pk",
+      columns: [table.chapterId, table.sourceId],
+    }),
     index("qb_chapter_sources_source_idx").on(table.sourceId),
   ],
 );
 
 export const qbChapterSourcesRelations = relations(qbChapterSources, ({ one }) => ({
-  chapter: one(qbChapters, { fields: [qbChapterSources.chapterId], references: [qbChapters.id] }),
-  source: one(qbSources, { fields: [qbChapterSources.sourceId], references: [qbSources.id] }),
+  chapter: one(qbChapters, {
+    fields: [qbChapterSources.chapterId],
+    references: [qbChapters.id],
+  }),
+  source: one(qbSources, {
+    fields: [qbChapterSources.sourceId],
+    references: [qbSources.id],
+  }),
 }));
 
 export const qbQuestionChapters = pgTable(
@@ -266,7 +281,10 @@ export const qbQuestionChapters = pgTable(
       .references(() => qbChapters.id, { onDelete: "cascade" }),
   },
   (table) => [
-    primaryKey({ name: "qb_question_chapters_pk", columns: [table.questionId, table.chapterId] }),
+    primaryKey({
+      name: "qb_question_chapters_pk",
+      columns: [table.questionId, table.chapterId],
+    }),
     index("qb_question_chapters_chapter_idx").on(table.chapterId),
     index("qb_question_chapters_ch_q_idx").on(table.chapterId, table.questionId),
   ],
@@ -277,7 +295,10 @@ export const qbQuestionChaptersRelations = relations(qbQuestionChapters, ({ one 
     fields: [qbQuestionChapters.questionId],
     references: [qbQuestions.id],
   }),
-  chapter: one(qbChapters, { fields: [qbQuestionChapters.chapterId], references: [qbChapters.id] }),
+  chapter: one(qbChapters, {
+    fields: [qbQuestionChapters.chapterId],
+    references: [qbChapters.id],
+  }),
 }));
 
 export const qbExamSheets = pgTable(
@@ -287,7 +308,9 @@ export const qbExamSheets = pgTable(
     containerItemId: uuid("container_item_id").references(() => qbContainerItems.id, {
       onDelete: "cascade",
     }),
-    chapterId: uuid("chapter_id").references(() => qbChapters.id, { onDelete: "cascade" }),
+    chapterId: uuid("chapter_id").references(() => qbChapters.id, {
+      onDelete: "cascade",
+    }),
     title: text("title").notNull(),
     slug: text("slug").notNull(),
     examType: qbExamTypeEnum("exam_type").notNull().default("mcq"),
@@ -308,8 +331,6 @@ export const qbExamSheets = pgTable(
   ],
 );
 
-
-
 export const qbExamSheetQuestions = pgTable(
   "qb_exam_sheet_questions",
   {
@@ -322,7 +343,10 @@ export const qbExamSheetQuestions = pgTable(
     questionNumber: integer("question_number").notNull().default(1),
   },
   (table) => [
-    primaryKey({ name: "qb_exam_sheet_questions_pk", columns: [table.examSheetId, table.questionId] }),
+    primaryKey({
+      name: "qb_exam_sheet_questions_pk",
+      columns: [table.examSheetId, table.questionId],
+    }),
     index("qb_exam_sheet_q_sheet_idx").on(table.examSheetId, table.questionNumber),
     index("qb_exam_sheet_q_question_idx").on(table.questionId),
   ],
@@ -401,7 +425,10 @@ export const qbCustomExamSubmissions = pgTable(
     answers: text("answers").notNull().default("{}"),
     evaluatorId: uuid("evaluator_id"),
     evaluatorFeedback: text("evaluator_feedback"),
-    evaluatedAt: timestamp("evaluated_at", { withTimezone: true, mode: "date" }),
+    evaluatedAt: timestamp("evaluated_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
     submittedAt: timestamp("submitted_at", { withTimezone: true, mode: "date" })
       .defaultNow()
       .notNull(),
@@ -424,7 +451,9 @@ export const qbCustomExamWrittenSubmissions = pgTable(
     questionId: uuid("question_id")
       .notNull()
       .references(() => qbQuestions.id, { onDelete: "cascade" }),
-    partId: uuid("part_id").references(() => qbQuestionParts.id, { onDelete: "set null" }),
+    partId: uuid("part_id").references(() => qbQuestionParts.id, {
+      onDelete: "set null",
+    }),
     pageNumber: integer("page_number").notNull().default(1),
     imageUrl: text("image_url").notNull(),
     annotatedImageUrl: text("annotated_image_url"),
@@ -450,7 +479,10 @@ export const qbTargetsRelations = relations(qbTargets, ({ many }) => ({
 }));
 
 export const qbContainersRelations = relations(qbContainers, ({ one, many }) => ({
-  target: one(qbTargets, { fields: [qbContainers.targetId], references: [qbTargets.id] }),
+  target: one(qbTargets, {
+    fields: [qbContainers.targetId],
+    references: [qbTargets.id],
+  }),
   items: many(qbContainerItems),
 }));
 
@@ -468,13 +500,19 @@ export const qbContainerItemsRelations = relations(qbContainerItems, ({ one, man
 }));
 
 export const qbSubjectsRelations = relations(qbSubjects, ({ one, many }) => ({
-  target: one(qbTargets, { fields: [qbSubjects.targetId], references: [qbTargets.id] }),
+  target: one(qbTargets, {
+    fields: [qbSubjects.targetId],
+    references: [qbTargets.id],
+  }),
   containerItems: many(qbContainerItems),
   chapters: many(qbChapters),
 }));
 
 export const qbChaptersRelations = relations(qbChapters, ({ one, many }) => ({
-  subject: one(qbSubjects, { fields: [qbChapters.subjectId], references: [qbSubjects.id] }),
+  subject: one(qbSubjects, {
+    fields: [qbChapters.subjectId],
+    references: [qbSubjects.id],
+  }),
   containerItem: one(qbContainerItems, {
     fields: [qbChapters.containerItemId],
     references: [qbContainerItems.id],
@@ -493,7 +531,10 @@ export const qbTopicsRelations = relations(qbTopics, ({ one, many }) => ({
 }));
 
 export const qbQuestionsRelations = relations(qbQuestions, ({ one, many }) => ({
-  topic: one(qbTopics, { fields: [qbQuestions.topicId], references: [qbTopics.id] }),
+  topic: one(qbTopics, {
+    fields: [qbQuestions.topicId],
+    references: [qbTopics.id],
+  }),
   questionChapters: many(qbQuestionChapters),
   chapterSources: many(qbChapterSources),
   options: many(qbQuestionOptions),
@@ -537,7 +578,10 @@ export const qbExamSheetsRelations = relations(qbExamSheets, ({ one, many }) => 
     fields: [qbExamSheets.containerItemId],
     references: [qbContainerItems.id],
   }),
-  chapter: one(qbChapters, { fields: [qbExamSheets.chapterId], references: [qbChapters.id] }),
+  chapter: one(qbChapters, {
+    fields: [qbExamSheets.chapterId],
+    references: [qbChapters.id],
+  }),
   questions: many(qbExamSheetQuestions),
 }));
 

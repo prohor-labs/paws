@@ -6,7 +6,7 @@ import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { PlusFrame } from "@/components/auth";
 import { ONBOARDING_STEPS, TRACK_PRESETS } from "@/lib/consts/onboarding";
-import { type UpdateUserInput, getAuthClient, updateUser, useSession } from "@/lib/sdk";
+import { getAuthClient, type UpdateUserInput, updateUser, useSession } from "@/lib/sdk";
 import { StepReady } from "./step-ready";
 import { WizardFooter } from "./wizard-footer";
 import { WizardFormBody } from "./wizard-form-body";

@@ -138,10 +138,7 @@ export function QbHubContent() {
         {sections.length > 0 ? (
           <div className="flex flex-col gap-8 sm:gap-10">
             {sections.map((section) => (
-              <section
-                key={section.target.id}
-                className="scroll-mt-24 space-y-3"
-              >
+              <section key={section.target.id} className="scroll-mt-24 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="font-sans text-base sm:text-lg md:text-xl font-bold text-foreground">

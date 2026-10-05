@@ -2,13 +2,27 @@ import { sql } from "drizzle-orm";
 import { db } from "../db";
 
 export async function recalculateAllCounts(): Promise<void> {
-  await db.execute(sql`ALTER TABLE public.qb_targets ADD COLUMN IF NOT EXISTS subject_count INTEGER NOT NULL DEFAULT 0;`);
-  await db.execute(sql`ALTER TABLE public.qb_targets ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0;`);
-  await db.execute(sql`ALTER TABLE public.qb_subjects ADD COLUMN IF NOT EXISTS chapter_count INTEGER NOT NULL DEFAULT 0;`);
-  await db.execute(sql`ALTER TABLE public.qb_subjects ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0;`);
-  await db.execute(sql`ALTER TABLE public.qb_chapters ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0;`);
-  await db.execute(sql`ALTER TABLE public.qb_topics ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0;`);
-  await db.execute(sql`ALTER TABLE public.qb_sources ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0;`);
+  await db.execute(
+    sql`ALTER TABLE public.qb_targets ADD COLUMN IF NOT EXISTS subject_count INTEGER NOT NULL DEFAULT 0;`,
+  );
+  await db.execute(
+    sql`ALTER TABLE public.qb_targets ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0;`,
+  );
+  await db.execute(
+    sql`ALTER TABLE public.qb_subjects ADD COLUMN IF NOT EXISTS chapter_count INTEGER NOT NULL DEFAULT 0;`,
+  );
+  await db.execute(
+    sql`ALTER TABLE public.qb_subjects ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0;`,
+  );
+  await db.execute(
+    sql`ALTER TABLE public.qb_chapters ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0;`,
+  );
+  await db.execute(
+    sql`ALTER TABLE public.qb_topics ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0;`,
+  );
+  await db.execute(
+    sql`ALTER TABLE public.qb_sources ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0;`,
+  );
 
   await db.execute(sql`
     UPDATE public.qb_topics t

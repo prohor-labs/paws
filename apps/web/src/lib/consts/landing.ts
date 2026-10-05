@@ -23,11 +23,6 @@ export interface FaqItem {
   answer: string;
 }
 
-export interface PartnerItem {
-  name: string;
-  logo: string;
-}
-
 export const LANDING_NAV_LINKS: NavItem[] = [
   { label: "হোম", href: "#home" },
   { label: "অ্যাকাডেমি", href: "#about" },
@@ -107,6 +102,3 @@ export const LANDING_FAQS: FaqItem[] = [
     answer: "হ্যাঁ, Paws Academy সম্পূর্ণ মোবাইল ফ্রেন্ডলি এবং যে কোনো ডিভাইস থেকে স্মুথলি পরীক্ষা দেওয়া সম্ভব।",
   },
 ];
-
-export const LANDING_PARTNERS: PartnerItem[] = [];
-

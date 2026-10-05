@@ -421,7 +421,7 @@ export function QuestionCard({
 }: QuestionCardProps) {
   const options = question.options || [];
   const rawParts = question.parts || [];
-  const isWritten = question.qType === "written" || rawParts.length > 0;
+  const _isWritten = question.qType === "written" || rawParts.length > 0;
 
   const parts = React.useMemo(() => {
     if (rawParts.length === 0) return [];
@@ -505,4 +505,3 @@ export function QuestionCard({
     </div>
   );
 }
-

@@ -1,5 +1,18 @@
 import { zValidator } from "@hono/zod-validator";
-import { and, asc, count, desc, eq, inArray, like, not, notInArray, or, type SQL, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  like,
+  not,
+  notInArray,
+  or,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 import { Hono } from "hono";
 import { v7 as uuidv7 } from "uuid";
 import { z } from "zod";
@@ -80,7 +93,12 @@ function mapQuestion(
     questionText: string;
     contextText: string | null;
     explanation: string | null;
-    options: Array<{ id: string; optionText: string; isCorrect: boolean; orderIndex: number }>;
+    options: Array<{
+      id: string;
+      optionText: string;
+      isCorrect: boolean;
+      orderIndex: number;
+    }>;
     parts: Array<{
       id: string;
       partText: string;
@@ -274,12 +292,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         })
         .from(qbContainerItems)
         .innerJoin(qbContainers, eq(qbContainerItems.containerId, qbContainers.id))
-        .where(
-          and(
-            eq(qbContainers.targetId, target.id),
-            eq(qbContainerItems.slug, containerSlug),
-          ),
-        )
+        .where(and(eq(qbContainers.targetId, target.id), eq(qbContainerItems.slug, containerSlug)))
         .limit(1);
 
       if (matchingItem[0]) {
@@ -360,10 +373,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         .where(
           and(
             eq(qbContainers.targetId, target.id),
-            or(
-              eq(qbContainerItems.slug, itemSlug),
-              eq(qbContainerItems.slug, containerSlug),
-            ),
+            or(eq(qbContainerItems.slug, itemSlug), eq(qbContainerItems.slug, containerSlug)),
           ),
         )
         .limit(1);
@@ -380,12 +390,18 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
     }
 
     let item = await db.query.qbContainerItems.findFirst({
-      where: and(eq(qbContainerItems.containerId, container.id), eq(qbContainerItems.slug, itemSlug)),
+      where: and(
+        eq(qbContainerItems.containerId, container.id),
+        eq(qbContainerItems.slug, itemSlug),
+      ),
     });
 
     if (!item) {
       item = await db.query.qbContainerItems.findFirst({
-        where: and(eq(qbContainerItems.containerId, container.id), eq(qbContainerItems.slug, containerSlug)),
+        where: and(
+          eq(qbContainerItems.containerId, container.id),
+          eq(qbContainerItems.slug, containerSlug),
+        ),
       });
     }
 
@@ -394,7 +410,9 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
     }
 
     let subject = item.subjectId
-      ? await db.query.qbSubjects.findFirst({ where: eq(qbSubjects.id, item.subjectId) })
+      ? await db.query.qbSubjects.findFirst({
+          where: eq(qbSubjects.id, item.subjectId),
+        })
       : null;
 
     if (!subject) {
@@ -415,14 +433,15 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
           .where(eq(qbChapters.containerItemId, item.id))
           .orderBy(asc(qbChapters.orderIndex));
 
-    const targetSourceTypeMap: Record<string, "medical" | "engineering" | "university" | "board"> = {
-      medical: "medical",
-      engineering: "engineering",
-      general: "university",
-      varsity: "university",
-      "hsc-science": "board",
-      "hsc-general": "board",
-    };
+    const targetSourceTypeMap: Record<string, "medical" | "engineering" | "university" | "board"> =
+      {
+        medical: "medical",
+        engineering: "engineering",
+        general: "university",
+        varsity: "university",
+        "hsc-science": "board",
+        "hsc-general": "board",
+      };
     const targetSourceType = targetSourceTypeMap[target.slug];
 
     if (subject && targetSourceType && chapters.length > 0) {
@@ -433,9 +452,21 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
           total: count(qbQuestionChapters.questionId),
         })
         .from(qbQuestionChapters)
-        .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestionChapters.questionId))
-        .innerJoin(qbSources, and(eq(qbSources.id, qbQuestionSources.sourceId), eq(qbSources.type, targetSourceType)))
-        .innerJoin(qbQuestions, and(eq(qbQuestions.id, qbQuestionChapters.questionId), eq(qbQuestions.status, "published")))
+        .innerJoin(
+          qbQuestionSources,
+          eq(qbQuestionSources.questionId, qbQuestionChapters.questionId),
+        )
+        .innerJoin(
+          qbSources,
+          and(eq(qbSources.id, qbQuestionSources.sourceId), eq(qbSources.type, targetSourceType)),
+        )
+        .innerJoin(
+          qbQuestions,
+          and(
+            eq(qbQuestions.id, qbQuestionChapters.questionId),
+            eq(qbQuestions.status, "published"),
+          ),
+        )
         .where(inArray(qbQuestionChapters.chapterId, chIds))
         .groupBy(qbQuestionChapters.chapterId);
 
@@ -742,7 +773,10 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
             : []
         : [chapter.id];
 
-      const targetSourceTypeMap: Record<string, "medical" | "engineering" | "university" | "board"> = {
+      const targetSourceTypeMap: Record<
+        string,
+        "medical" | "engineering" | "university" | "board"
+      > = {
         medical: "medical",
         engineering: "engineering",
         general: "university",
@@ -751,84 +785,93 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         "hsc-general": "board",
       };
       const effectiveTargetSlug = targetSlug || target?.slug;
-      const targetSourceType = effectiveTargetSlug ? targetSourceTypeMap[effectiveTargetSlug] : undefined;
+      const targetSourceType = effectiveTargetSlug
+        ? targetSourceTypeMap[effectiveTargetSlug]
+        : undefined;
 
-      const [allTopics, allChapters, allSubjects, sourcesList, examSheetsList, chapterTopicCounts] = await Promise.all([
-        db.select().from(qbTopics).orderBy(asc(qbTopics.orderIndex)),
-        db.select().from(qbChapters).orderBy(asc(qbChapters.orderIndex)),
-        db.select().from(qbSubjects).orderBy(asc(qbSubjects.orderIndex)),
-        subChapterIds.length > 0
-          ? db
-              .select({
-                id: qbSources.id,
-                sourceGroup: qbSources.sourceGroup,
-                type: qbSources.type,
-                name: qbSources.name,
-                slug: qbSources.slug,
-                institution: qbSources.institution,
-                unit: qbSources.unit,
-                year: qbSources.year,
-                questionCount: qbSources.questionCount,
-              })
-              .from(qbSources)
-              .innerJoin(qbChapterSources, eq(qbChapterSources.sourceId, qbSources.id))
-              .where(
-                and(
-                  inArray(qbChapterSources.chapterId, subChapterIds),
-                  targetSourceType ? eq(qbSources.type, targetSourceType) : undefined,
-                ),
-              )
-              .orderBy(desc(qbSources.year), asc(qbSources.name))
-          : [],
-        containerItem
-          ? db
-              .select()
-              .from(qbExamSheets)
-              .where(eq(qbExamSheets.containerItemId, containerItem.id))
-              .orderBy(asc(qbExamSheets.orderIndex), asc(qbExamSheets.title))
-          : subChapterIds.length > 0
+      const [allTopics, allChapters, allSubjects, sourcesList, examSheetsList, chapterTopicCounts] =
+        await Promise.all([
+          db.select().from(qbTopics).orderBy(asc(qbTopics.orderIndex)),
+          db.select().from(qbChapters).orderBy(asc(qbChapters.orderIndex)),
+          db.select().from(qbSubjects).orderBy(asc(qbSubjects.orderIndex)),
+          subChapterIds.length > 0
+            ? db
+                .select({
+                  id: qbSources.id,
+                  sourceGroup: qbSources.sourceGroup,
+                  type: qbSources.type,
+                  name: qbSources.name,
+                  slug: qbSources.slug,
+                  institution: qbSources.institution,
+                  unit: qbSources.unit,
+                  year: qbSources.year,
+                  questionCount: qbSources.questionCount,
+                })
+                .from(qbSources)
+                .innerJoin(qbChapterSources, eq(qbChapterSources.sourceId, qbSources.id))
+                .where(
+                  and(
+                    inArray(qbChapterSources.chapterId, subChapterIds),
+                    targetSourceType ? eq(qbSources.type, targetSourceType) : undefined,
+                  ),
+                )
+                .orderBy(desc(qbSources.year), asc(qbSources.name))
+            : [],
+          containerItem
             ? db
                 .select()
                 .from(qbExamSheets)
-                .where(inArray(qbExamSheets.chapterId, subChapterIds))
+                .where(eq(qbExamSheets.containerItemId, containerItem.id))
                 .orderBy(asc(qbExamSheets.orderIndex), asc(qbExamSheets.title))
+            : subChapterIds.length > 0
+              ? db
+                  .select()
+                  .from(qbExamSheets)
+                  .where(inArray(qbExamSheets.chapterId, subChapterIds))
+                  .orderBy(asc(qbExamSheets.orderIndex), asc(qbExamSheets.title))
+              : [],
+          subChapterIds.length > 0
+            ? targetSourceType
+              ? db
+                  .select({
+                    topicId: qbQuestions.topicId,
+                    total: count(qbQuestions.id),
+                  })
+                  .from(qbQuestions)
+                  .innerJoin(
+                    qbQuestionChapters,
+                    and(
+                      eq(qbQuestionChapters.questionId, qbQuestions.id),
+                      inArray(qbQuestionChapters.chapterId, subChapterIds),
+                    ),
+                  )
+                  .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestions.id))
+                  .innerJoin(
+                    qbSources,
+                    and(
+                      eq(qbSources.id, qbQuestionSources.sourceId),
+                      eq(qbSources.type, targetSourceType),
+                    ),
+                  )
+                  .where(eq(qbQuestions.status, "published"))
+                  .groupBy(qbQuestions.topicId)
+              : db
+                  .select({
+                    topicId: qbQuestions.topicId,
+                    total: count(qbQuestions.id),
+                  })
+                  .from(qbQuestions)
+                  .innerJoin(
+                    qbQuestionChapters,
+                    and(
+                      eq(qbQuestionChapters.questionId, qbQuestions.id),
+                      inArray(qbQuestionChapters.chapterId, subChapterIds),
+                    ),
+                  )
+                  .where(eq(qbQuestions.status, "published"))
+                  .groupBy(qbQuestions.topicId)
             : [],
-        subChapterIds.length > 0
-          ? targetSourceType
-            ? db
-                .select({
-                  topicId: qbQuestions.topicId,
-                  total: count(qbQuestions.id),
-                })
-                .from(qbQuestions)
-                .innerJoin(
-                  qbQuestionChapters,
-                  and(
-                    eq(qbQuestionChapters.questionId, qbQuestions.id),
-                    inArray(qbQuestionChapters.chapterId, subChapterIds),
-                  ),
-                )
-                .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestions.id))
-                .innerJoin(qbSources, and(eq(qbSources.id, qbQuestionSources.sourceId), eq(qbSources.type, targetSourceType)))
-                .where(eq(qbQuestions.status, "published"))
-                .groupBy(qbQuestions.topicId)
-            : db
-                .select({
-                  topicId: qbQuestions.topicId,
-                  total: count(qbQuestions.id),
-                })
-                .from(qbQuestions)
-                .innerJoin(
-                  qbQuestionChapters,
-                  and(
-                    eq(qbQuestionChapters.questionId, qbQuestions.id),
-                    inArray(qbQuestionChapters.chapterId, subChapterIds),
-                  ),
-                )
-                .where(eq(qbQuestions.status, "published"))
-                .groupBy(qbQuestions.topicId)
-          : [],
-      ]);
+        ]);
 
       const topicMap = new Map(allTopics.map((t) => [t.id, t]));
       const chapterMap = new Map(allChapters.map((c) => [c.id, c]));
@@ -858,11 +901,18 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         }
       }
 
-      let topicsList = chapterTopicIdSet.size > 0 ? allTopics.filter((t) => chapterTopicIdSet.has(t.id)) : [];
+      let topicsList =
+        chapterTopicIdSet.size > 0 ? allTopics.filter((t) => chapterTopicIdSet.has(t.id)) : [];
 
       const effectiveExamSheet = examSheet || examSheetSlug || examSheetId;
       let matchedExamSheet: (typeof examSheetsList)[number] | undefined;
-      let examSheetSubjectsList: Array<{ id: string; name: string; slug: string; orderIndex: number; questionCount: number }> = [];
+      let examSheetSubjectsList: Array<{
+        id: string;
+        name: string;
+        slug: string;
+        orderIndex: number;
+        questionCount: number;
+      }> = [];
 
       if (effectiveExamSheet && effectiveExamSheet !== "all") {
         matchedExamSheet = examSheetsList.find(
@@ -884,7 +934,16 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
             )
             .where(eq(qbQuestions.status, "published"));
 
-          const esSubjectCounts = new Map<string, { id: string; name: string; slug: string; orderIndex: number; questionCount: number }>();
+          const esSubjectCounts = new Map<
+            string,
+            {
+              id: string;
+              name: string;
+              slug: string;
+              orderIndex: number;
+              questionCount: number;
+            }
+          >();
           const esTopicCounts = new Map<string, number>();
           const esTopicIdSet = new Set<string>();
 
@@ -920,12 +979,18 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
             }
           }
 
-          examSheetSubjectsList = Array.from(esSubjectCounts.values()).sort((a, b) => a.orderIndex - b.orderIndex);
+          examSheetSubjectsList = Array.from(esSubjectCounts.values()).sort(
+            (a, b) => a.orderIndex - b.orderIndex,
+          );
 
           if (querySubjectSlug && querySubjectSlug !== "all") {
-            const filterSubject = allSubjects.find((s) => s.slug === querySubjectSlug || s.id === querySubjectSlug);
+            const filterSubject = allSubjects.find(
+              (s) => s.slug === querySubjectSlug || s.id === querySubjectSlug,
+            );
             if (filterSubject) {
-              const subChapterIdList = allChapters.filter((c) => c.subjectId === filterSubject.id).map((c) => c.id);
+              const subChapterIdList = allChapters
+                .filter((c) => c.subjectId === filterSubject.id)
+                .map((c) => c.id);
               const subjectTopicIds = new Set<string>();
               for (const t of allTopics) {
                 if (t.parentId && subChapterIdList.includes(t.parentId)) {
@@ -942,21 +1007,27 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
                   }
                 }
               }
-              topicsList = allTopics.filter((t) => esTopicIdSet.has(t.id) && subjectTopicIds.has(t.id)).map((t) => ({
-                ...t,
-                questionCount: esTopicCounts.get(t.id) ?? 0,
-              }));
+              topicsList = allTopics
+                .filter((t) => esTopicIdSet.has(t.id) && subjectTopicIds.has(t.id))
+                .map((t) => ({
+                  ...t,
+                  questionCount: esTopicCounts.get(t.id) ?? 0,
+                }));
             } else {
-              topicsList = allTopics.filter((t) => esTopicIdSet.has(t.id)).map((t) => ({
-                ...t,
-                questionCount: esTopicCounts.get(t.id) ?? 0,
-              }));
+              topicsList = allTopics
+                .filter((t) => esTopicIdSet.has(t.id))
+                .map((t) => ({
+                  ...t,
+                  questionCount: esTopicCounts.get(t.id) ?? 0,
+                }));
             }
           } else {
-            topicsList = allTopics.filter((t) => esTopicIdSet.has(t.id)).map((t) => ({
-              ...t,
-              questionCount: esTopicCounts.get(t.id) ?? 0,
-            }));
+            topicsList = allTopics
+              .filter((t) => esTopicIdSet.has(t.id))
+              .map((t) => ({
+                ...t,
+                questionCount: esTopicCounts.get(t.id) ?? 0,
+              }));
           }
         }
       }
@@ -989,7 +1060,10 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
                 .from(qbQuestionSources)
                 .innerJoin(
                   qbSources,
-                  and(eq(qbSources.id, qbQuestionSources.sourceId), eq(qbSources.type, targetSourceType)),
+                  and(
+                    eq(qbSources.id, qbQuestionSources.sourceId),
+                    eq(qbSources.type, targetSourceType),
+                  ),
                 ),
             ),
           );
@@ -1010,9 +1084,13 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
       }
 
       if (querySubjectSlug && querySubjectSlug !== "all") {
-        const targetSub = allSubjects.find((s) => s.slug === querySubjectSlug || s.id === querySubjectSlug);
+        const targetSub = allSubjects.find(
+          (s) => s.slug === querySubjectSlug || s.id === querySubjectSlug,
+        );
         if (targetSub) {
-          const subChapterIdList = allChapters.filter((c) => c.subjectId === targetSub.id).map((c) => c.id);
+          const subChapterIdList = allChapters
+            .filter((c) => c.subjectId === targetSub.id)
+            .map((c) => c.id);
           if (subChapterIdList.length > 0) {
             conditions.push(
               inArray(
@@ -1065,8 +1143,8 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
 
           const sourceTopicCounts = await db
             .select({
-                topicId: qbQuestions.topicId,
-                total: count(qbQuestions.id),
+              topicId: qbQuestions.topicId,
+              total: count(qbQuestions.id),
             })
             .from(qbQuestions)
             .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestions.id))
@@ -1197,9 +1275,11 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
             name: t.name,
             slug: t.slug,
             orderIndex: t.orderIndex,
-            questionCount: (t as any).questionCount ?? (sourceTopicCountMap
-              ? (sourceTopicCountMap.get(t.id) ?? 0)
-              : (chapterTopicCountMap.get(t.id) ?? 0)),
+            questionCount:
+              (t as any).questionCount ??
+              (sourceTopicCountMap
+                ? (sourceTopicCountMap.get(t.id) ?? 0)
+                : (chapterTopicCountMap.get(t.id) ?? 0)),
           })),
           sources: sourcesList.map((s) => ({
             ...s,
@@ -1248,18 +1328,27 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
     }
 
     c.header("Cache-Control", CACHE_CONTROL_PUBLIC);
-    return c.json({ success: true, data: mapQuestion(question, { includeAnswers: true }) });
+    return c.json({
+      success: true,
+      data: mapQuestion(question, { includeAnswers: true }),
+    });
   })
   .get("/tree", async (c) => {
-    const [targetsList, containersList, containerItemsList, subjectsList, chaptersList, topicsList] =
-      await Promise.all([
-        db.select().from(qbTargets).orderBy(asc(qbTargets.orderIndex)),
-        db.select().from(qbContainers).orderBy(asc(qbContainers.orderIndex)),
-        db.select().from(qbContainerItems).orderBy(asc(qbContainerItems.orderIndex)),
-        db.select().from(qbSubjects).orderBy(asc(qbSubjects.orderIndex)),
-        db.select().from(qbChapters).orderBy(asc(qbChapters.orderIndex)),
-        db.select().from(qbTopics).orderBy(asc(qbTopics.orderIndex)),
-      ]);
+    const [
+      targetsList,
+      containersList,
+      containerItemsList,
+      subjectsList,
+      chaptersList,
+      topicsList,
+    ] = await Promise.all([
+      db.select().from(qbTargets).orderBy(asc(qbTargets.orderIndex)),
+      db.select().from(qbContainers).orderBy(asc(qbContainers.orderIndex)),
+      db.select().from(qbContainerItems).orderBy(asc(qbContainerItems.orderIndex)),
+      db.select().from(qbSubjects).orderBy(asc(qbSubjects.orderIndex)),
+      db.select().from(qbChapters).orderBy(asc(qbChapters.orderIndex)),
+      db.select().from(qbTopics).orderBy(asc(qbTopics.orderIndex)),
+    ]);
 
     const topicsByParent = new Map<string, typeof topicsList>();
     for (const top of topicsList) {
@@ -1503,7 +1592,13 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
       }
 
       if (sampledQuestionIds.length === 0) {
-        return c.json({ success: false, error: "No questions available for this selection" }, 400);
+        return c.json(
+          {
+            success: false,
+            error: "No questions available for this selection",
+          },
+          400,
+        );
       }
 
       const examId = uuidv7();
@@ -1885,7 +1980,10 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
 
       if (!chapter) {
         return c.json(
-          { success: false, error: `Chapter '${chapterId}' not found for subject '${subjectId}'` },
+          {
+            success: false,
+            error: `Chapter '${chapterId}' not found for subject '${subjectId}'`,
+          },
           404,
         );
       }
@@ -1996,7 +2094,10 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
                   })
                   .onConflictDoUpdate({
                     target: [qbQuestionOptions.id],
-                    set: { optionText: cleanedOptionText, isCorrect: opt.isCorrect },
+                    set: {
+                      optionText: cleanedOptionText,
+                      isCorrect: opt.isCorrect,
+                    },
                   });
               }),
             );
@@ -2047,7 +2148,10 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
 
       return c.json({
         success: true,
-        data: { importedCount: questions.length, questionIds: createdQuestionIds },
+        data: {
+          importedCount: questions.length,
+          questionIds: createdQuestionIds,
+        },
       });
     },
   );

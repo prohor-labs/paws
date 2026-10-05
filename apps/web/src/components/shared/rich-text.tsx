@@ -45,17 +45,19 @@ function convertHtmlTableToMarkdown(html: string): string {
   return html.replace(/<table[^>]*>([\s\S]*?)<\/table>/gi, (_, tableContent) => {
     const rows: string[][] = [];
     const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-    let rowMatch: RegExpExecArray | null;
-    while ((rowMatch = rowRegex.exec(tableContent)) !== null) {
+    let rowMatch = rowRegex.exec(tableContent);
+    while (rowMatch !== null) {
       const cellRegex = /<(?:th|td)[^>]*>([\s\S]*?)<\/(?:th|td)>/gi;
       const cells: string[] = [];
-      let cellMatch: RegExpExecArray | null;
-      while ((cellMatch = cellRegex.exec(rowMatch[1])) !== null) {
+      let cellMatch = cellRegex.exec(rowMatch[1]);
+      while (cellMatch !== null) {
         cells.push(cellMatch[1].trim());
+        cellMatch = cellRegex.exec(rowMatch[1]);
       }
       if (cells.length > 0) {
         rows.push(cells);
       }
+      rowMatch = rowRegex.exec(tableContent);
     }
 
     if (rows.length === 0) return "";

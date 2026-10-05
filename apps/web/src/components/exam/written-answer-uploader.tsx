@@ -40,7 +40,7 @@ interface WrittenAnswerUploaderProps {
 }
 
 export function WrittenAnswerUploader({
-  questionId,
+  questionId: _questionId,
   writtenPages = [],
   onWrittenPagesChange,
   evaluatedScripts = [],
@@ -213,7 +213,7 @@ export function WrittenAnswerUploader({
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
           {displayPages.map((page, pIdx) => (
             <div
-              key={`${page.pageNumber}-${pIdx}`}
+              key={`${page.pageNumber}-${page.imageUrl || pIdx}`}
               className="group relative flex flex-col rounded-2xl border border-border/80 bg-card overflow-hidden shadow-2xs hover:shadow-md transition-all duration-200"
             >
               <div className="relative aspect-3/4 min-h-[180px] sm:min-h-[220px] md:min-h-[260px] w-full bg-muted/40 cursor-pointer overflow-hidden">
@@ -229,18 +229,20 @@ export function WrittenAnswerUploader({
                   }}
                 />
 
-                <div
-                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2"
+                <button
+                  type="button"
+                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 cursor-pointer border-none"
                   onClick={() => {
                     setPreviewImageUrl(page.imageUrl);
                     setPreviewPageNum(page.pageNumber);
                   }}
+                  aria-label={`পৃষ্ঠা ${toBengaliNumber(page.pageNumber)} বড় করে দেখুন`}
                 >
                   <span className="flex items-center gap-1.5 text-xs font-bold text-white bg-black/70 px-3 py-1.5 rounded-lg backdrop-blur-xs">
                     <Eye className="size-4" />
                     <span>বড় করে দেখুন</span>
                   </span>
-                </div>
+                </button>
 
                 {isLiveExam && !disabled && (
                   <button
@@ -300,15 +302,18 @@ export function WrittenAnswerUploader({
         </div>
       ) : (
         !isUploading && (
-          <div
+          <button
+            type="button"
             onClick={() => {
               if (isLiveExam && !disabled) {
                 galleryInputRef.current?.click();
               }
             }}
             className={cn(
-              "flex flex-col items-center justify-center gap-3 p-6 sm:p-8 md:p-10 min-h-[150px] sm:min-h-[190px] md:min-h-[230px] rounded-2xl border-2 border-dashed border-border/80 bg-muted/15 text-center transition-all duration-200",
-              isLiveExam && !disabled && "cursor-pointer hover:border-primary/50 hover:bg-primary/5",
+              "w-full flex flex-col items-center justify-center gap-3 p-6 sm:p-8 md:p-10 min-h-[150px] sm:min-h-[190px] md:min-h-[230px] rounded-2xl border-2 border-dashed border-border/80 bg-muted/15 text-center transition-all duration-200",
+              isLiveExam &&
+                !disabled &&
+                "cursor-pointer hover:border-primary/50 hover:bg-primary/5",
             )}
           >
             <div className="size-11 sm:size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-2xs">
@@ -322,7 +327,8 @@ export function WrittenAnswerUploader({
               </span>
               {isLiveExam && (
                 <span className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                  মোবাইল দিয়ে সরাসরি পেছনের ক্যামেরায় ছবি তুলুন অথবা গ্যালারি / ফাইল থেকে এক বা একাধিক পৃষ্ঠা আপলোড করুন
+                  মোবাইল দিয়ে সরাসরি পেছনের ক্যামেরায় ছবি তুলুন অথবা গ্যালারি / ফাইল থেকে এক বা একাধিক পৃষ্ঠা আপলোড
+                  করুন
                 </span>
               )}
             </div>
@@ -356,7 +362,7 @@ export function WrittenAnswerUploader({
                 </Button>
               </div>
             )}
-          </div>
+          </button>
         )
       )}
 
@@ -370,9 +376,7 @@ export function WrittenAnswerUploader({
             <DialogTitle className="text-sm sm:text-base font-bold">
               পৃষ্ঠা {toBengaliNumber(previewPageNum)} - উত্তরের খাতা প্রিভিউ
             </DialogTitle>
-            <DialogDescription className="sr-only">
-              লিখিত উত্তরের খাতার সম্পূর্ণ ছবি
-            </DialogDescription>
+            <DialogDescription className="sr-only">লিখিত উত্তরের খাতার সম্পূর্ণ ছবি</DialogDescription>
           </DialogHeader>
           <div className="relative w-full h-[65vh] rounded-lg overflow-hidden bg-black/10">
             {previewImageUrl && (

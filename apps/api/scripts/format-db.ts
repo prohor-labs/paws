@@ -1,5 +1,5 @@
-import { db } from "../src/db";
 import { sql } from "drizzle-orm";
+import { db } from "../src/db";
 import { recalculateAllCounts } from "../src/services/qb-count.service";
 
 /**
@@ -58,7 +58,7 @@ async function formatDatabase() {
 
   // STEP 4: Convert misclassified MCQ exam sheets and restore question options
   console.log("[4/7] Converting misclassified MCQ exam sheets and restoring MCQ options...");
-  
+
   // 4a. Find questions that are marked as written and have 4+ parts but no options, and are NOT in a pure written source
   await db.execute(sql`
     INSERT INTO qb_question_options (id, question_id, option_text, is_correct, order_index)
@@ -106,12 +106,12 @@ async function formatDatabase() {
     WHERE TRIM(q.explanation) LIKE '{"A":%'
        OR TRIM(q.explanation) LIKE '{"ক":%';
   `);
-  const jsonQuestions = (rawJsonQuestions as unknown as Array<{
+  const jsonQuestions = rawJsonQuestions as unknown as Array<{
     id: string;
     qType: string;
     explanation: string;
     questionText: string;
-  }>);
+  }>;
 
   const keyMap = [
     ["A", "a", "ক", "১", "1"],
@@ -148,7 +148,11 @@ async function formatDatabase() {
         WHERE question_id = ${q.id}
         ORDER BY order_index ASC;
       `);
-      const parts = partsResult as unknown as Array<{ id: string; order_index: number; answer_text: string | null }>;
+      const parts = partsResult as unknown as Array<{
+        id: string;
+        order_index: number;
+        answer_text: string | null;
+      }>;
       for (let i = 0; i < parts.length; i++) {
         const part = parts[i];
         if (!part.answer_text || part.answer_text.trim() === "") {
@@ -222,7 +226,7 @@ async function formatDatabase() {
   const { storageService } = await import("../src/services/storage.service");
   const { env } = await import("../src/lib/env");
 
-  const chorchaUrlRegex = /https?:\/\/assets\.chorcha\.net\/[^\s"'<>\)]+/g;
+  const chorchaUrlRegex = /https?:\/\/assets\.chorcha\.net\/[^\s"'<>)]+/g;
   const sanitizeUrl = (raw: string) => raw.replace(/(&quot;|\\&quot;|["'\\><)]|&amp;)+$/, "");
 
   // 7a. Find all unique Chorcha image URLs in DB
@@ -233,19 +237,22 @@ async function formatDatabase() {
        OR context_text ~ 'assets\.chorcha\.net'
        OR explanation ~ 'assets\.chorcha\.net';
   `);
-  const qList = (rawQuestions as unknown as Array<{
+  const qList = rawQuestions as unknown as Array<{
     id: string;
     question_text: string | null;
     context_text: string | null;
     explanation: string | null;
-  }>);
+  }>;
 
   const rawOptions = await db.execute(sql`
     SELECT id, option_text
     FROM qb_question_options
     WHERE option_text ~ 'assets\.chorcha\.net';
   `);
-  const oList = (rawOptions as unknown as Array<{ id: string; option_text: string }>);
+  const oList = rawOptions as unknown as Array<{
+    id: string;
+    option_text: string;
+  }>;
 
   const rawParts = await db.execute(sql`
     SELECT id, part_text, answer_text
@@ -253,11 +260,11 @@ async function formatDatabase() {
     WHERE part_text ~ 'assets\.chorcha\.net'
        OR answer_text ~ 'assets\.chorcha\.net';
   `);
-  const pList = (rawParts as unknown as Array<{
+  const pList = rawParts as unknown as Array<{
     id: string;
     part_text: string;
     answer_text: string | null;
-  }>);
+  }>;
 
   const uniqueUrls = new Set<string>();
   for (const q of qList) {

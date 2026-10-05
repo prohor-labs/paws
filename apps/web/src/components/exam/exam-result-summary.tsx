@@ -142,7 +142,11 @@ export function ExamResultSummary({
           { id: "all", label: "সব প্রশ্ন", count: totalQuestions },
           { id: "correct", label: "সঠিক উত্তর", count: correctCount },
           { id: "wrong", label: "ভুল উত্তর", count: wrongCount },
-          { id: "unanswered", label: "উত্তর দেওয়া হয়নি", count: unansweredCount },
+          {
+            id: "unanswered",
+            label: "উত্তর দেওয়া হয়নি",
+            count: unansweredCount,
+          },
         ].map((tab) => {
           const isActive = filter === tab.id;
           return (

@@ -8,7 +8,11 @@ import type { QuestionTypeFilter } from "@/components/qb";
 import { TopicWiseView } from "@/components/qb";
 import { EmptyState, PageBreadcrumbs, PageLoading } from "@/components/shared";
 import { Button } from "@/components/ui/button";
-import { useCreateCustomExam, useQBChapterDetail, useQBItemDetail } from "@/hooks/use-question-bank";
+import {
+  useCreateCustomExam,
+  useQBChapterDetail,
+  useQBItemDetail,
+} from "@/hooks/use-question-bank";
 import { EMPTY_QUESTIONS, EMPTY_TOPICS } from "@/lib/consts/empty";
 import { toBengaliNumber } from "@/lib/utils";
 
@@ -53,7 +57,7 @@ export default function QBSubSlugPage() {
       page: currentPage,
       limit: 100,
       targetSlug,
-      examSheet: matchedExamSheet ? (matchedExamSheet.slug || matchedExamSheet.id) : undefined,
+      examSheet: matchedExamSheet ? matchedExamSheet.slug || matchedExamSheet.id : undefined,
       subjectSlug: selectedSubjectSlug !== "all" ? selectedSubjectSlug : undefined,
       topicId: selectedTopicId !== "all" ? selectedTopicId : undefined,
       qType: qTypeFilter !== "all" ? qTypeFilter : undefined,
@@ -76,7 +80,7 @@ export default function QBSubSlugPage() {
   const activeLabel =
     matchedExamSheet?.title ??
     matchedChapter?.name ??
-    (subSlug === "all" ? item?.name ?? "টপিক ভিত্তিক" : item?.name ?? "অনুশীলন");
+    (subSlug === "all" ? (item?.name ?? "টপিক ভিত্তিক") : (item?.name ?? "অনুশীলন"));
 
   const handleStartExam = async () => {
     try {
@@ -85,7 +89,8 @@ export default function QBSubSlugPage() {
         title: `${activeLabel} পরীক্ষা`,
         examType: matchedExamSheet?.examType ?? "mcq",
         questionCount: examCount,
-        durationMinutes: matchedExamSheet?.durationMinutes ?? Math.max(15, Math.round(examCount * 0.75)),
+        durationMinutes:
+          matchedExamSheet?.durationMinutes ?? Math.max(15, Math.round(examCount * 0.75)),
         chapterIds: matchedChapter ? [matchedChapter.id] : undefined,
         examSheetIds: matchedExamSheet ? [matchedExamSheet.id] : undefined,
       });
@@ -116,8 +121,14 @@ export default function QBSubSlugPage() {
           items={[
             { label: "প্রশ্নব্যাংক", href: "/qb" },
             { label: target.name, href: `/qb/${targetSlug}` },
-            { label: container.name, href: `/qb/${targetSlug}/${containerSlug}` },
-            { label: item.name, href: `/qb/${targetSlug}/${containerSlug}/${itemSlug}` },
+            {
+              label: container.name,
+              href: `/qb/${targetSlug}/${containerSlug}`,
+            },
+            {
+              label: item.name,
+              href: `/qb/${targetSlug}/${containerSlug}/${itemSlug}`,
+            },
             { label: activeLabel },
           ]}
         />

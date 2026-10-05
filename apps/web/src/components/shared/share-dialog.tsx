@@ -101,8 +101,8 @@ export function ShareDialog({
           text: shareText || shareTitle,
           url: fullUrl,
         });
-      } catch (err: any) {
-        if (err?.name !== "AbortError") {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== "AbortError") {
           console.error("Native share error:", err);
         }
       }

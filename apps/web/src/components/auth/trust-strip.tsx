@@ -7,10 +7,7 @@ export function TrustStrip() {
       <p className="text-xs tracking-wide text-muted-foreground">
         শীর্ষস্থানীয় শিক্ষার্থীদের পছন্দের প্ল্যাটফর্ম
       </p>
-      <ul
-        className="flex items-center justify-center gap-4 opacity-80"
-        aria-label="Customer logos"
-      >
+      <ul className="flex items-center justify-center gap-4 opacity-80" aria-label="Customer logos">
         {CUSTOMER_LOGOS.map((item) => (
           <li key={item.id} aria-label={item.name} className="flex h-6 items-center justify-center">
             <Image

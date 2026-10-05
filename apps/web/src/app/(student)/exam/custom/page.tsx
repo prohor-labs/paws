@@ -19,6 +19,7 @@ import {
 } from "@/lib/consts/custom-exam";
 import { chapterLevelLabel } from "@/lib/consts/qb";
 import { toBengaliNumber } from "@/lib/utils";
+import type { CreateCustomExamInput } from "@/types";
 
 const stepLoading = () => <PageLoading />;
 
@@ -99,7 +100,10 @@ export default function CustomExamPage() {
     >();
     for (const target of tree) {
       for (const subject of target.subjects) {
-        map.set(subject.id, { name: subject.name, chapters: subject.chapters as any });
+        map.set(subject.id, {
+          name: subject.name,
+          chapters: subject.chapters,
+        });
       }
     }
     return map;
@@ -136,7 +140,7 @@ export default function CustomExamPage() {
     });
   }, [selectedSubjects, subjectsById]);
 
-  const sourceOptions = React.useMemo<CustomExamSourceOption[]>(() => {
+  const _sourceOptions = React.useMemo<CustomExamSourceOption[]>(() => {
     return (hub?.sources ?? []).map((s) => {
       const group = s.type ? (SOURCE_TYPE_LABELS[s.type] ?? "অন্যান্য") : "অন্যান্য";
       return {
@@ -182,7 +186,7 @@ export default function CustomExamPage() {
     setSelectedSourceTypes(sourceTypes);
   };
 
-  const toggleSourceSelection = (sourceId: string) => {
+  const _toggleSourceSelection = (sourceId: string) => {
     setSelectedSourceIds((prev) =>
       prev.includes(sourceId) ? prev.filter((id) => id !== sourceId) : [...prev, sourceId],
     );
@@ -229,8 +233,7 @@ export default function CustomExamPage() {
         ? selectedSubjectIds
         : subjectIdsToSend;
 
-    const totalCount =
-      selectedQType === "mixed" ? mcqCount + writtenCount : questionCount;
+    const totalCount = selectedQType === "mixed" ? mcqCount + writtenCount : questionCount;
 
     try {
       const res = await createExamMutation.mutateAsync({
@@ -244,7 +247,10 @@ export default function CustomExamPage() {
         subjectIds: fallbackSubjectIds,
         chapterIds: chapterIdsToSend,
         topicIds: selectedTopicIds,
-        sourceTypes: selectedSourceTypes.length > 0 ? (selectedSourceTypes as any) : undefined,
+        sourceTypes:
+          selectedSourceTypes.length > 0
+            ? (selectedSourceTypes as NonNullable<CreateCustomExamInput["sourceTypes"]>)
+            : undefined,
         sourceIds: selectedSourceIds,
       });
       if (res?.id) router.push(`/exam/${res.id}/take`);

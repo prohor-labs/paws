@@ -1,7 +1,22 @@
-import type { QBChapter, QBQuestion, QBSubject, QBTopic } from "@/types";
+import type {
+  QBChapter,
+  QBQuestion,
+  QBSubject,
+  QBTopic,
+  WatchChannel,
+  WatchFeedItem,
+  WatchPlaylist,
+  WatchVideo,
+} from "@/types";
 
 export const EMPTY_QUESTIONS: readonly QBQuestion[] = Object.freeze([]);
 export const EMPTY_SUBJECTS: readonly QBSubject[] = Object.freeze([]);
 export const EMPTY_CHAPTERS: readonly QBChapter[] = Object.freeze([]);
 export const EMPTY_TOPICS: readonly QBTopic[] = Object.freeze([]);
 export const EMPTY_STRING_MAP: Readonly<Record<string, string>> = Object.freeze({});
+
+// Watch domain empty fallbacks
+export const EMPTY_WATCH_VIDEOS: readonly WatchVideo[] = Object.freeze([]);
+export const EMPTY_WATCH_CHANNELS: readonly WatchChannel[] = Object.freeze([]);
+export const EMPTY_WATCH_PLAYLISTS: readonly WatchPlaylist[] = Object.freeze([]);
+export const EMPTY_WATCH_FEED_ITEMS: readonly WatchFeedItem[] = Object.freeze([]);

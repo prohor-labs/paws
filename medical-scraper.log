@@ -342,3 +342,445 @@ Total questions downloaded for Dental Admission (BDS): 1912
 Identified 63 distinct Exam Sets / Years.
 
 Created Exam Sheet: "Dental Admission (BDS) - DAT 23-24" (73 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - BB 21" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - IU D 19-20" (3 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - JU A 21-22 SET F" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - ইসহাক স্যার" (10 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 22-23" (69 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - RU C 19-20 (Group-1)" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 21-22" (71 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - RU C 22-23 (SHIFT 1)" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - CVASU 18-19" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 20-21" (76 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - PSTU 18-19" (3 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - PUST A 17-18" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - RU C 20-21 (SET 2)" (5 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 19-20" (58 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - MAT 19-20" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 18-19" (80 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - RU C 20-21 (SET 1)" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - BAU 15-16" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - JUST A 19-20" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - NSTU C 18-19" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - SYLAU 18-19" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - MAT 20-21" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - IU D 18-19" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - CU A 13-14" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 17-18" (73 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - CUET 15-16" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - NSTU B 18-19" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 15-16" (80 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 14-15" (80 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 13-14" (86 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 12-13" (78 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 11-12" (85 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 10-11" (86 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - BSMRSTU A 18-19" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 9-10" (85 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - AGRI GST 19-20" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 8-9" (90 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - CU A 18-19" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 7-8" (86 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - PSTU 14-15" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 16-17" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DCC 24" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 6-7" (84 questions)
+Failed to migrate image https://assets.chorcha.net/hM2nFUt1PG-NCt_CRYvzv.jpg: 63 |             dataObject.message = dataObject.message ?? dataObject.Message ?? "UnknownError";
+64 |             const synthetic = this.errorRegistry;
+65 |             const baseExceptionSchema = synthetic.getBaseException();
+66 |             if (baseExceptionSchema) {
+67 |                 const ErrorCtor = synthetic.getErrorCtor(baseExceptionSchema) ?? Error;
+68 |                 throw this.decorateServiceException(Object.assign(new ErrorCtor({ name: errorName }), errorMetadata), dataObject);
+                                                                       ^
+AuthorizationHeaderMalformed: Authorization header malformed, unexpected scope: '20261004/us-east-1/s3/aws4_request', expected: '20261004/garage/s3/aws4_request'
+     $fault: "client",
+ $retryable: undefined,
+  $metadata: {
+  httpStatusCode: 400,
+  requestId: undefined,
+  extendedRequestId: undefined,
+  cfId: undefined,
+  attempts: 1,
+  totalRetryDelay: 0,
+},
+       Code: "AuthorizationHeaderMalformed",
+   Resource: "/study/qb/images/01a10692-951b-7149-9727-06079a398cdf.jpg",
+     Region: "garage",
+
+      at getErrorSchemaOrThrowBaseException (/root/paws.academy/node_modules/.bun/@aws-sdk+core@3.978.1/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:68:67)
+      at handleError (/root/paws.academy/node_modules/.bun/@aws-sdk+core@3.978.1/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:2826:65)
+      at deserializeResponse (/root/paws.academy/node_modules/.bun/@smithy+core@3.35.1/node_modules/@smithy/core/dist-cjs/submodules/protocols/index.js:406:24)
+
+Failed to migrate image https://assets.chorcha.net/XCyZdQtwa37G7Voc.webp: 63 |             dataObject.message = dataObject.message ?? dataObject.Message ?? "UnknownError";
+64 |             const synthetic = this.errorRegistry;
+65 |             const baseExceptionSchema = synthetic.getBaseException();
+66 |             if (baseExceptionSchema) {
+67 |                 const ErrorCtor = synthetic.getErrorCtor(baseExceptionSchema) ?? Error;
+68 |                 throw this.decorateServiceException(Object.assign(new ErrorCtor({ name: errorName }), errorMetadata), dataObject);
+                                                                       ^
+AuthorizationHeaderMalformed: Authorization header malformed, unexpected scope: '20261004/us-east-1/s3/aws4_request', expected: '20261004/garage/s3/aws4_request'
+     $fault: "client",
+ $retryable: undefined,
+  $metadata: {
+  httpStatusCode: 400,
+  requestId: undefined,
+  extendedRequestId: undefined,
+  cfId: undefined,
+  attempts: 1,
+  totalRetryDelay: 0,
+},
+       Code: "AuthorizationHeaderMalformed",
+   Resource: "/study/qb/images/01a10692-9aa9-7230-a858-7bd51756a2e0.webp",
+     Region: "garage",
+
+      at getErrorSchemaOrThrowBaseException (/root/paws.academy/node_modules/.bun/@aws-sdk+core@3.978.1/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:68:67)
+      at handleError (/root/paws.academy/node_modules/.bun/@aws-sdk+core@3.978.1/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:2826:65)
+      at deserializeResponse (/root/paws.academy/node_modules/.bun/@smithy+core@3.35.1/node_modules/@smithy/core/dist-cjs/submodules/protocols/index.js:406:24)
+
+
+Created Exam Sheet: "Dental Admission (BDS) - CUET 10-11" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 5-6" (87 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - BSMRSTU A 19-20" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - KUET 18-19" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - SAU 16-17" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 4-5" (87 questions)
+Failed to migrate image https://assets.chorcha.net/szhxA3qQVaXeOUIEwJwRA.png: 63 |             dataObject.message = dataObject.message ?? dataObject.Message ?? "UnknownError";
+64 |             const synthetic = this.errorRegistry;
+65 |             const baseExceptionSchema = synthetic.getBaseException();
+66 |             if (baseExceptionSchema) {
+67 |                 const ErrorCtor = synthetic.getErrorCtor(baseExceptionSchema) ?? Error;
+68 |                 throw this.decorateServiceException(Object.assign(new ErrorCtor({ name: errorName }), errorMetadata), dataObject);
+                                                                       ^
+AuthorizationHeaderMalformed: Authorization header malformed, unexpected scope: '20261004/us-east-1/s3/aws4_request', expected: '20261004/garage/s3/aws4_request'
+     $fault: "client",
+ $retryable: undefined,
+  $metadata: {
+  httpStatusCode: 400,
+  requestId: undefined,
+  extendedRequestId: undefined,
+  cfId: undefined,
+  attempts: 1,
+  totalRetryDelay: 0,
+},
+       Code: "AuthorizationHeaderMalformed",
+   Resource: "/study/qb/images/01a1069c-04fd-70b8-b9f5-447779901c4f.png",
+     Region: "garage",
+
+      at getErrorSchemaOrThrowBaseException (/root/paws.academy/node_modules/.bun/@aws-sdk+core@3.978.1/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:68:67)
+      at handleError (/root/paws.academy/node_modules/.bun/@aws-sdk+core@3.978.1/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:2826:65)
+      at deserializeResponse (/root/paws.academy/node_modules/.bun/@smithy+core@3.35.1/node_modules/@smithy/core/dist-cjs/submodules/protocols/index.js:406:24)
+
+Failed to migrate image https://assets.chorcha.net/AKcvjFrKEMFWpN1VFrmDh.png: 63 |             dataObject.message = dataObject.message ?? dataObject.Message ?? "UnknownError";
+64 |             const synthetic = this.errorRegistry;
+65 |             const baseExceptionSchema = synthetic.getBaseException();
+66 |             if (baseExceptionSchema) {
+67 |                 const ErrorCtor = synthetic.getErrorCtor(baseExceptionSchema) ?? Error;
+68 |                 throw this.decorateServiceException(Object.assign(new ErrorCtor({ name: errorName }), errorMetadata), dataObject);
+                                                                       ^
+AuthorizationHeaderMalformed: Authorization header malformed, unexpected scope: '20261004/us-east-1/s3/aws4_request', expected: '20261004/garage/s3/aws4_request'
+     $fault: "client",
+ $retryable: undefined,
+  $metadata: {
+  httpStatusCode: 400,
+  requestId: undefined,
+  extendedRequestId: undefined,
+  cfId: undefined,
+  attempts: 1,
+  totalRetryDelay: 0,
+},
+       Code: "AuthorizationHeaderMalformed",
+   Resource: "/study/qb/images/01a1069c-07da-7509-922f-cfbb29e460fc.png",
+     Region: "garage",
+
+      at getErrorSchemaOrThrowBaseException (/root/paws.academy/node_modules/.bun/@aws-sdk+core@3.978.1/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:68:67)
+      at handleError (/root/paws.academy/node_modules/.bun/@aws-sdk+core@3.978.1/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:2826:65)
+      at deserializeResponse (/root/paws.academy/node_modules/.bun/@smithy+core@3.35.1/node_modules/@smithy/core/dist-cjs/submodules/protocols/index.js:406:24)
+
+
+Created Exam Sheet: "Dental Admission (BDS) - JnU A 15-16" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - BSMRSTU A 17-18" (2 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - RU A 21-22 (Group-3)" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 3-4" (89 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - MBSTU A 15-16" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - NSTU B 17-18" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 2-3" (79 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - JUST 18-19" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - CVASU 15-16" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 1-2" (73 questions)
+Failed to migrate image https://assets.chorcha.net/AmYtk3Yf_h8laoi71CiSy.png: 63 |             dataObject.message = dataObject.message ?? dataObject.Message ?? "UnknownError";
+64 |             const synthetic = this.errorRegistry;
+65 |             const baseExceptionSchema = synthetic.getBaseException();
+66 |             if (baseExceptionSchema) {
+67 |                 const ErrorCtor = synthetic.getErrorCtor(baseExceptionSchema) ?? Error;
+68 |                 throw this.decorateServiceException(Object.assign(new ErrorCtor({ name: errorName }), errorMetadata), dataObject);
+                                                                       ^
+AuthorizationHeaderMalformed: Authorization header malformed, unexpected scope: '20261004/us-east-1/s3/aws4_request', expected: '20261004/garage/s3/aws4_request'
+     $fault: "client",
+ $retryable: undefined,
+  $metadata: {
+  httpStatusCode: 400,
+  requestId: undefined,
+  extendedRequestId: undefined,
+  cfId: undefined,
+  attempts: 1,
+  totalRetryDelay: 0,
+},
+       Code: "AuthorizationHeaderMalformed",
+   Resource: "/study/qb/images/01a106aa-9d9d-77b9-b535-55f77844b02c.png",
+     Region: "garage",
+
+      at getErrorSchemaOrThrowBaseException (/root/paws.academy/node_modules/.bun/@aws-sdk+core@3.978.1/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:68:67)
+      at handleError (/root/paws.academy/node_modules/.bun/@aws-sdk+core@3.978.1/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:2826:65)
+      at deserializeResponse (/root/paws.academy/node_modules/.bun/@smithy+core@3.35.1/node_modules/@smithy/core/dist-cjs/submodules/protocols/index.js:406:24)
+
+
+Created Exam Sheet: "Dental Admission (BDS) - DAT 0-1" (88 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - RUET 09-10" (1 questions)
+
+Created Exam Sheet: "Dental Admission (BDS) - MAT 0-1" (1 questions)
+
+Completed ingestion for Dental Admission (BDS)!
+
+======================================================
+>>> Starting Scraper for: Armed Forces Medical College (AFMC) (z8xUZQqs6h)
+======================================================
+Fetching topic hierarchy from Chorcha...
+Chorcha nodes mapped: 11221
+  Fetched page 1: 25 questions (Accumulated: 25)
+  Fetched page 2: 25 questions (Accumulated: 50)
+  Fetched page 3: 25 questions (Accumulated: 75)
+  Fetched page 4: 25 questions (Accumulated: 100)
+  Fetched page 5: 25 questions (Accumulated: 125)
+  Fetched page 6: 25 questions (Accumulated: 150)
+  Fetched page 7: 25 questions (Accumulated: 175)
+  Fetched page 8: 25 questions (Accumulated: 200)
+  Fetched page 9: 25 questions (Accumulated: 225)
+  Fetched page 10: 25 questions (Accumulated: 250)
+  Fetched page 11: 25 questions (Accumulated: 275)
+  Fetched page 12: 25 questions (Accumulated: 300)
+  Fetched page 13: 25 questions (Accumulated: 325)
+  Fetched page 14: 25 questions (Accumulated: 350)
+  Fetched page 15: 25 questions (Accumulated: 375)
+  Fetched page 16: 25 questions (Accumulated: 400)
+  Fetched page 17: 25 questions (Accumulated: 425)
+  Fetched page 18: 25 questions (Accumulated: 450)
+  Fetched page 19: 25 questions (Accumulated: 475)
+  Fetched page 20: 25 questions (Accumulated: 500)
+  Fetched page 21: 25 questions (Accumulated: 525)
+  Fetched page 22: 25 questions (Accumulated: 550)
+  Fetched page 23: 25 questions (Accumulated: 575)
+  Fetched page 24: 25 questions (Accumulated: 600)
+  Fetched page 25: 25 questions (Accumulated: 625)
+  Fetched page 26: 25 questions (Accumulated: 650)
+  Fetched page 27: 25 questions (Accumulated: 675)
+  Fetched page 28: 25 questions (Accumulated: 700)
+  Fetched page 29: 25 questions (Accumulated: 725)
+  Fetched page 30: 25 questions (Accumulated: 750)
+  Fetched page 31: 25 questions (Accumulated: 775)
+  Fetched page 32: 25 questions (Accumulated: 800)
+  Fetched page 33: 25 questions (Accumulated: 825)
+  Fetched page 34: 25 questions (Accumulated: 850)
+  Fetched page 35: 25 questions (Accumulated: 875)
+  Fetched page 36: 25 questions (Accumulated: 900)
+  Fetched page 37: 12 questions (Accumulated: 912)
+No more questions on page 38. Total fetched: 912
+
+Total questions downloaded for Armed Forces Medical College (AFMC): 912
+Identified 34 distinct Exam Sets / Years.
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AFMC 24-25" (100 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AFMC 23-24" (102 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AFMC 22-23" (96 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - DAT 18-19" (2 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - ইসহাক স্যার" (2 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - MAT 20-21" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - FET 22-23" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AFMC 21-22" (86 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - RU C 20-21 (SET 1)" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - PUST A 17-18" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AGRI GST 19-20" (2 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - BAU 15-16" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - CTG.B 22" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AFMC 20-21" (86 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - RMSTU A 18-19" (2 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - IU D 19-20" (2 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - NSTU B 17-18" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AGRI GST 20-21" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - RU C 21-22 (SET 1)" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AFMC 19-20" (88 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - JU A 19-20 SET-C" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AFMC 18-19" (77 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - DU A 22-23" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - BUP FSSS 18-19" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - RU C 20-21 (SET 2)" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - MBSTU A 19-20" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - JUST A 15-16" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - BAU 17-18" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AFMC 17-18" (82 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - BSMRSTU A 19-20" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - MBSTU A 17-18" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AFMC 16-17" (80 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - HSTU A 19-20" (1 questions)
+
+Created Exam Sheet: "Armed Forces Medical College (AFMC) - AFMC 15-16" (86 questions)
+
+Completed ingestion for Armed Forces Medical College (AFMC)!
+
+======================================================
+All Medical, Dental, and AFMC questions scraped & synced!
+Recalculating all question & exam counts in database...
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"subject_count\" of relation \"qb_targets\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"question_count\" of relation \"qb_targets\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"chapter_count\" of relation \"qb_subjects\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"question_count\" of relation \"qb_subjects\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"question_count\" of relation \"qb_chapters\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"question_count\" of relation \"qb_topics\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"question_count\" of relation \"qb_sources\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+All counts recalculated! Medical QB is live and ready.
+======================================================

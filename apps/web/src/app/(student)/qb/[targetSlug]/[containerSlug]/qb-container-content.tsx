@@ -54,9 +54,7 @@ export function QbContainerContent() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-lg sm:text-xl font-bold text-foreground">{container.name}</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {items.length} টি বিষয় / প্রশ্নব্যাংক
-          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">{items.length} টি বিষয় / প্রশ্নব্যাংক</p>
         </div>
         <input
           type="text"

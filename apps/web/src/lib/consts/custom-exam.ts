@@ -12,23 +12,14 @@ export const QB_TARGET_GROUP_LABELS: Readonly<Record<QBTargetGroupKey, string>> 
   job: "চাকরি",
 });
 
-export type CustomExamSubjectGroup = QBTargetGroupKey;
-
 export interface CustomExamSubject {
   readonly id: string;
   readonly name: string;
   readonly iconKey?: string;
   readonly questionCount?: number;
-  readonly group?: CustomExamSubjectGroup;
+  readonly group?: QBTargetGroupKey;
   readonly targetName?: string;
 }
-
-export const CUSTOM_EXAM_SUBJECT_TABS: readonly {
-  readonly id: CustomExamSubjectGroup;
-  readonly label: string;
-}[] = Object.freeze(
-  QB_TARGET_GROUPS.map((group) => ({ id: group, label: QB_TARGET_GROUP_LABELS[group] })),
-);
 
 export interface CustomExamSourceOption {
   readonly id: string;
@@ -48,7 +39,10 @@ export const SOURCE_TYPE_LABELS: Readonly<Record<string, string>> = Object.freez
   other: "অন্যান্য",
 });
 
-const ICON_KEYWORDS: readonly { readonly match: RegExp; readonly icon: string }[] = Object.freeze([
+const ICON_KEYWORDS: readonly {
+  readonly match: RegExp;
+  readonly icon: string;
+}[] = Object.freeze([
   { match: /পদার্থ|physics/i, icon: "Atom" },
   { match: /রসায়ন|chemistry|chem/i, icon: "Flask" },
   { match: /জীব|biology|bio/i, icon: "Dna" },

@@ -3,11 +3,14 @@ import { type AuthContextVariables, attachSession } from "../middleware/auth.mid
 import { healthRoute } from "./health.route";
 import { qbRoute } from "./qb.route";
 import { uploadRoute } from "./upload.route";
+import { watchRoute } from "./watch.route";
 
 export const apiRoutes = new Hono<{ Variables: AuthContextVariables }>()
   .use("/qb/*", attachSession)
+  .use("/watch/*", attachSession)
   .route("/health", healthRoute)
   .route("/upload", uploadRoute)
-  .route("/qb", qbRoute);
+  .route("/qb", qbRoute)
+  .route("/watch", watchRoute);
 
 export type ApiRoutes = typeof apiRoutes;

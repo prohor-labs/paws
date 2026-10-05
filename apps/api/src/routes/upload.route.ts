@@ -5,7 +5,11 @@ import { bodyLimit } from "hono/body-limit";
 import { env } from "../lib/env";
 import { ApiError } from "../lib/errors";
 import { buildObjectKey, resolveUploadFolder } from "../lib/upload";
-import { type AuthContextVariables, attachSession } from "../middleware/auth.middleware";
+import {
+  type AuthContextVariables,
+  attachSession,
+  requireAuth,
+} from "../middleware/auth.middleware";
 import { errorBody } from "../middleware/error.middleware";
 import { storageService } from "../services/storage.service";
 
@@ -34,7 +38,7 @@ export const uploadRoute = new Hono<{ Variables: AuthContextVariables }>()
       return c.json({ success: true, data: result });
     },
   )
-  .post("/direct", requestBodyLimit, async (c) => {
+  .post("/direct", requireAuth, requestBodyLimit, async (c) => {
     const body = await c.req.parseBody();
     const file = body.file;
 

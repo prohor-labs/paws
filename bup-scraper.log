@@ -1,0 +1,347 @@
+=== PAWS ACADEMY BUP QB INGESTION & S3 SYNC ===
+Checking BUP Container & Items in Database...
+Created BUP Container: "বাংলাদেশ ইউনিভার্সিটি অব প্রফেশনালস (BUP)" (01a10c66-3e2e-7358-a0d5-7280b0867a40)
+  Created Container Item: "বিইউপি এফএসটি ইউনিট (FST)" (bup-fst)
+  Created Container Item: "বিইউপি এফএএসএস ইউনিট (FASS)" (bup-fass)
+  Created Container Item: "বিইউপি এফএসএসএস ইউনিট (FSSS)" (bup-fsss)
+  Created Container Item: "বিইউপি এফবিএস ইউনিট (FBS)" (bup-fbs)
+
+======================================================
+>>> Ingesting BUP Unit: বিইউপি এফএসটি ইউনিট (FST) (Series ID: tJIW_eFtw1)
+======================================================
+Fetching topic hierarchy from Chorcha for series tJIW_eFtw1...
+  Fetched page 1: 25 items (Total: 25)
+  Fetched page 2: 25 items (Total: 50)
+  Fetched page 3: 25 items (Total: 75)
+  Fetched page 4: 25 items (Total: 100)
+  Fetched page 5: 25 items (Total: 125)
+  Fetched page 6: 25 items (Total: 150)
+  Fetched page 7: 25 items (Total: 175)
+  Fetched page 8: 25 items (Total: 200)
+  Fetched page 9: 25 items (Total: 225)
+  Fetched page 10: 25 items (Total: 250)
+  Fetched page 11: 25 items (Total: 275)
+  Fetched page 12: 25 items (Total: 300)
+  Fetched page 13: 25 items (Total: 325)
+  Fetched page 14: 25 items (Total: 350)
+  Fetched page 15: 25 items (Total: 375)
+  Fetched page 16: 25 items (Total: 400)
+  Fetched page 17: 25 items (Total: 425)
+  Fetched page 18: 25 items (Total: 450)
+  Fetched page 19: 25 items (Total: 475)
+  Fetched page 20: 25 items (Total: 500)
+  Fetched page 21: 25 items (Total: 525)
+  Fetched page 22: 25 items (Total: 550)
+  Fetched page 23: 11 items (Total: 561)
+No more questions on page 24. Total fetched: 561
+
+Downloaded 561 total questions for বিইউপি এফএসটি ইউনিট (FST).
+Identified 10 distinct Exam Sets for FST:
+  • BUP FST 25-26 -> 58 questions
+  • BUP FST 24-25 -> 80 questions
+  • BUP FST 23-24 -> 4 questions
+  • BUP FST Practice Set -> 69 questions
+  • BUP FST 22-23 -> 18 questions
+  • BUP FST 21-22 -> 90 questions
+  • BUP FST 20-21 -> 51 questions
+  • BUP FST 19-20 -> 94 questions
+  • BUP FST 18-19 -> 54 questions
+  • BUP FST 17-18 -> 43 questions
+
+Created Exam Sheet: "BUP FST 25-26" [MCQ] (58 questions)
+    Saved 50 questions so far...
+Created Exam Sheet: "BUP FST 24-25" [MCQ] (80 questions)
+    Saved 100 questions so far...
+Created Exam Sheet: "BUP FST 23-24" [MCQ] (4 questions)
+
+Created Exam Sheet: "BUP FST Practice Set" [MCQ] (69 questions)
+    Saved 150 questions so far...    Saved 200 questions so far...
+Created Exam Sheet: "BUP FST 22-23" [MCQ] (18 questions)
+
+Created Exam Sheet: "BUP FST 21-22" [MCQ] (90 questions)
+    Saved 250 questions so far...    Saved 300 questions so far...
+Created Exam Sheet: "BUP FST 20-21" [MCQ] (51 questions)
+    Saved 350 questions so far...
+Created Exam Sheet: "BUP FST 19-20" [MCQ] (94 questions)
+    Saved 400 questions so far...    Saved 450 questions so far...
+Created Exam Sheet: "BUP FST 18-19" [MCQ] (54 questions)
+    Saved 500 questions so far...
+Created Exam Sheet: "BUP FST 17-18" [MCQ] (43 questions)
+    Saved 550 questions so far...
+Completed ingestion for বিইউপি এফএসটি ইউনিট (FST)! Total questions saved: 561
+
+======================================================
+>>> Ingesting BUP Unit: বিইউপি এফএএসএস ইউনিট (FASS) (Series ID: y8q_PQcqeN)
+======================================================
+Fetching topic hierarchy from Chorcha for series y8q_PQcqeN...
+  Fetched page 1: 25 items (Total: 25)
+  Fetched page 2: 25 items (Total: 50)
+  Fetched page 3: 25 items (Total: 75)
+  Fetched page 4: 25 items (Total: 100)
+  Fetched page 5: 25 items (Total: 125)
+  Fetched page 6: 25 items (Total: 150)
+  Fetched page 7: 25 items (Total: 175)
+  Fetched page 8: 25 items (Total: 200)
+  Fetched page 9: 25 items (Total: 225)
+  Fetched page 10: 25 items (Total: 250)
+  Fetched page 11: 25 items (Total: 275)
+  Fetched page 12: 25 items (Total: 300)
+  Fetched page 13: 25 items (Total: 325)
+  Fetched page 14: 25 items (Total: 350)
+  Fetched page 15: 25 items (Total: 375)
+  Fetched page 16: 25 items (Total: 400)
+  Fetched page 17: 25 items (Total: 425)
+  Fetched page 18: 25 items (Total: 450)
+  Fetched page 19: 25 items (Total: 475)
+  Fetched page 20: 25 items (Total: 500)
+  Fetched page 21: 25 items (Total: 525)
+  Fetched page 22: 2 items (Total: 527)
+No more questions on page 23. Total fetched: 527
+
+Downloaded 527 total questions for বিইউপি এফএএসএস ইউনিট (FASS).
+Identified 10 distinct Exam Sets for FASS:
+  • BUP FASS 23-24 -> 97 questions
+  • BUP FASS 22-23 -> 9 questions
+  • BUP FASS 20-21 -> 36 questions
+  • BUP FASS 21-22 -> 55 questions
+  • BUP FASS Practice Set -> 9 questions
+  • BUP FASS 18-19 -> 65 questions
+  • BUP FASS 19-20 -> 54 questions
+  • BUP FASS 17-18 -> 84 questions
+  • BUP FASS 16-17 -> 68 questions
+  • BUP FASS 15-16 -> 50 questions
+
+Created Exam Sheet: "BUP FASS 23-24" [MCQ] (97 questions)
+    Saved 50 questions so far...
+Created Exam Sheet: "BUP FASS 22-23" [MCQ] (9 questions)
+    Saved 100 questions so far...
+Created Exam Sheet: "BUP FASS 20-21" [MCQ] (36 questions)
+
+Created Exam Sheet: "BUP FASS 21-22" [MCQ] (55 questions)
+    Saved 150 questions so far...
+Created Exam Sheet: "BUP FASS Practice Set" [MCQ] (9 questions)
+    Saved 200 questions so far...
+Created Exam Sheet: "BUP FASS 18-19" [MCQ] (65 questions)
+    Saved 250 questions so far...
+Created Exam Sheet: "BUP FASS 19-20" [MCQ] (54 questions)
+    Saved 300 questions so far...
+Created Exam Sheet: "BUP FASS 17-18" [MCQ] (84 questions)
+    Saved 350 questions so far...    Saved 400 questions so far...
+Created Exam Sheet: "BUP FASS 16-17" [MCQ] (68 questions)
+    Saved 450 questions so far...
+Created Exam Sheet: "BUP FASS 15-16" [MCQ] (50 questions)
+    Saved 500 questions so far...
+Completed ingestion for বিইউপি এফএএসএস ইউনিট (FASS)! Total questions saved: 527
+
+======================================================
+>>> Ingesting BUP Unit: বিইউপি এফএসএসএস ইউনিট (FSSS) (Series ID: G9uP2DeeS7)
+======================================================
+Fetching topic hierarchy from Chorcha for series G9uP2DeeS7...
+  Fetched page 1: 25 items (Total: 25)
+  Fetched page 2: 25 items (Total: 50)
+  Fetched page 3: 25 items (Total: 75)
+  Fetched page 4: 25 items (Total: 100)
+  Fetched page 5: 25 items (Total: 125)
+  Fetched page 6: 25 items (Total: 150)
+  Fetched page 7: 25 items (Total: 175)
+  Fetched page 8: 25 items (Total: 200)
+  Fetched page 9: 25 items (Total: 225)
+  Fetched page 10: 25 items (Total: 250)
+  Fetched page 11: 25 items (Total: 275)
+  Fetched page 12: 25 items (Total: 300)
+  Fetched page 13: 25 items (Total: 325)
+  Fetched page 14: 25 items (Total: 350)
+  Fetched page 15: 25 items (Total: 375)
+  Fetched page 16: 25 items (Total: 400)
+  Fetched page 17: 25 items (Total: 425)
+  Fetched page 18: 25 items (Total: 450)
+  Fetched page 19: 25 items (Total: 475)
+  Fetched page 20: 25 items (Total: 500)
+  Fetched page 21: 25 items (Total: 525)
+  Fetched page 22: 25 items (Total: 550)
+  Fetched page 23: 25 items (Total: 575)
+  Fetched page 24: 25 items (Total: 600)
+  Fetched page 25: 25 items (Total: 625)
+  Fetched page 26: 25 items (Total: 650)
+  Fetched page 27: 25 items (Total: 675)
+  Fetched page 28: 25 items (Total: 700)
+  Fetched page 29: 25 items (Total: 725)
+  Fetched page 30: 25 items (Total: 750)
+  Fetched page 31: 19 items (Total: 769)
+No more questions on page 32. Total fetched: 769
+
+Downloaded 769 total questions for বিইউপি এফএসএসএস ইউনিট (FSSS).
+Identified 11 distinct Exam Sets for FSSS:
+  • BUP FSSS 24-25 -> 98 questions
+  • BUP FSSS 23-24 -> 97 questions
+  • BUP FSSS 22-23 -> 87 questions
+  • BUP FSSS 20-21 -> 19 questions
+  • BUP FSSS 21-22 -> 48 questions
+  • BUP FSSS 18-19 -> 82 questions
+  • BUP FSSS Practice Set -> 11 questions
+  • BUP FSSS 19-20 -> 77 questions
+  • BUP FSSS 17-18 -> 88 questions
+  • BUP FSSS 16-17 -> 81 questions
+  • BUP FSSS 15-16 -> 81 questions
+
+Created Exam Sheet: "BUP FSSS 24-25" [MCQ] (98 questions)
+    Saved 50 questions so far...
+Created Exam Sheet: "BUP FSSS 23-24" [MCQ] (97 questions)
+    Saved 100 questions so far...    Saved 150 questions so far...
+Created Exam Sheet: "BUP FSSS 22-23" [MCQ] (87 questions)
+    Saved 200 questions so far...    Saved 250 questions so far...
+Created Exam Sheet: "BUP FSSS 20-21" [MCQ] (19 questions)
+    Saved 300 questions so far...
+Created Exam Sheet: "BUP FSSS 21-22" [MCQ] (48 questions)
+
+Created Exam Sheet: "BUP FSSS 18-19" [MCQ] (82 questions)
+    Saved 350 questions so far...    Saved 400 questions so far...
+Created Exam Sheet: "BUP FSSS Practice Set" [MCQ] (11 questions)
+
+Created Exam Sheet: "BUP FSSS 19-20" [MCQ] (77 questions)
+    Saved 450 questions so far...    Saved 500 questions so far...
+Created Exam Sheet: "BUP FSSS 17-18" [MCQ] (88 questions)
+    Saved 550 questions so far...    Saved 600 questions so far...
+Created Exam Sheet: "BUP FSSS 16-17" [MCQ] (81 questions)
+    Saved 650 questions so far...
+Created Exam Sheet: "BUP FSSS 15-16" [MCQ] (81 questions)
+    Saved 700 questions so far...    Saved 750 questions so far...
+Completed ingestion for বিইউপি এফএসএসএস ইউনিট (FSSS)! Total questions saved: 769
+
+======================================================
+>>> Ingesting BUP Unit: বিইউপি এফবিএস ইউনিট (FBS) (Series ID: fO6b_-S8Xx)
+======================================================
+Fetching topic hierarchy from Chorcha for series fO6b_-S8Xx...
+  Fetched page 1: 25 items (Total: 25)
+  Fetched page 2: 25 items (Total: 50)
+  Fetched page 3: 25 items (Total: 75)
+  Fetched page 4: 25 items (Total: 100)
+  Fetched page 5: 25 items (Total: 125)
+  Fetched page 6: 25 items (Total: 150)
+  Fetched page 7: 25 items (Total: 175)
+  Fetched page 8: 25 items (Total: 200)
+  Fetched page 9: 25 items (Total: 225)
+  Fetched page 10: 25 items (Total: 250)
+  Fetched page 11: 25 items (Total: 275)
+  Fetched page 12: 25 items (Total: 300)
+  Fetched page 13: 25 items (Total: 325)
+  Fetched page 14: 25 items (Total: 350)
+  Fetched page 15: 25 items (Total: 375)
+  Fetched page 16: 25 items (Total: 400)
+  Fetched page 17: 25 items (Total: 425)
+  Fetched page 18: 25 items (Total: 450)
+  Fetched page 19: 9 items (Total: 459)
+No more questions on page 20. Total fetched: 459
+
+Downloaded 459 total questions for বিইউপি এফবিএস ইউনিট (FBS).
+Identified 13 distinct Exam Sets for FBS:
+  • BUP FBS 24-25 -> 61 questions
+  • BUP FBS 23-24 -> 55 questions
+  • BUP FBS 22-23 -> 33 questions
+  • BUP FBS Practice Set -> 2 questions
+  • BUP FBS 21-22 -> 91 questions
+  • BUP FBS 20-21 -> 26 questions
+  • BUP FBS 19-20 -> 30 questions
+  • BUP FBS 18-19 -> 19 questions
+  • BUP FBS 17-18 -> 20 questions
+  • BUP FBS 16-17 -> 36 questions
+  • BUP FBS 15-16 -> 31 questions
+  • BUP FBS 13-14 -> 30 questions
+  • BUP FBS 12-13 -> 25 questions
+
+Created Exam Sheet: "BUP FBS 24-25" [MCQ] (61 questions)
+    Saved 50 questions so far...
+Created Exam Sheet: "BUP FBS 23-24" [MCQ] (55 questions)
+    Saved 100 questions so far...
+Created Exam Sheet: "BUP FBS 22-23" [MCQ] (33 questions)
+
+Created Exam Sheet: "BUP FBS Practice Set" [MCQ] (2 questions)
+    Saved 150 questions so far...
+Created Exam Sheet: "BUP FBS 21-22" [MCQ] (91 questions)
+    Saved 200 questions so far...
+Created Exam Sheet: "BUP FBS 20-21" [MCQ] (26 questions)
+    Saved 250 questions so far...
+Created Exam Sheet: "BUP FBS 19-20" [MCQ] (30 questions)
+
+Created Exam Sheet: "BUP FBS 18-19" [MCQ] (19 questions)
+    Saved 300 questions so far...
+Created Exam Sheet: "BUP FBS 17-18" [MCQ] (20 questions)
+
+Created Exam Sheet: "BUP FBS 16-17" [MCQ] (36 questions)
+    Saved 350 questions so far...
+Created Exam Sheet: "BUP FBS 15-16" [MCQ] (31 questions)
+    Saved 400 questions so far...
+Created Exam Sheet: "BUP FBS 13-14" [MCQ] (30 questions)
+
+Created Exam Sheet: "BUP FBS 12-13" [MCQ] (25 questions)
+    Saved 450 questions so far...
+Completed ingestion for বিইউপি এফবিএস ইউনিট (FBS)! Total questions saved: 459
+
+======================================================
+All 4 BUP Units (FST, FASS, FSSS, FBS) scraped & synced successfully!
+Recalculating all question & exam counts in database...
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"subject_count\" of relation \"qb_targets\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"question_count\" of relation \"qb_targets\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"chapter_count\" of relation \"qb_subjects\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"question_count\" of relation \"qb_subjects\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"question_count\" of relation \"qb_chapters\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"question_count\" of relation \"qb_topics\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+{
+  severity_local: "NOTICE",
+  severity: "NOTICE",
+  code: "42701",
+  message: "column \"question_count\" of relation \"qb_sources\" already exists, skipping",
+  file: "tablecmds.c",
+  line: "7349",
+  routine: "check_for_column_name_collision",
+}
+All counts recalculated! BUP QB is live and ready.
+======================================================

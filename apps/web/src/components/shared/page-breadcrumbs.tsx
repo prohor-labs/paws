@@ -83,9 +83,7 @@ export function PageBreadcrumbs({ items, className, centered = true }: PageBread
                 {isLast || !item.href ? (
                   <BreadcrumbPage>{item.label}</BreadcrumbPage>
                 ) : (
-                  <BreadcrumbLink render={<Link href={item.href} />}>
-                    {item.label}
-                  </BreadcrumbLink>
+                  <BreadcrumbLink render={<Link href={item.href} />}>{item.label}</BreadcrumbLink>
                 )}
               </BreadcrumbItem>
             </React.Fragment>

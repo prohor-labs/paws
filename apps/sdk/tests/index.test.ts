@@ -5,7 +5,10 @@ import { presignedUploadSchema } from "../src/schemas/upload";
 
 describe("presignedUploadSchema", () => {
   test("defaults the folder", () => {
-    const parsed = presignedUploadSchema.parse({ filename: "cat.png", mimeType: "image/png" });
+    const parsed = presignedUploadSchema.parse({
+      filename: "cat.png",
+      mimeType: "image/png",
+    });
     expect(parsed.folder).toBe("uploads");
   });
 
@@ -41,7 +44,10 @@ describe("base url", () => {
 describe("ApiError", () => {
   test("maps structured API errors", async () => {
     const response = new Response(
-      JSON.stringify({ success: false, error: { code: "CONFLICT", message: "Already exists" } }),
+      JSON.stringify({
+        success: false,
+        error: { code: "CONFLICT", message: "Already exists" },
+      }),
       { status: 409, headers: { "Content-Type": "application/json" } },
     );
 
@@ -53,7 +59,10 @@ describe("ApiError", () => {
   });
 
   test("falls back when the body is not JSON", async () => {
-    const response = new Response("boom", { status: 502, statusText: "Bad Gateway" });
+    const response = new Response("boom", {
+      status: 502,
+      statusText: "Bad Gateway",
+    });
     const error = await ApiError.fromResponse(response);
     expect(error.status).toBe(502);
     expect(error.code).toBe("HTTP_502");

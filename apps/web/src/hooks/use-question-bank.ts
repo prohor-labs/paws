@@ -61,7 +61,12 @@ export function useCreateCustomExam() {
       }
       const json = (await res.json()) as {
         success: boolean;
-        data: { id: string; title: string; questionCount: number; durationMinutes: number };
+        data: {
+          id: string;
+          title: string;
+          questionCount: number;
+          durationMinutes: number;
+        };
       };
       return json.data;
     },
@@ -79,7 +84,10 @@ export function useCustomExamTake(id: string) {
       if (!res.ok) {
         throw new Error("Failed to fetch custom exam");
       }
-      const json = (await res.json()) as { success: boolean; data: CustomExamTakeData };
+      const json = (await res.json()) as {
+        success: boolean;
+        data: CustomExamTakeData;
+      };
       return json.data;
     },
     enabled: Boolean(id),
@@ -91,13 +99,21 @@ export function useSubmitCustomExam(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: SubmitCustomExamInput) => {
-      const res = await api.rpc.qb.custom[":id"].submit.$post({ param: { id }, json: input });
+      const res = await api.rpc.qb.custom[":id"].submit.$post({
+        param: { id },
+        json: input,
+      });
       if (!res.ok) {
         throw new Error("Failed to submit custom exam");
       }
       const json = (await res.json()) as {
         success: boolean;
-        data: { id: string; customExamId: string; status: string; score: string };
+        data: {
+          id: string;
+          customExamId: string;
+          status: string;
+          score: string;
+        };
       };
       return json.data;
     },
@@ -118,7 +134,10 @@ export function useCustomExamSolve(id: string, submissionId?: string) {
       if (!res.ok) {
         throw new Error("Failed to fetch custom exam solve details");
       }
-      const json = (await res.json()) as { success: boolean; data: CustomExamSolveData };
+      const json = (await res.json()) as {
+        success: boolean;
+        data: CustomExamSolveData;
+      };
       return json.data;
     },
     enabled: Boolean(id),
