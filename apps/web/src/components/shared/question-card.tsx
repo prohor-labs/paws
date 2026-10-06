@@ -4,7 +4,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import { Bookmark, CheckCircle, Share } from "@/components/icons";
 import { RichText } from "@/components/shared/rich-text";
-import { ShareDialog } from "@/components/shared/share-dialog";
+import { ShareSheet } from "@/components/shared/share-sheet";
 import {
   Accordion,
   AccordionContent,
@@ -477,7 +477,7 @@ export function QuestionCard({
         questionId={question.id}
       />
 
-      <ShareDialog
+      <ShareSheet
         open={isShareOpen}
         onOpenChange={setIsShareOpen}
         url={`/qb/questions/${question.id}`}

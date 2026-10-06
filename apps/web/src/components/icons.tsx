@@ -60,7 +60,6 @@ export {
   Trophy,
   User,
   Users,
-  Verified,
   X,
   XCircle,
 } from "reicon-react";

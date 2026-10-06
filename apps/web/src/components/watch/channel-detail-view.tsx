@@ -6,32 +6,33 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Play, Share, VerifiedBadge } from "@/components/icons";
-import { PageLoading } from "@/components/shared";
+import { PageLoading, ShareSheet } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { PlaylistCard } from "@/components/watch/playlist-card";
 import { WatchCard } from "@/components/watch/watch-card";
-import { useWatchChannel } from "@/hooks/use-watch";
+import { useWatchChannel, useWatchMutations } from "@/hooks/use-watch";
 import { EMPTY_WATCH_PLAYLISTS, EMPTY_WATCH_VIDEOS } from "@/lib/consts/empty";
-import { cn } from "@/lib/utils";
+import { cn, formatBengaliCount, toBengaliNumber } from "@/lib/utils";
 
 export function ChannelDetailView() {
   const params = useParams<{ handle: string }>();
   const handle = params?.handle ? decodeURIComponent(params.handle) : "";
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   // Synced from backend via useWatchChannel
   const { data, isLoading } = useWatchChannel(handle);
+  const { toggleSubscription } = useWatchMutations(undefined, handle);
 
   const channel = data?.channel;
   const videos = data?.videos ?? EMPTY_WATCH_VIDEOS;
   const playlists = data?.playlists ?? EMPTY_WATCH_PLAYLISTS;
 
-  const handleShare = () => {
-    if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success("চ্যানেল লিংক কপি করা হয়েছে!");
-    }
-  };
+  const isSubscribed = channel?.isSubscribed ?? false;
+  const subscribersCount = channel?.subscribersCount ?? 0;
+  const subscribersDisplay =
+    subscribersCount > 0
+      ? `${formatBengaliCount(subscribersCount)} জন সাবস্ক্রাইবার`
+      : channel?.subscribers || "০ জন সাবস্ক্রাইবার";
 
   if (isLoading) {
     return <PageLoading />;
@@ -104,9 +105,13 @@ export function ChannelDetailView() {
             <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground font-medium">
               <span className="font-semibold text-foreground/90">{channel.handle}</span>
               <span>•</span>
-              <span>{channel.subscribers}</span>
+              <span>{subscribersDisplay}</span>
               <span>•</span>
-              <span>{channel.videoCount}</span>
+              <span>
+                {videos.length > 0
+                  ? `${toBengaliNumber(videos.length)} টি ভিডিও`
+                  : channel.videoCount}
+              </span>
             </div>
 
             <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 max-w-2xl mt-0.5 leading-relaxed">
@@ -120,9 +125,18 @@ export function ChannelDetailView() {
           <Button
             type="button"
             variant={isSubscribed ? "secondary" : "default"}
+            disabled={toggleSubscription.isPending}
             onClick={() => {
-              setIsSubscribed(!isSubscribed);
-              toast.success(isSubscribed ? "সাবস্ক্রিপশন বাতিল করা হয়েছে" : "চ্যানেল সাবস্ক্রাইব করা হয়েছে!");
+              toggleSubscription.mutate(channel.handle, {
+                onSuccess: (res: { isSubscribed: boolean; subscribersCount: number }) => {
+                  toast.success(
+                    res.isSubscribed ? "চ্যানেল সাবস্ক্রাইব করা হয়েছে!" : "সাবস্ক্রিপশন বাতিল করা হয়েছে",
+                  );
+                },
+                onError: () => {
+                  toast.error("সাবস্ক্রাইব করতে অনুগ্রহ করে লগইন করুন");
+                },
+              });
             }}
             className={cn(
               "rounded-full px-6 text-sm font-semibold transition-all cursor-pointer",
@@ -136,13 +150,21 @@ export function ChannelDetailView() {
             type="button"
             variant="outline"
             size="icon"
-            onClick={handleShare}
+            onClick={() => setIsShareOpen(true)}
             className="rounded-full size-10 border-border/70 hover:bg-muted cursor-pointer"
             title="চ্যানেল শেয়ার করুন"
             aria-label="চ্যানেল শেয়ার করুন"
           >
             <Share className="size-4" />
           </Button>
+
+          <ShareSheet
+            open={isShareOpen}
+            onOpenChange={setIsShareOpen}
+            url={`/watch/channel/${(channel.handle || "").replace("@", "")}`}
+            title={channel.name}
+            shareText={`${channel.name} - ${channel.handle} on Paws Academy`}
+          />
         </div>
       </div>
 

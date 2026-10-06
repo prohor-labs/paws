@@ -1,24 +1,28 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   incrementVideoView,
   postWatchComment,
   syncWatchProgress,
+  toggleChannelSubscription,
   toggleCommentLike,
   toggleWatchInteraction,
   watchChannelQueryOptions,
   watchCommentsQueryOptions,
-  watchFeedQueryOptions,
+  watchFeedInfiniteQueryOptions,
   watchPlaylistQueryOptions,
   watchQueryKeys,
-  watchSavedQueryOptions,
   watchVideoQueryOptions,
 } from "@/lib/watch/query-options";
 import type { WatchChannel, WatchPlaylist, WatchVideo } from "@/types";
 
-export function useWatchFeed(category?: string) {
-  return useQuery(watchFeedQueryOptions(category));
+export function useWatchInfiniteFeed(options?: {
+  category?: string;
+  search?: string;
+  limit?: number;
+}) {
+  return useInfiniteQuery(watchFeedInfiniteQueryOptions(options));
 }
 
 export function useWatchVideo(id: string, initialData?: WatchVideo) {
@@ -58,11 +62,7 @@ export function useWatchComments(videoId: string) {
   return useQuery(watchCommentsQueryOptions(videoId));
 }
 
-export function useWatchSaved() {
-  return useQuery(watchSavedQueryOptions());
-}
-
-export function useWatchMutations(videoId?: string) {
+export function useWatchMutations(videoId?: string, channelHandle?: string) {
   const queryClient = useQueryClient();
 
   const syncProgressMutation = useMutation({
@@ -92,6 +92,24 @@ export function useWatchMutations(videoId?: string) {
       if (videoId) {
         queryClient.invalidateQueries({ queryKey: watchQueryKeys.video(videoId) });
       }
+    },
+  });
+
+  const subscriptionMutation = useMutation({
+    mutationFn: (targetHandle?: string) => {
+      const handle = targetHandle || channelHandle;
+      if (!handle) throw new Error("channelHandle is required for subscription");
+      return toggleChannelSubscription(handle);
+    },
+    onSuccess: (_, variables) => {
+      const handle = variables || channelHandle;
+      if (handle) {
+        queryClient.invalidateQueries({ queryKey: watchQueryKeys.channel(handle) });
+      }
+      if (videoId) {
+        queryClient.invalidateQueries({ queryKey: watchQueryKeys.video(videoId) });
+      }
+      queryClient.invalidateQueries({ queryKey: watchQueryKeys.feed() });
     },
   });
 
@@ -126,6 +144,7 @@ export function useWatchMutations(videoId?: string) {
   return {
     syncProgress: syncProgressMutation,
     toggleInteraction: interactionMutation,
+    toggleSubscription: subscriptionMutation,
     postComment: commentMutation,
     toggleCommentLike: likeCommentMutation,
     recordView,

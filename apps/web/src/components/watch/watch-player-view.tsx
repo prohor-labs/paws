@@ -22,7 +22,7 @@ import {
   Share,
   VerifiedBadge,
 } from "@/components/icons";
-import { PageLoading } from "@/components/shared";
+import { PageLoading, ShareSheet } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { WatchCard } from "@/components/watch/watch-card";
@@ -33,7 +33,7 @@ import {
   useWatchVideo,
 } from "@/hooks/use-watch";
 import { EMPTY_WATCH_VIDEOS } from "@/lib/consts/empty";
-import { cn } from "@/lib/utils";
+import { cn, formatBengaliCount, formatBengaliRelativeTime } from "@/lib/utils";
 
 export function WatchPlayerView() {
   const params = useParams<{ id: string }>();
@@ -47,8 +47,14 @@ export function WatchPlayerView() {
   const { data: videoData, isLoading: isVideoLoading } = useWatchVideo(videoId);
   const { data: commentsData } = useWatchComments(videoId);
   const { data: playlistData } = useWatchPlaylist(listParam || "");
-  const { syncProgress, toggleInteraction, postComment, toggleCommentLike, recordView } =
-    useWatchMutations(videoId);
+  const {
+    syncProgress,
+    toggleInteraction,
+    toggleSubscription,
+    postComment,
+    toggleCommentLike,
+    recordView,
+  } = useWatchMutations(videoId, videoData?.video?.channel?.handle);
 
   const video = videoData?.video;
   const userProgress = videoData?.userProgress;
@@ -60,7 +66,7 @@ export function WatchPlayerView() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [resumed, setResumed] = useState(false);
@@ -72,6 +78,25 @@ export function WatchPlayerView() {
       setIsSaved(userInteraction.isSaved);
     }
   }, [userInteraction]);
+
+  // Dynamic subscriber status & views
+  const isSubscribed = video?.channel?.isSubscribed ?? false;
+  const subscribersCount = video?.channel?.subscribersCount ?? 0;
+  const subscribersDisplay =
+    subscribersCount > 0
+      ? `${formatBengaliCount(subscribersCount)} জন সাবস্ক্রাইবার`
+      : video?.channel?.subscribers || "০ জন সাবস্ক্রাইবার";
+
+  const likesCount =
+    (video?.likesCount ?? 0) +
+    (isLiked && !userInteraction?.isLiked ? 1 : !isLiked && userInteraction?.isLiked ? -1 : 0);
+  const likesDisplay = likesCount > 0 ? formatBengaliCount(likesCount) : video?.likes || "০";
+
+  const viewsCount = video?.viewsCount ?? 0;
+  const viewsDisplay =
+    viewsCount > 0
+      ? `${formatBengaliCount(viewsCount)} বার দেখা হয়েছে`
+      : video?.views || "০ বার দেখা হয়েছে";
 
   // Register view on mount
   useEffect(() => {
@@ -117,17 +142,6 @@ export function WatchPlayerView() {
       </div>
     );
   }
-
-  const handleShare = async () => {
-    if (typeof window !== "undefined") {
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-        toast.success("ভিডিওর লিঙ্ক কপি করা হয়েছে!");
-      } catch {
-        toast.error("লিঙ্ক কপি করা যায়নি");
-      }
-    }
-  };
 
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -214,15 +228,26 @@ export function WatchPlayerView() {
                       </Link>
                       {video.channel.verified && <VerifiedBadge className="size-4 shrink-0" />}
                     </div>
-                    <p className="text-xs text-muted-foreground">{video.channel.subscribers}</p>
+                    <p className="text-xs text-muted-foreground">{subscribersDisplay}</p>
                   </div>
                   <Button
                     type="button"
                     size="sm"
                     variant={isSubscribed ? "secondary" : "default"}
+                    disabled={toggleSubscription.isPending}
                     onClick={() => {
-                      setIsSubscribed(!isSubscribed);
-                      toast.success(isSubscribed ? "সাবস্ক্রিপশন বাতিল করা হয়েছে" : "সাবস্ক্রাইব করা হয়েছে!");
+                      toggleSubscription.mutate(video.channel.handle, {
+                        onSuccess: (data) => {
+                          toast.success(
+                            data.isSubscribed
+                              ? "চ্যানেল সাবস্ক্রাইব করা হয়েছে!"
+                              : "সাবস্ক্রিপশন বাতিল করা হয়েছে",
+                          );
+                        },
+                        onError: () => {
+                          toast.error("সাবস্ক্রাইব করতে অনুগ্রহ করে লগইন করুন");
+                        },
+                      });
                     }}
                     className="ml-2 rounded-xl text-xs font-medium cursor-pointer"
                   >
@@ -248,7 +273,7 @@ export function WatchPlayerView() {
                   )}
                 >
                   <Pulse className={cn("size-3.5", isLiked && "text-rose-600")} />
-                  <span>{isLiked ? "পছন্দ হয়েছে" : video.likes}</span>
+                  <span>{isLiked ? "পছন্দ হয়েছে" : likesDisplay}</span>
                 </Button>
 
                 <Button
@@ -274,12 +299,20 @@ export function WatchPlayerView() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={handleShare}
+                  onClick={() => setIsShareOpen(true)}
                   className="rounded-xl gap-1.5 text-xs font-medium cursor-pointer border-border/80"
                 >
                   <Share className="size-3.5" />
                   <span>শেয়ার</span>
                 </Button>
+
+                <ShareSheet
+                  open={isShareOpen}
+                  onOpenChange={setIsShareOpen}
+                  url={`/watch/${video.id}`}
+                  title={video.title}
+                  shareText={`${video.title} - ${video.channel?.name || "The Thinker"}`}
+                />
 
                 <Link
                   href="/exam/custom"
@@ -297,12 +330,12 @@ export function WatchPlayerView() {
             <div className="flex items-center gap-3 text-xs font-medium text-foreground/80">
               <span className="flex items-center gap-1">
                 <Eye className="size-3.5 text-muted-foreground" />
-                {video.views}
+                {viewsDisplay}
               </span>
               <span>•</span>
               <span className="flex items-center gap-1">
                 <Clock className="size-3.5 text-muted-foreground" />
-                {video.publishedAt}
+                {formatBengaliRelativeTime(video.createdAt || video.publishedAt)}
               </span>
             </div>
 

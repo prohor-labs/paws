@@ -5,6 +5,8 @@ export interface WatchChannel {
   avatar: string;
   banner?: string | null;
   subscribers: string;
+  subscribersCount?: number;
+  isSubscribed?: boolean;
   videoCount: string;
   verified?: boolean;
   description: string;
@@ -23,6 +25,8 @@ export interface WatchVideo {
     handle: string;
     avatar: string;
     subscribers: string;
+    subscribersCount?: number;
+    isSubscribed?: boolean;
     verified?: boolean;
   };
   category?: string;
@@ -36,6 +40,8 @@ export interface WatchVideo {
   tags?: string[];
   commentsCount?: string | number;
   customThumbnail?: string | null;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   comments?: {
     id: string;
     author: string;

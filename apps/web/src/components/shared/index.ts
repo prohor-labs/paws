@@ -1,3 +1,4 @@
+export * from "./action-sheet";
 export * from "./app-shell";
 export * from "./app-sidebar";
 export * from "./auth-guard";
@@ -14,7 +15,7 @@ export * from "./query-provider";
 export * from "./question-card";
 export * from "./responsive-dialog";
 export * from "./rich-text";
-export * from "./share-dialog";
+export * from "./share-sheet";
 export * from "./sidebar-footer";
 export * from "./tabs-with-search";
 export * from "./theme-provider";

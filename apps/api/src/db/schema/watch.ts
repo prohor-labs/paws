@@ -180,9 +180,29 @@ export const watchCommentLikes = pgTable(
   ],
 );
 
+export const watchSubscriptions = pgTable(
+  "watch_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    channelId: uuid("channel_id")
+      .notNull()
+      .references(() => watchChannels.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique("watch_subscriptions_user_channel_unique").on(table.userId, table.channelId),
+    index("watch_subscriptions_channel_idx").on(table.channelId),
+    index("watch_subscriptions_user_idx").on(table.userId),
+  ],
+);
+
 // Relations
 export const watchChannelsRelations = relations(watchChannels, ({ many }) => ({
   videos: many(watchVideos),
+  subscriptions: many(watchSubscriptions),
 }));
 
 export const watchVideosRelations = relations(watchVideos, ({ one, many }) => ({
@@ -193,6 +213,17 @@ export const watchVideosRelations = relations(watchVideos, ({ one, many }) => ({
   progressList: many(watchProgress),
   interactions: many(watchInteractions),
   comments: many(watchComments),
+}));
+
+export const watchSubscriptionsRelations = relations(watchSubscriptions, ({ one }) => ({
+  user: one(user, {
+    fields: [watchSubscriptions.userId],
+    references: [user.id],
+  }),
+  channel: one(watchChannels, {
+    fields: [watchSubscriptions.channelId],
+    references: [watchChannels.id],
+  }),
 }));
 
 export const watchProgressRelations = relations(watchProgress, ({ one }) => ({
@@ -236,3 +267,4 @@ export const watchCommentsRelations = relations(watchComments, ({ one, many }) =
   }),
   likes: many(watchCommentLikes),
 }));
+

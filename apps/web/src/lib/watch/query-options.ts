@@ -1,10 +1,11 @@
-import { queryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import { api } from "@/lib/sdk";
 import type { WatchChannel, WatchCommentItem, WatchPlaylist, WatchVideo } from "@/types";
 
 export const watchQueryKeys = {
   all: ["watch"] as const,
-  feed: (category?: string) => ["watch", "feed", category ?? "All"] as const,
+  feed: (category?: string, search?: string) =>
+    ["watch", "feed", category ?? "All", search ?? ""] as const,
   video: (id: string) => ["watch", "video", id] as const,
   channel: (handle: string) => ["watch", "channel", handle] as const,
   playlist: (slugOrId: string) => ["watch", "playlist", slugOrId] as const,
@@ -35,6 +36,8 @@ export interface WatchFeedResponse {
     } | null;
   })[];
   playlists: WatchPlaylist[];
+  nextCursor: number | null;
+  total: number;
 }
 
 export interface WatchVideoDetailResponse {
@@ -61,15 +64,30 @@ export interface WatchPlaylistDetailResponse {
   videos: WatchVideo[];
 }
 
-export function watchFeedQueryOptions(category?: string) {
-  return queryOptions({
-    queryKey: watchQueryKeys.feed(category),
-    queryFn: async () => {
+export function watchFeedInfiniteQueryOptions({
+  category,
+  search,
+  limit = 20,
+}: {
+  category?: string;
+  search?: string;
+  limit?: number;
+} = {}) {
+  return infiniteQueryOptions({
+    queryKey: watchQueryKeys.feed(category, search),
+    queryFn: async ({ pageParam = 0 }) => {
       const res = await api.rpc.watch.feed.$get({
-        query: category && category !== "All" ? { category } : undefined,
+        query: {
+          category: category && category !== "All" ? category : undefined,
+          search: search && search.trim().length > 0 ? search.trim() : undefined,
+          cursor: pageParam.toString(),
+          limit: limit.toString(),
+        },
       });
       return unwrap<WatchFeedResponse>(res, "Failed to fetch watch feed");
     },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 60 * 1000,
   });
 }
@@ -126,20 +144,6 @@ export function watchCommentsQueryOptions(id: string) {
   });
 }
 
-export function watchSavedQueryOptions() {
-  return queryOptions({
-    queryKey: watchQueryKeys.saved(),
-    queryFn: async () => {
-      const res = await api.rpc.watch.library.saved.$get();
-      return unwrap<{ items: { video: WatchVideo; savedAt: string }[] }>(
-        res,
-        "Failed to fetch saved videos",
-      );
-    },
-    staleTime: 30 * 1000,
-  });
-}
-
 // API Mutations
 export async function syncWatchProgress(
   videoId: string,
@@ -183,4 +187,14 @@ export async function incrementVideoView(videoId: string) {
     param: { id: videoId },
   });
   return unwrap<{ success: boolean }>(res, "Failed to register view");
+}
+
+export async function toggleChannelSubscription(handle: string) {
+  const res = await api.rpc.watch.channels[":handle"].subscribe.$post({
+    param: { handle },
+  });
+  return unwrap<{ isSubscribed: boolean; subscribersCount: number }>(
+    res,
+    "Failed to toggle subscription",
+  );
 }

@@ -3,7 +3,6 @@ import type {
   QBQuestion,
   QBSubject,
   QBTopic,
-  WatchChannel,
   WatchFeedItem,
   WatchPlaylist,
   WatchVideo,
@@ -17,6 +16,5 @@ export const EMPTY_STRING_MAP: Readonly<Record<string, string>> = Object.freeze(
 
 // Watch domain empty fallbacks
 export const EMPTY_WATCH_VIDEOS: readonly WatchVideo[] = Object.freeze([]);
-export const EMPTY_WATCH_CHANNELS: readonly WatchChannel[] = Object.freeze([]);
 export const EMPTY_WATCH_PLAYLISTS: readonly WatchPlaylist[] = Object.freeze([]);
 export const EMPTY_WATCH_FEED_ITEMS: readonly WatchFeedItem[] = Object.freeze([]);
