@@ -121,6 +121,9 @@ function preprocessRichContent(content: string): string {
     i++;
   }
 
+  // 5. Fallback auto-repair: if raw string contains $ext{ or similar stripped escapes, normalize to $\text{
+  result = result.replace(/\$([^\$]*?)ext\{/g, "$\\text{");
+
   return result.trim();
 }
 
@@ -153,7 +156,7 @@ export const RichText = React.memo(function RichText({ content, className }: Ric
   return (
     <div
       className={cn(
-        "prose prose-sm max-w-none dark:prose-invert break-words text-foreground leading-relaxed",
+        "prose prose-sm max-w-none dark:prose-invert break-words text-foreground leading-relaxed overflow-x-auto",
         "prose-pre:p-0 prose-pre:bg-transparent prose-pre:border-0",
         "prose-table:my-3 prose-th:px-3 prose-th:py-2 prose-td:px-3 prose-td:py-2 prose-th:border prose-td:border prose-th:bg-muted/40",
         "prose-blockquote:border-l-4 prose-blockquote:border-brand/60 prose-blockquote:pl-3 prose-blockquote:italic prose-blockquote:text-muted-foreground",

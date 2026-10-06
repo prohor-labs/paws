@@ -1949,6 +1949,12 @@
     "ast_hash": "d235d3ab428a769d8d05acf89691f0a4",
     "semantic_hash": "d235d3ab428a769d8d05acf89691f0a4"
   },
+  "docs/fix_question_missing.md": {
+    "mtime": 1791300913.1967297,
+    "seen": 1791300935.195757,
+    "ast_hash": "24ea5cae11eacfc0f90a0b2b0f4da992",
+    "semantic_hash": ""
+  },
   "apps/web/public/icons/anthropic.svg": {
     "mtime": 1790433295.1448379,
     "seen": 1791300935.1958306,
@@ -2103,18 +2109,6 @@
     "mtime": 1790529220.814392,
     "seen": 1791300935.1959565,
     "ast_hash": "d2659838b8f74ae56aadd276a02c496b",
-    "semantic_hash": ""
-  },
-  "docs/01_fix_question_missing.md": {
-    "mtime": 1791300913.1967297,
-    "seen": 1791301403.4373157,
-    "ast_hash": "24ea5cae11eacfc0f90a0b2b0f4da992",
-    "semantic_hash": ""
-  },
-  "docs/02_question_rewrite_and_explanation_prompt.md": {
-    "mtime": 1791301389.1105242,
-    "seen": 1791301403.4373207,
-    "ast_hash": "b96e429411c2badff9f857ed0b7fa66a",
     "semantic_hash": ""
   }
 }
