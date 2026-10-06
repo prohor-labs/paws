@@ -23,7 +23,9 @@ import {
   VerifiedBadge,
 } from "@/components/icons";
 import { PageLoading, ShareSheet } from "@/components/shared";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { WatchCard } from "@/components/watch/watch-card";
 import {
@@ -202,21 +204,18 @@ export function WatchPlayerView() {
                 <div className="flex items-center justify-between sm:justify-start gap-3">
                   <Link
                     href={`/watch/channel/${(video.channel.handle || "").replace("@", "")}`}
-                    className="relative size-11 shrink-0 overflow-hidden rounded-full border border-border/60 bg-muted hover:opacity-90 transition-opacity"
+                    className="shrink-0 hover:opacity-90 transition-opacity"
                   >
-                    {video.channel.avatar ? (
-                      <Image
+                    <Avatar className="size-11 border border-border/60">
+                      <AvatarImage
                         src={video.channel.avatar}
                         alt={video.channel.name}
-                        fill
-                        sizes="44px"
                         className="object-cover"
                       />
-                    ) : (
-                      <div className="size-full flex items-center justify-center bg-primary/20 text-primary text-xs font-bold">
+                      <AvatarFallback className="bg-primary/20 text-primary font-bold text-sm">
                         {(video.channel.name || "C").charAt(0)}
-                      </div>
-                    )}
+                      </AvatarFallback>
+                    </Avatar>
                   </Link>
                   <div>
                     <div className="flex items-center gap-1.5">
@@ -399,21 +398,16 @@ export function WatchPlayerView() {
                   key={comment.id}
                   className="flex gap-3 p-3 rounded-2xl bg-card border border-border/50"
                 >
-                  <div className="relative size-8 shrink-0 overflow-hidden rounded-full border border-border/40 bg-muted">
-                    {comment.author.avatar ? (
-                      <Image
-                        src={comment.author.avatar}
-                        alt={comment.author.name}
-                        fill
-                        sizes="32px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="size-full flex items-center justify-center bg-primary/20 text-primary text-xs font-bold">
-                        {comment.author.name.charAt(0)}
-                      </div>
-                    )}
-                  </div>
+                  <Avatar className="size-8 shrink-0 border border-border/40">
+                    <AvatarImage
+                      src={comment.author.avatar}
+                      alt={comment.author.name}
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="bg-primary/20 text-primary font-bold text-xs">
+                      {comment.author.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex flex-col gap-1 min-w-0 flex-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -478,44 +472,46 @@ export function WatchPlayerView() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 max-h-[600px] overflow-y-auto pr-1">
-                {playlistVideos.map((pVid, idx) => {
-                  const isCurrent = pVid.id === video.id;
-                  return (
-                    <Link
-                      key={pVid.id}
-                      href={`/watch/${pVid.id}?list=${playlist.id}`}
-                      className={cn(
-                        "flex items-center gap-2.5 p-2 rounded-xl transition-colors",
-                        isCurrent
-                          ? "bg-primary/10 border border-primary/30"
-                          : "hover:bg-muted/50 border border-transparent",
-                      )}
-                    >
-                      <span className="text-[11px] font-mono font-bold text-muted-foreground w-4 text-center shrink-0">
-                        {isCurrent ? (
-                          <Play className="size-3 text-primary fill-current mx-auto" />
-                        ) : (
-                          idx + 1
+              <ScrollArea className="max-h-[600px] pr-1">
+                <div className="flex flex-col gap-2">
+                  {playlistVideos.map((pVid, idx) => {
+                    const isCurrent = pVid.id === video.id;
+                    return (
+                      <Link
+                        key={pVid.id}
+                        href={`/watch/${pVid.id}?list=${playlist.id}`}
+                        className={cn(
+                          "flex items-center gap-2.5 p-2 rounded-xl transition-colors",
+                          isCurrent
+                            ? "bg-primary/10 border border-primary/30"
+                            : "hover:bg-muted/50 border border-transparent",
                         )}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className={cn(
-                            "text-xs font-medium line-clamp-1",
-                            isCurrent ? "text-primary font-bold" : "text-foreground",
+                      >
+                        <span className="text-[11px] font-mono font-bold text-muted-foreground w-4 text-center shrink-0">
+                          {isCurrent ? (
+                            <Play className="size-3 text-primary fill-current mx-auto" />
+                          ) : (
+                            idx + 1
                           )}
-                        >
-                          {pVid.title}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {pVid.channel.name} • {pVid.duration}
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className={cn(
+                              "text-xs font-medium line-clamp-1",
+                              isCurrent ? "text-primary font-bold" : "text-foreground",
+                            )}
+                          >
+                            {pVid.title}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {pVid.channel.name} • {pVid.duration}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
             </div>
           ) : (
             <div className="flex flex-col gap-4">

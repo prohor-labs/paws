@@ -1,11 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { type SVGProps, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Bookmark, Copy, Global, MoreH, Share, VerifiedBadge } from "@/components/icons";
 import { ActionSheet, type ActionSheetGroup, ShareSheet } from "@/components/shared";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { useWatchMutations } from "@/hooks/use-watch";
 import { shareContent } from "@/lib/share";
 import { formatBengaliCount, formatBengaliRelativeTime } from "@/lib/utils";
@@ -154,9 +155,12 @@ export function WatchCard({
           />
 
           {/* Duration badge at bottom right */}
-          <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/85 text-white text-[12px] font-medium leading-none tracking-tight z-10">
+          <Badge
+            variant="secondary"
+            className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/85 text-white text-[12px] font-medium leading-none tracking-tight border-none z-10"
+          >
             {video.duration}
-          </div>
+          </Badge>
 
           {/* YouTube style Red Resume Progress Bar */}
           {progressPercent > 0 && (
@@ -175,21 +179,14 @@ export function WatchCard({
             <Link
               href={`/watch/channel/${(video.channel.handle || "").replace("@", "")}`}
               onClick={(e) => e.stopPropagation()}
-              className="relative size-9 shrink-0 overflow-hidden rounded-full mt-0.5 bg-muted"
+              className="mt-0.5 shrink-0"
             >
-              {video.channel.avatar ? (
-                <Image
-                  src={video.channel.avatar}
-                  alt=""
-                  fill
-                  sizes="36px"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="size-full flex items-center justify-center bg-primary/20 text-primary text-xs font-bold">
+              <Avatar className="size-9 border border-border/50">
+                <AvatarImage src={video.channel.avatar} alt={video.channel.name} />
+                <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">
                   {(video.channel.name || "C").charAt(0)}
-                </div>
-              )}
+                </AvatarFallback>
+              </Avatar>
             </Link>
           )}
 

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Play, Share, VerifiedBadge } from "@/components/icons";
 import { PageLoading, ShareSheet } from "@/components/shared";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PlaylistCard } from "@/components/watch/playlist-card";
 import { WatchCard } from "@/components/watch/watch-card";
@@ -79,15 +80,12 @@ export function ChannelDetailView() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-border/60">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
           {/* Avatar */}
-          <div className="relative size-20 sm:size-28 md:size-32 rounded-full overflow-hidden border-2 border-background shadow-md bg-muted shrink-0">
-            <Image
-              src={channel.avatar}
-              alt={channel.name}
-              fill
-              sizes="128px"
-              className="object-cover"
-            />
-          </div>
+          <Avatar className="size-20 sm:size-28 md:size-32 rounded-full border-2 border-background shadow-md bg-muted shrink-0">
+            <AvatarImage src={channel.avatar} alt={channel.name} className="object-cover" />
+            <AvatarFallback className="bg-primary/20 text-primary font-bold text-xl sm:text-2xl">
+              {channel.name.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
 
           {/* Name & Handle & Counts */}
           <div className="flex flex-col gap-1.5">
