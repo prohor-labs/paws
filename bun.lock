@@ -5,6 +5,9 @@
     "": {
       "name": "paws.academy",
       "devDependencies": {
+        "@types/bun": "^1.4.2",
+        "drizzle-orm": "^0.45.3",
+        "postgres": "^3.4.9",
         "prettier": "3.9.6",
         "turbo": "^2.11.6",
         "typescript": "7.0.2",
@@ -50,6 +53,7 @@
       "dependencies": {
         "@base-ui/react": "^1.8.0",
         "@next/third-parties": "16.3.6",
+        "@paws/api": "workspace:*",
         "@paws/sdk": "workspace:*",
         "@shadcn/react": "^0.3.1",
         "@tanstack/react-query": "^5.104.0",

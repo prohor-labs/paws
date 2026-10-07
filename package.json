@@ -13,6 +13,9 @@
     "graphify:update": "graphify --update"
   },
   "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "drizzle-orm": "^0.45.3",
+    "postgres": "^3.4.9",
     "prettier": "3.9.6",
     "turbo": "^2.11.6",
     "typescript": "7.0.2"

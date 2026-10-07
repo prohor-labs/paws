@@ -8,8 +8,7 @@
     "build": "tsc --noEmit",
     "check-types": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "bun run src/db/migrate.ts",
-    "db:format": "bun run scripts/format-db.ts"
+    "db:migrate": "bun run src/db/migrate.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1139.0",
