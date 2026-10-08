@@ -8,6 +8,7 @@ import type {
   QBQuestion,
   QBTargetDetailData,
   QBTree,
+  QBTreeSubject,
   QBTreeTarget,
 } from "@/types";
 
@@ -102,7 +103,7 @@ async function fetchQBQuestion(id: string): Promise<QBQuestion> {
 }
 
 async function fetchQBTree(): Promise<QBTree> {
-  const raw = await unwrap<QBTree | QBTreeTarget[]>(
+  const raw = await unwrap<QBTree | Array<QBTreeTarget & { subjects?: QBTreeSubject[] }>>(
     await api.rpc.qb.tree.$get(),
     "Failed to fetch QB tree",
   );

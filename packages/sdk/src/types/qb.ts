@@ -242,6 +242,7 @@ export interface QBTreeTarget {
   name: string;
   slug: string;
   containers?: QBTreeContainer[];
+  subjects?: QBTreeSubject[];
 }
 
 export interface QBTree {

@@ -1344,12 +1344,12 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
       db.select().from(qbTopics).orderBy(asc(qbTopics.orderIndex)),
     ]);
 
-    const topicsByParent = new Map<string, typeof topicsList>();
+    const topicsByChapter = new Map<string, typeof topicsList>();
     for (const top of topicsList) {
-      if (top.parentTopicId) {
-        const list = topicsByParent.get(top.parentTopicId) ?? [];
+      if (top.chapterId) {
+        const list = topicsByChapter.get(top.chapterId) ?? [];
         list.push(top);
-        topicsByParent.set(top.parentTopicId, list);
+        topicsByChapter.set(top.chapterId, list);
       }
     }
 
@@ -1383,7 +1383,32 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
       chaptersBySubject.set(ch.subjectId, list);
     }
 
-    const tree = targetsList.map((target) => {
+    const mapSubject = (subject: (typeof subjectsList)[number]) => {
+      const chapters = (chaptersBySubject.get(subject.id) ?? []).map((chapter) => {
+        const topics = (topicsByChapter.get(chapter.id) ?? []).map((tp) => ({
+          id: tp.id,
+          name: tp.name,
+          slug: tp.slug,
+          questionCount: tp.questionCount,
+        }));
+        return {
+          id: chapter.id,
+          name: chapter.name,
+          slug: chapter.slug,
+          questionCount: chapter.questionCount,
+          topics,
+        };
+      });
+      return {
+        id: subject.id,
+        name: subject.name,
+        slug: subject.slug,
+        questionCount: subject.questionCount,
+        chapters,
+      };
+    };
+
+    const treeTargets = targetsList.map((target) => {
       const containers = (containersByTarget.get(target.id) ?? []).map((ct) => {
         const items = (itemsByContainer.get(ct.id) ?? []).map((it) => ({
           id: it.id,
@@ -1404,30 +1429,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
       const targetSubjects = subjectsByTarget.get(target.id);
       const effectiveSubjects =
         targetSubjects && targetSubjects.length > 0 ? targetSubjects : subjectsList;
-      const subjects = effectiveSubjects.map((subject) => {
-        const chapters = (chaptersBySubject.get(subject.id) ?? []).map((chapter) => {
-          const topics = (topicsByParent.get(chapter.id) ?? []).map((tp) => ({
-            id: tp.id,
-            name: tp.name,
-            slug: tp.slug,
-            questionCount: tp.questionCount,
-          }));
-          return {
-            id: chapter.id,
-            name: chapter.name,
-            slug: chapter.slug,
-            questionCount: chapter.questionCount,
-            topics,
-          };
-        });
-        return {
-          id: subject.id,
-          name: subject.name,
-          slug: subject.slug,
-          questionCount: subject.questionCount,
-          chapters,
-        };
-      });
+      const subjects = effectiveSubjects.map(mapSubject);
 
       return {
         id: target.id,
@@ -1438,8 +1440,17 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         subjects,
       };
     });
+
+    const allFormattedSubjects = subjectsList.map(mapSubject);
+
     c.header("Cache-Control", CACHE_CONTROL_PUBLIC);
-    return c.json({ success: true, data: tree });
+    return c.json({
+      success: true,
+      data: {
+        targets: treeTargets,
+        subjects: allFormattedSubjects,
+      },
+    });
   })
   .route("/", examRoute)
   .post(
