@@ -146,6 +146,40 @@ export interface PayOrderResponse {
   alreadyPaid?: boolean;
 }
 
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+export interface GetAllOrdersInput {
+  status?: "pending" | "paid" | "failed" | "canceled";
+  search?: string;
+  page?: number;
+  limit?: number;
+  offset?: number;
+}
+
+export interface GetAllOrdersResponse {
+  orders: BillingOrder[];
+  total: number;
+  pagination: PaginationMeta;
+}
+
+export interface UpdateOrderStatusInput {
+  status: "pending" | "paid" | "failed" | "canceled";
+}
+
+export interface UpdateOrderStatusResponse {
+  success: boolean;
+  message: string;
+  order: BillingOrder;
+  alreadyPaid?: boolean;
+}
+
 export interface RevealExplanationResponse {
   success: boolean;
   questionId: string;
@@ -155,4 +189,71 @@ export interface RevealExplanationResponse {
   limit: number;
   resetsInSeconds: number;
 }
+
+export interface Coupon {
+  id: string;
+  code: string;
+  type: "percentage" | "fixed";
+  value: number;
+  minSpend: number;
+  maxDiscount?: number | null;
+  usageLimit?: number | null;
+  usageCount: number;
+  expiresAt?: string | Date | null;
+  active: boolean;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface GetAllCouponsInput {
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface GetAllCouponsResponse {
+  coupons: Coupon[];
+  total: number;
+  pagination: PaginationMeta;
+}
+
+export interface CreateCouponInput {
+  code: string;
+  type: "percentage" | "fixed";
+  value: number;
+  minSpend?: number;
+  maxDiscount?: number;
+  usageLimit?: number;
+  expiresAt?: string | Date | null;
+  active?: boolean;
+}
+
+export interface CreateCouponResponse {
+  success: boolean;
+  message: string;
+  coupon: Coupon;
+}
+
+export interface UpdateCouponInput {
+  code?: string;
+  type?: "percentage" | "fixed";
+  value?: number;
+  minSpend?: number;
+  maxDiscount?: number | null;
+  usageLimit?: number | null;
+  expiresAt?: string | Date | null;
+  active?: boolean;
+}
+
+export interface UpdateCouponResponse {
+  success: boolean;
+  message: string;
+  coupon: Coupon;
+}
+
+export interface DeleteCouponResponse {
+  success: boolean;
+  message: string;
+}
+
 

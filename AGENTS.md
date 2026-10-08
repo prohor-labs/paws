@@ -24,3 +24,15 @@ A knowledge graph is maintained in `graphify-out/` to trace relationships, depen
 1. **Query Existing Graph First**: Before doing broad blind searches across workspaces, check if `graphify-out/graph.json` exists. Use `graphify query "<question>"` or `graphify path "<nodeA>" "<nodeB>"` for context traversal.
 2. **Reviewing Reports**: Check [`graphify-out/GRAPH_REPORT.md`](file:///root/paws.academy/graphify-out/GRAPH_REPORT.md) to inspect God Nodes (core abstractions), community clusters, and surprise dependencies.
 3. **Visualization**: An interactive visualization is available at [`graphify-out/graph.html`](file:///root/paws.academy/graphify-out/graph.html).
+
+# UI & Pagination Guidelines
+
+1. **Do NOT Modify `components/ui/*` Files**:
+   - Files under `apps/web/src/components/ui/` (such as `pagination.tsx`, `button.tsx`, `card.tsx`, etc.) are pristine shadcn/base-ui UI primitives.
+   - Do not edit or customize primitives in `components/ui/` directly. Always compose or wrap them in page or shared components (`components/shared/*` or feature components).
+
+2. **Standard Pagination Architecture**:
+   - **Backend API**: Follow the `api-pagination` skill. Endpoints must accept `page` (1-indexed) and `limit` (max 100), and respond with data along with a standard `pagination` object containing `{ page, limit, total, totalPages, hasNext, hasPrev }`.
+   - **Frontend UI**: Use the untouched `<Pagination>` primitives from `@/components/ui/pagination` (`Pagination`, `PaginationContent`, `PaginationItem`, `PaginationLink`, `PaginationPrevious`, `PaginationNext`, `PaginationEllipsis`).
+   - Manage pagination state on the consumer component/page, and reset `page` to `1` when filters or search queries change.
+

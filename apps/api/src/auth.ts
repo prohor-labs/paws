@@ -26,6 +26,11 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
+      role: {
+        type: "string",
+        defaultValue: "student",
+        input: false,
+      },
       onboardingCompleted: {
         type: "boolean",
         defaultValue: false,

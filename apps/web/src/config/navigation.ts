@@ -1,4 +1,5 @@
 import {
+  Briefcase,
   CheckCircle,
   DocumentText,
   FileCheck,
@@ -48,6 +49,11 @@ export const MENTOR_NAV_ITEMS: readonly NavItem[] = [
     icon: ShieldCheck,
   },
   {
+    name: "অর্ডারসমূহ",
+    path: "/admin/orders",
+    icon: Briefcase,
+  },
+  {
     name: "প্রশ্নব্যাংক",
     path: "/qb",
     icon: DocumentText,
@@ -74,6 +80,11 @@ export const ADMIN_NAV_ITEMS: readonly NavItem[] = [
     name: "ড্যাশবোর্ড",
     path: "/admin",
     icon: ShieldCheck,
+  },
+  {
+    name: "অর্ডারসমূহ",
+    path: "/admin/orders",
+    icon: Briefcase,
   },
   {
     name: "প্রশ্নব্যাংক",

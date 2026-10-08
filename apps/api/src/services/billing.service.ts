@@ -2,6 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "../db";
 import {
   billingOrders,
+  coupons,
   creditTransactions,
   subscriptions,
   userBatchAccess,
@@ -29,10 +30,15 @@ export interface AddonConfig {
 }
 
 export interface CouponConfig {
+  id?: string;
   code: string;
   type: "percentage" | "fixed";
   value: number;
-  minSpend?: number;
+  minSpend?: number | null;
+  maxDiscount?: number | null;
+  usageLimit?: number | null;
+  usageCount?: number | null;
+  expiresAt?: Date | string | null;
   active: boolean;
 }
 
@@ -110,16 +116,42 @@ export class BillingService {
     return BACKEND_ADDONS;
   }
 
-  static validateCoupon(code: string, amount: number) {
+  static async validateCoupon(code: string, amount: number) {
     const normalized = code.trim().toUpperCase();
-    const coupon = BACKEND_COUPONS.find(
-      (c) => c.code === normalized && c.active,
-    );
+    const dbCoupon = await db.query.coupons.findFirst({
+      where: eq(coupons.code, normalized),
+    });
 
-    if (!coupon) {
+    const coupon =
+      dbCoupon ||
+      BACKEND_COUPONS.find((c) => c.code === normalized && c.active);
+
+    if (!coupon || !coupon.active) {
       return {
         valid: false,
-        message: "অবৈধ কুপন কোড! দয়া করে সঠিক কোড দিন।",
+        message: "অবৈধ বা নিষ্ক্রিয় কুপন কোড!",
+        discount: 0,
+      };
+    }
+
+    if (
+      coupon.expiresAt &&
+      new Date(coupon.expiresAt).getTime() < Date.now()
+    ) {
+      return {
+        valid: false,
+        message: "এই কুপনটির মেয়াদ উত্তীর্ণ হয়ে গেছে।",
+        discount: 0,
+      };
+    }
+
+    if (
+      coupon.usageLimit != null &&
+      (coupon.usageCount ?? 0) >= coupon.usageLimit
+    ) {
+      return {
+        valid: false,
+        message: "এই কুপন ব্যবহারের সীমা পূর্ণ হয়ে গেছে।",
         discount: 0,
       };
     }
@@ -127,15 +159,19 @@ export class BillingService {
     if (coupon.minSpend && amount < coupon.minSpend) {
       return {
         valid: false,
-        message: `এই কুপনটি ন্যূনতম ${coupon.minSpend} টাকার অর্ডারে প্রযোজ্য।`,
+        message: `এই কুপনটি ন্যূনতম ৳${coupon.minSpend} টাকার অর্ডারে প্রযোজ্য।`,
         discount: 0,
       };
     }
 
-    const discount =
+    let discount =
       coupon.type === "percentage"
         ? Math.round((amount * coupon.value) / 100)
         : Math.min(amount, coupon.value);
+
+    if (coupon.maxDiscount != null && discount > coupon.maxDiscount) {
+      discount = coupon.maxDiscount;
+    }
 
     return {
       valid: true,
@@ -143,6 +179,150 @@ export class BillingService {
       discount,
       message: `${coupon.code} কুপন সফলভাবে প্রয়োগ করা হয়েছে!`,
     };
+  }
+
+  static async getAllCoupons(params?: {
+    search?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const page = Math.max(1, params?.page || 1);
+    const limit = Math.min(Math.max(1, params?.limit || 10), 100);
+    const offset = (page - 1) * limit;
+
+    const conditions = [];
+    if (params?.search && params.search.trim()) {
+      const q = `%${params.search.trim().toUpperCase()}%`;
+      conditions.push(sql`${coupons.code} ILIKE ${q}`);
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [couponList, [countResult]] = await Promise.all([
+      db.query.coupons.findMany({
+        where: whereClause,
+        orderBy: (table, { desc }) => [desc(table.createdAt)],
+        limit,
+        offset,
+      }),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(coupons)
+        .where(whereClause),
+    ]);
+
+    const total = countResult?.count ?? couponList.length;
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return {
+      coupons: couponList,
+      total,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
+  }
+
+  static async createCoupon(input: {
+    code: string;
+    type: "percentage" | "fixed";
+    value: number;
+    minSpend?: number;
+    maxDiscount?: number;
+    usageLimit?: number;
+    expiresAt?: Date | string | null;
+    active?: boolean;
+  }) {
+    const code = input.code.trim().toUpperCase();
+    const existing = await db.query.coupons.findFirst({
+      where: eq(coupons.code, code),
+    });
+
+    if (existing) {
+      throw new Error("COUPON_ALREADY_EXISTS");
+    }
+
+    const [created] = await db
+      .insert(coupons)
+      .values({
+        code,
+        type: input.type,
+        value: input.value,
+        minSpend: input.minSpend || 0,
+        maxDiscount: input.maxDiscount || null,
+        usageLimit: input.usageLimit || null,
+        expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+        active: input.active !== undefined ? input.active : true,
+      })
+      .returning();
+
+    return created;
+  }
+
+  static async updateCoupon(
+    id: string,
+    input: {
+      code?: string;
+      type?: "percentage" | "fixed";
+      value?: number;
+      minSpend?: number;
+      maxDiscount?: number | null;
+      usageLimit?: number | null;
+      expiresAt?: Date | string | null;
+      active?: boolean;
+    },
+  ) {
+    const coupon = await db.query.coupons.findFirst({
+      where: eq(coupons.id, id),
+    });
+
+    if (!coupon) {
+      throw new Error("COUPON_NOT_FOUND");
+    }
+
+    const updateData: Record<string, unknown> = {
+      updatedAt: new Date(),
+    };
+
+    if (input.code !== undefined)
+      updateData.code = input.code.trim().toUpperCase();
+    if (input.type !== undefined) updateData.type = input.type;
+    if (input.value !== undefined) updateData.value = input.value;
+    if (input.minSpend !== undefined) updateData.minSpend = input.minSpend;
+    if (input.maxDiscount !== undefined)
+      updateData.maxDiscount = input.maxDiscount;
+    if (input.usageLimit !== undefined)
+      updateData.usageLimit = input.usageLimit;
+    if (input.expiresAt !== undefined) {
+      updateData.expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
+    }
+    if (input.active !== undefined) updateData.active = input.active;
+
+    const [updated] = await db
+      .update(coupons)
+      .set(updateData)
+      .where(eq(coupons.id, id))
+      .returning();
+
+    return updated;
+  }
+
+  static async deleteCoupon(id: string) {
+    const coupon = await db.query.coupons.findFirst({
+      where: eq(coupons.id, id),
+    });
+
+    if (!coupon) {
+      throw new Error("COUPON_NOT_FOUND");
+    }
+
+    await db.delete(coupons).where(eq(coupons.id, id));
+    return { success: true };
   }
 
   static async getUserSubscription(userId: string) {
@@ -343,7 +523,7 @@ export class BillingService {
     let appliedCode: string | undefined = undefined;
 
     if (couponCode && couponCode.trim()) {
-      const couponResult = this.validateCoupon(couponCode, baseTotal);
+      const couponResult = await this.validateCoupon(couponCode, baseTotal);
       if (couponResult.valid) {
         discountAmount = couponResult.discount;
         appliedCode = couponResult.code;
@@ -464,5 +644,117 @@ export class BillingService {
 
       return { order: updatedOrder, alreadyPaid: false };
     });
+  }
+
+  static async getAllOrders(params?: {
+    status?: "pending" | "paid" | "failed" | "canceled";
+    search?: string;
+    page?: number;
+    limit?: number;
+    offset?: number;
+  }) {
+    const { status, search } = params || {};
+    const page = Math.max(1, params?.page || 1);
+    const limit = Math.min(Math.max(1, params?.limit || 10), 100);
+    const offset =
+      params?.offset !== undefined ? params.offset : (page - 1) * limit;
+
+    const conditions = [];
+
+    if (status) {
+      conditions.push(eq(billingOrders.status, status));
+    }
+
+    if (search && search.trim()) {
+      const q = `%${search.trim()}%`;
+      conditions.push(
+        sql`(${billingOrders.senderNumber} ILIKE ${q} OR ${billingOrders.transactionId} ILIKE ${q} OR ${billingOrders.couponCode} ILIKE ${q} OR ${billingOrders.id}::text ILIKE ${q})`,
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [orders, [countResult]] = await Promise.all([
+      db.query.billingOrders.findMany({
+        where: whereClause,
+        with: {
+          user: {
+            columns: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: (table, { desc }) => [desc(table.createdAt)],
+        limit,
+        offset,
+      }),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(billingOrders)
+        .where(whereClause),
+    ]);
+
+    const backendAddons = this.getAddons();
+    const enriched = orders.map((order) => {
+      const populatedAddons = backendAddons.filter((a) =>
+        (order.addonIds || []).includes(a.id),
+      );
+      return {
+        ...order,
+        addons: populatedAddons,
+      };
+    });
+
+    const total = countResult?.count ?? enriched.length;
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return {
+      orders: enriched,
+      total,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
+  }
+
+  static async updateOrderStatus(
+    orderId: string,
+    status: "pending" | "paid" | "failed" | "canceled",
+  ) {
+    const order = await db.query.billingOrders.findFirst({
+      where: eq(billingOrders.id, orderId),
+    });
+
+    if (!order) {
+      throw new Error("ORDER_NOT_FOUND");
+    }
+
+    if (status === "paid" && order.status !== "paid") {
+      return this.confirmOrderPayment(
+        orderId,
+        order.paymentMethod || "admin_manual",
+        order.senderNumber || "ADMIN",
+        order.transactionId || `ADMIN-APPROVE-${Date.now()}`,
+      );
+    }
+
+    const [updated] = await db
+      .update(billingOrders)
+      .set({
+        status,
+        updatedAt: new Date(),
+      })
+      .where(eq(billingOrders.id, orderId))
+      .returning();
+
+    return { order: updated, alreadyPaid: order.status === "paid" };
   }
 }

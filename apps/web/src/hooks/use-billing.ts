@@ -1,8 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   CheckoutInput,
+  CreateCouponInput,
   CreateOrderInput,
+  GetAllCouponsInput,
+  GetAllOrdersInput,
   PayOrderInput,
+  UpdateCouponInput,
   ValidateCouponInput,
 } from "@paws/sdk";
 import { api } from "@/lib/sdk/client";
@@ -86,6 +90,36 @@ export function useCheckout() {
   });
 }
 
+export function useAllOrders(params?: GetAllOrdersInput) {
+  return useQuery({
+    queryKey: ["billing", "admin-orders", params],
+    queryFn: async () => {
+      return api.billing.getAllOrders(params);
+    },
+    staleTime: 10 * 1000,
+  });
+}
+
+export function useUpdateOrderStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      status,
+    }: {
+      orderId: string;
+      status: "pending" | "paid" | "failed" | "canceled";
+    }) => {
+      return api.billing.updateOrderStatus(orderId, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["billing", "admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["billing", "order"] });
+      queryClient.invalidateQueries({ queryKey: ["billing", "status"] });
+    },
+  });
+}
+
 export function useRevealExplanation() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -97,4 +131,60 @@ export function useRevealExplanation() {
     },
   });
 }
+
+export function useAllCoupons(params?: GetAllCouponsInput) {
+  return useQuery({
+    queryKey: ["billing", "admin-coupons", params],
+    queryFn: async () => {
+      return api.billing.getAllCoupons(params);
+    },
+    staleTime: 10 * 1000,
+  });
+}
+
+export function useCreateCoupon() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: CreateCouponInput) => {
+      return api.billing.createCoupon(input);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["billing", "admin-coupons"] });
+      queryClient.invalidateQueries({ queryKey: ["billing", "config"] });
+    },
+  });
+}
+
+export function useUpdateCoupon() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      couponId,
+      input,
+    }: {
+      couponId: string;
+      input: UpdateCouponInput;
+    }) => {
+      return api.billing.updateCoupon(couponId, input);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["billing", "admin-coupons"] });
+      queryClient.invalidateQueries({ queryKey: ["billing", "config"] });
+    },
+  });
+}
+
+export function useDeleteCoupon() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (couponId: string) => {
+      return api.billing.deleteCoupon(couponId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["billing", "admin-coupons"] });
+      queryClient.invalidateQueries({ queryKey: ["billing", "config"] });
+    },
+  });
+}
+
 

@@ -11,6 +11,7 @@ import {
   type NavItem,
   USER_NAV_ITEMS,
 } from "@/config/navigation";
+import { useSession } from "@/lib/sdk";
 import { cn } from "@/lib/utils";
 
 export function AppSidebar({
@@ -21,7 +22,14 @@ export function AppSidebar({
   isAdmin?: boolean;
 }) {
   const pathname = usePathname();
-  const effectiveRole = isAdmin ? "admin" : userRole;
+  const { data: session } = useSession();
+  const sessionRole = (session?.user as unknown as { role?: "student" | "admin" | "mentor" })?.role;
+  const effectiveRole = isAdmin
+    ? "admin"
+    : userRole !== "student"
+      ? userRole
+      : sessionRole || "student";
+
   const navItems =
     effectiveRole === "admin"
       ? ADMIN_NAV_ITEMS
@@ -93,8 +101,14 @@ export function MobileNav({
   isAdmin?: boolean;
 }) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const sessionRole = (session?.user as unknown as { role?: "student" | "admin" | "mentor" })?.role;
+  const effectiveRole = isAdmin
+    ? "admin"
+    : userRole !== "student"
+      ? userRole
+      : sessionRole || "student";
 
-  const effectiveRole = isAdmin ? "admin" : userRole;
   const navItems =
     effectiveRole === "admin"
       ? ADMIN_NAV_ITEMS

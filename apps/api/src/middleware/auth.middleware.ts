@@ -2,6 +2,8 @@ import { createMiddleware } from "hono/factory";
 import { auth } from "../auth";
 import { ApiError } from "../lib/errors";
 
+export type UserRole = "student" | "mentor" | "admin";
+
 export type AuthContextVariables = {
   user: typeof auth.$Infer.Session.user | null;
   session: typeof auth.$Infer.Session.session | null;
@@ -49,3 +51,31 @@ export const requireAuth = createMiddleware<{
 
   await next();
 });
+
+export const requireRole = (allowedRoles: UserRole[]) =>
+  createMiddleware<{
+    Variables: AuthContextVariables;
+  }>(async (c, next) => {
+    let currentUser = c.get("user");
+    if (!currentUser) {
+      const sessionData = await auth.api.getSession({
+        headers: c.req.raw.headers,
+      });
+      if (!sessionData) {
+        throw ApiError.unauthorized();
+      }
+      currentUser = sessionData.user;
+      c.set("user", currentUser);
+      c.set("session", sessionData.session);
+    }
+
+    const role = ((currentUser as unknown as { role?: UserRole })?.role || "student") as UserRole;
+    if (!allowedRoles.includes(role)) {
+      throw ApiError.forbidden("এই অ্যাকশনটি সম্পন্ন করার প্রয়োজনীয় অনুমতি আপনার নেই।");
+    }
+
+    await next();
+  });
+
+export const requireAdmin = requireRole(["admin"]);
+export const requireMentorOrAdmin = requireRole(["mentor", "admin"]);

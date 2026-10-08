@@ -25,6 +25,7 @@ export const user = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
     onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
+    role: text().$type<"student" | "mentor" | "admin">().default("student").notNull(),
     level: text(),
     track: text(),
     dailyReminderEnabled: boolean("daily_reminder_enabled").default(true).notNull(),

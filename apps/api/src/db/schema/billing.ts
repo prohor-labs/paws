@@ -167,3 +167,31 @@ export const billingOrders = pgTable(
     index("billing_orders_status_idx").on(table.status),
   ],
 );
+
+export const coupons = pgTable(
+  "coupons",
+  {
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    code: text().notNull().unique(),
+    type: text().$type<"percentage" | "fixed">().notNull(),
+    value: integer().notNull(),
+    minSpend: integer("min_spend").default(0).notNull(),
+    maxDiscount: integer("max_discount"),
+    usageLimit: integer("usage_limit"),
+    usageCount: integer("usage_count").default(0).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    active: boolean().default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index("coupons_code_idx").on(table.code),
+    index("coupons_active_idx").on(table.active),
+  ],
+);
+

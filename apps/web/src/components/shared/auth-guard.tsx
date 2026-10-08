@@ -5,7 +5,15 @@ import { type ReactNode, useEffect, useSyncExternalStore } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { useSession } from "@/lib/sdk";
 
-export function AuthGuard({ children }: { children: ReactNode }) {
+export type Role = "student" | "mentor" | "admin";
+
+export function AuthGuard({
+  children,
+  allowedRoles,
+}: {
+  children: ReactNode;
+  allowedRoles?: Role[];
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -13,7 +21,10 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const mounted = useMounted();
 
   const user = session?.user as
-    | (NonNullable<typeof session>["user"] & { onboardingCompleted?: boolean })
+    | (NonNullable<typeof session>["user"] & {
+        onboardingCompleted?: boolean;
+        role?: Role;
+      })
     | undefined;
 
   useEffect(() => {
@@ -35,10 +46,19 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
     if (!hasCompletedOnboarding && !isOnboardingPage) {
       router.replace("/onboarding");
-    } else if (hasCompletedOnboarding && isOnboardingPage) {
+      return;
+    }
+
+    if (hasCompletedOnboarding && isOnboardingPage) {
+      router.replace("/dashboard");
+      return;
+    }
+
+    const currentRole = user?.role || "student";
+    if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(currentRole)) {
       router.replace("/dashboard");
     }
-  }, [mounted, isPending, session, user, router, pathname, searchParams]);
+  }, [mounted, isPending, session, user, router, pathname, searchParams, allowedRoles]);
 
   if (!mounted || isPending || !session) {
     return <AuthGuardLoading />;
@@ -52,6 +72,11 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   }
 
   if (hasCompletedOnboarding && isOnboardingPage) {
+    return <AuthGuardLoading />;
+  }
+
+  const currentRole = user?.role || "student";
+  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(currentRole)) {
     return <AuthGuardLoading />;
   }
 

@@ -8,7 +8,9 @@ import { cleanAndFormatMathText } from "../lib/math";
 import {
   type AuthContextVariables,
   attachSession,
+  requireAdmin,
   requireAuth,
+  requireMentorOrAdmin,
 } from "../middleware/auth.middleware";
 import { BillingService } from "../services/billing.service";
 import { ExplanationService } from "../services/explanation.service";
@@ -34,7 +36,7 @@ export const billingRoute = new Hono<{ Variables: AuthContextVariables }>()
     ),
     async (c) => {
       const { code, amount } = c.req.valid("json");
-      const result = BillingService.validateCoupon(code, amount);
+      const result = await BillingService.validateCoupon(code, amount);
       return c.json(result);
     },
   )
@@ -154,6 +156,57 @@ export const billingRoute = new Hono<{ Variables: AuthContextVariables }>()
       }
     },
   )
+  .get(
+    "/orders",
+    requireAuth,
+    requireMentorOrAdmin,
+    zValidator(
+      "query",
+      z.object({
+        status: z.enum(["pending", "paid", "failed", "canceled"]).optional(),
+        search: z.string().optional(),
+        page: z.coerce.number().min(1).default(1),
+        limit: z.coerce.number().min(1).max(100).default(10),
+        offset: z.coerce.number().min(0).optional(),
+      }),
+    ),
+    async (c) => {
+      const query = c.req.valid("query");
+      const result = await BillingService.getAllOrders(query);
+      return c.json(result);
+    },
+  )
+
+  .patch(
+    "/order/:id/status",
+    requireAuth,
+    requireAdmin,
+    zValidator(
+      "json",
+      z.object({
+        status: z.enum(["pending", "paid", "failed", "canceled"]),
+      }),
+    ),
+    async (c) => {
+      const orderId = c.req.param("id");
+      const { status } = c.req.valid("json");
+
+      try {
+        const result = await BillingService.updateOrderStatus(orderId, status);
+        return c.json({
+          success: true,
+          message: "অর্ডারের স্ট্যাটাস সফলভাবে পরিবর্তন করা হয়েছে!",
+          order: result.order,
+          alreadyPaid: result.alreadyPaid,
+        });
+      } catch (err: any) {
+        if (err.message === "ORDER_NOT_FOUND") {
+          return c.json({ error: "ORDER_NOT_FOUND", message: "অর্ডারটি পাওয়া যায়নি।" }, 404);
+        }
+        return c.json({ error: "UPDATE_FAILED", message: "স্ট্যাটাস আপডেট ব্যর্থ হয়েছে।" }, 500);
+      }
+    },
+  )
 
   .post(
     "/checkout",
@@ -190,7 +243,7 @@ export const billingRoute = new Hono<{ Variables: AuthContextVariables }>()
       let totalAmount = pkg.price + validAddons.reduce((sum, a) => sum + a.price, 0);
 
       if (couponCode) {
-        const couponResult = BillingService.validateCoupon(couponCode, totalAmount);
+        const couponResult = await BillingService.validateCoupon(couponCode, totalAmount);
         if (couponResult.valid) {
           totalAmount = Math.max(0, totalAmount - couponResult.discount);
         }
@@ -278,4 +331,114 @@ export const billingRoute = new Hono<{ Variables: AuthContextVariables }>()
       limit: check.limit,
       resetsInSeconds: check.resetsInSeconds,
     });
+  })
+
+  .get(
+    "/coupons",
+    requireAuth,
+    requireMentorOrAdmin,
+    zValidator(
+      "query",
+      z.object({
+        search: z.string().optional(),
+        page: z.coerce.number().min(1).default(1),
+        limit: z.coerce.number().min(1).max(100).default(10),
+      }),
+    ),
+    async (c) => {
+      const query = c.req.valid("query");
+      const result = await BillingService.getAllCoupons(query);
+      return c.json(result);
+    },
+  )
+
+  .post(
+    "/coupons",
+    requireAuth,
+    requireAdmin,
+    zValidator(
+      "json",
+      z.object({
+        code: z.string().min(2),
+        type: z.enum(["percentage", "fixed"]),
+        value: z.number().positive(),
+        minSpend: z.number().nonnegative().optional(),
+        maxDiscount: z.number().positive().optional(),
+        usageLimit: z.number().positive().optional(),
+        expiresAt: z.string().optional(),
+        active: z.boolean().optional(),
+      }),
+    ),
+    async (c) => {
+      const body = c.req.valid("json");
+      try {
+        const coupon = await BillingService.createCoupon(body);
+        return c.json({
+          success: true,
+          message: "কুপন সফলভাবে তৈরি করা হয়েছে!",
+          coupon,
+        });
+      } catch (err: any) {
+        if (err.message === "COUPON_ALREADY_EXISTS") {
+          return c.json(
+            { error: "ALREADY_EXISTS", message: "এই কোডের একটি কুপন ইতিমধ্যে বিদ্যমান রয়েছে।" },
+            409,
+          );
+        }
+        return c.json({ error: "CREATE_FAILED", message: "কুপন তৈরি ব্যর্থ হয়েছে।" }, 500);
+      }
+    },
+  )
+
+  .patch(
+    "/coupon/:id",
+    requireAuth,
+    requireAdmin,
+    zValidator(
+      "json",
+      z.object({
+        code: z.string().min(2).optional(),
+        type: z.enum(["percentage", "fixed"]).optional(),
+        value: z.number().positive().optional(),
+        minSpend: z.number().nonnegative().optional(),
+        maxDiscount: z.number().positive().nullable().optional(),
+        usageLimit: z.number().positive().nullable().optional(),
+        expiresAt: z.string().nullable().optional(),
+        active: z.boolean().optional(),
+      }),
+    ),
+    async (c) => {
+      const couponId = c.req.param("id");
+      const body = c.req.valid("json");
+
+      try {
+        const coupon = await BillingService.updateCoupon(couponId, body);
+        return c.json({
+          success: true,
+          message: "কুপন সফলভাবে আপডেট করা হয়েছে!",
+          coupon,
+        });
+      } catch (err: any) {
+        if (err.message === "COUPON_NOT_FOUND") {
+          return c.json({ error: "NOT_FOUND", message: "কুপনটি পাওয়া যায়নি।" }, 404);
+        }
+        return c.json({ error: "UPDATE_FAILED", message: "কুপন আপডেট ব্যর্থ হয়েছে।" }, 500);
+      }
+    },
+  )
+
+  .delete("/coupon/:id", requireAuth, requireAdmin, async (c) => {
+    const couponId = c.req.param("id");
+    try {
+      await BillingService.deleteCoupon(couponId);
+      return c.json({
+        success: true,
+        message: "কুপনটি সফলভাবে মুছে ফেলা হয়েছে!",
+      });
+    } catch (err: any) {
+      if (err.message === "COUPON_NOT_FOUND") {
+        return c.json({ error: "NOT_FOUND", message: "কুপনটি পাওয়া যায়নি।" }, 404);
+      }
+      return c.json({ error: "DELETE_FAILED", message: "কুপন ডিলিট ব্যর্থ হয়েছে।" }, 500);
+    }
   });
