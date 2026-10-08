@@ -59,7 +59,7 @@ export default function CustomExamPage() {
   const [isNegativeMarking, setIsNegativeMarking] = React.useState<boolean>(true);
 
   const allSubjects = React.useMemo<CustomExamSubject[]>(() => {
-    const primaryTarget = tree?.targets[0];
+    const primaryTarget = tree?.targets?.[0];
     return (tree?.subjects ?? []).map((subject) => ({
       id: subject.id,
       name: subject.name,

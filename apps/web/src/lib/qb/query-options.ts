@@ -8,6 +8,7 @@ import type {
   QBQuestion,
   QBTargetDetailData,
   QBTree,
+  QBTreeTarget,
 } from "@/types";
 
 const STALE_TIME = 5 * 60 * 1000;
@@ -101,7 +102,18 @@ async function fetchQBQuestion(id: string): Promise<QBQuestion> {
 }
 
 async function fetchQBTree(): Promise<QBTree> {
-  return unwrap<QBTree>(await api.rpc.qb.tree.$get(), "Failed to fetch QB tree");
+  const raw = await unwrap<QBTree | QBTreeTarget[]>(
+    await api.rpc.qb.tree.$get(),
+    "Failed to fetch QB tree",
+  );
+  if (Array.isArray(raw)) {
+    const allSubjects = raw.flatMap((t) => t.subjects ?? []);
+    return {
+      targets: raw,
+      subjects: allSubjects,
+    };
+  }
+  return raw;
 }
 
 export function qbTargetQueryOptions(slug: string) {
