@@ -87,7 +87,7 @@ export function WatchPlayerView() {
   const subscribersDisplay =
     subscribersCount > 0
       ? `${formatBengaliCount(subscribersCount)} জন সাবস্ক্রাইবার`
-      : video?.channel?.subscribers || "০ জন সাবস্ক্রাইবার";
+      : `${formatBengaliCount(video?.channel?.subscribers ?? 0)} জন সাবস্ক্রাইবার`;
 
   const likesCount =
     (video?.likesCount ?? 0) +

@@ -10,13 +10,8 @@ import type {
   SubjectChapterGroup,
 } from "@/components/exam";
 import { PageLoading } from "@/components/shared";
-import { useCreateCustomExam, useQBHub, useQBTree } from "@/hooks/use-question-bank";
-import {
-  type CustomExamSourceOption,
-  type CustomExamSubject,
-  deriveSubjectIconKey,
-  SOURCE_TYPE_LABELS,
-} from "@/lib/consts/custom-exam";
+import { useCreateCustomExam, useQBTree } from "@/hooks/use-question-bank";
+import { type CustomExamSubject, deriveSubjectIconKey } from "@/lib/consts/custom-exam";
 import { chapterLevelLabel } from "@/lib/consts/qb";
 import { toBengaliNumber } from "@/lib/utils";
 import type { CreateCustomExamInput } from "@/types";
@@ -42,8 +37,7 @@ const CustomExamStep4 = dynamic(() => import("@/components/exam").then((m) => m.
 
 export default function CustomExamPage() {
   const router = useRouter();
-  const { data: tree = [], isLoading: treeLoading } = useQBTree();
-  const { data: hub, isLoading: hubLoading } = useQBHub();
+  const { data: tree, isLoading: treeLoading } = useQBTree();
   const createExamMutation = useCreateCustomExam();
 
   const [currentStep, setCurrentStep] = React.useState<1 | 2 | 3 | 4>(1);
@@ -65,24 +59,15 @@ export default function CustomExamPage() {
   const [isNegativeMarking, setIsNegativeMarking] = React.useState<boolean>(true);
 
   const allSubjects = React.useMemo<CustomExamSubject[]>(() => {
-    const seen = new Set<string>();
-    const list: CustomExamSubject[] = [];
-    for (const target of tree) {
-      for (const subject of target.subjects) {
-        if (!seen.has(subject.id)) {
-          seen.add(subject.id);
-          list.push({
-            id: subject.id,
-            name: subject.name,
-            iconKey: deriveSubjectIconKey(subject.name),
-            questionCount: subject.questionCount,
-            group: target.group ?? "academic",
-            targetName: target.name,
-          });
-        }
-      }
-    }
-    return list;
+    const primaryTarget = tree?.targets[0];
+    return (tree?.subjects ?? []).map((subject) => ({
+      id: subject.id,
+      name: subject.name,
+      iconKey: deriveSubjectIconKey(subject.name),
+      questionCount: subject.questionCount,
+      group: primaryTarget?.group ?? "academic",
+      targetName: primaryTarget?.name,
+    }));
   }, [tree]);
 
   const subjectsById = React.useMemo(() => {
@@ -98,13 +83,11 @@ export default function CustomExamPage() {
         }>;
       }
     >();
-    for (const target of tree) {
-      for (const subject of target.subjects) {
-        map.set(subject.id, {
-          name: subject.name,
-          chapters: subject.chapters,
-        });
-      }
+    for (const subject of tree?.subjects ?? []) {
+      map.set(subject.id, {
+        name: subject.name,
+        chapters: subject.chapters,
+      });
     }
     return map;
   }, [tree]);
@@ -139,18 +122,6 @@ export default function CustomExamPage() {
       };
     });
   }, [selectedSubjects, subjectsById]);
-
-  const _sourceOptions = React.useMemo<CustomExamSourceOption[]>(() => {
-    return (hub?.sources ?? []).map((s) => {
-      const group = s.type ? (SOURCE_TYPE_LABELS[s.type] ?? "অন্যান্য") : "অন্যান্য";
-      return {
-        id: s.id,
-        label: s.name,
-        description: s.institution ?? group,
-        group,
-      };
-    });
-  }, [hub?.sources]);
 
   const handleToggleSubject = (subject: CustomExamSubject) => {
     setSelectedSubjectIds((prev) =>
@@ -259,7 +230,7 @@ export default function CustomExamPage() {
     }
   };
 
-  if (treeLoading || hubLoading) {
+  if (treeLoading) {
     return <PageLoading />;
   }
 

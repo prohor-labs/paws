@@ -12,7 +12,8 @@ export function QbHubContent() {
   const [activeGroup, setActiveGroup] = React.useState<string>("all");
   const { data, isLoading } = useQBTree();
 
-  const targets = React.useMemo(() => data ?? [], [data]);
+  const targets = React.useMemo(() => data?.targets ?? [], [data]);
+  const subjects = React.useMemo(() => data?.subjects ?? [], [data]);
 
   const tabs = React.useMemo(() => {
     const groupTabs = QB_TARGET_GROUPS.filter((group) =>
@@ -67,7 +68,7 @@ export function QbHubContent() {
           }
 
           // Also check subjects
-          for (const s of target.subjects ?? []) {
+          for (const s of subjects) {
             if (s.name.toLowerCase().includes(q) || s.slug.toLowerCase().includes(q)) {
               matchingItems.push({
                 id: s.id,
@@ -106,18 +107,18 @@ export function QbHubContent() {
 
         return {
           target,
-          cards: (target.subjects ?? []).map((s) => ({
+          cards: subjects.map((s) => ({
             id: s.id,
             title: s.name,
             subtitle: target.name,
             href: `/qb/${target.slug}/${s.slug}`,
             badge: s.questionCount ? `${s.questionCount} টি প্রশ্ন` : undefined,
           })),
-          countLabel: `${(target.subjects ?? []).length} টি ${subjectLevelLabel(target.group)}`,
+          countLabel: `${subjects.length} টি ${subjectLevelLabel(target.group)}`,
         };
       })
       .filter((section) => section.cards.length > 0);
-  }, [targets, activeGroup, searchQuery]);
+  }, [targets, subjects, activeGroup, searchQuery]);
 
   if (isLoading) {
     return <PageLoading />;

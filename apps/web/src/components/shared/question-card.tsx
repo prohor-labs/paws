@@ -49,7 +49,7 @@ import Link from "next/link";
 interface QuestionHeaderProps {
   index: number;
   sources?: QBQuestion["sources"];
-  topics?: QBQuestion["topics"];
+  topic?: QBQuestion["topic"];
   isBookmarked: boolean;
   onToggleBookmark: () => void;
   questionId: string;
@@ -58,7 +58,7 @@ interface QuestionHeaderProps {
 function QuestionHeader({
   index,
   sources,
-  topics,
+  topic,
   isBookmarked,
   onToggleBookmark,
   questionId,
@@ -70,16 +70,11 @@ function QuestionHeader({
           {toBengaliNumber(index + 1)}
         </span>
 
-        {topics && topics.length > 0 && (
+        {topic && (
           <div className="flex flex-wrap items-center gap-1.5">
-            {topics.map((t) => (
-              <span
-                key={t.id}
-                className="text-[10px] font-normal px-2 py-0.5 rounded-md bg-muted text-muted-foreground inline-flex items-center"
-              >
-                {t.name}
-              </span>
-            ))}
+            <span className="text-[10px] font-normal px-2 py-0.5 rounded-md bg-muted text-muted-foreground inline-flex items-center">
+              {topic.name}
+            </span>
           </div>
         )}
 
@@ -471,7 +466,7 @@ export function QuestionCard({
       <QuestionHeader
         index={index}
         sources={question.sources}
-        topics={question.topics}
+        topic={question.topic}
         isBookmarked={isBookmarked}
         onToggleBookmark={handleToggleBookmark}
         questionId={question.id}

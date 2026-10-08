@@ -1,3 +1,4 @@
+import { examRoute } from "./exam";
 import { zValidator } from "@hono/zod-validator";
 import {
   and,
@@ -28,7 +29,7 @@ import {
   qbCustomExamWrittenSubmissions,
   qbExamSheetQuestions,
   qbExamSheets,
-  qbQuestionChapters,
+
   qbQuestionOptions,
   qbQuestionParts,
   qbQuestionSources,
@@ -128,7 +129,7 @@ function mapQuestion(
     }>;
     topic: {
       id: string;
-      parentId: string | null;
+      parentTopicId: string | null;
       name: string;
       slug: string;
       orderIndex: number;
@@ -139,7 +140,7 @@ function mapQuestion(
   const topic = q.topic
     ? {
         id: q.topic.id,
-        parentId: q.topic.parentId,
+        parentTopicId: q.topic.parentTopicId,
         name: q.topic.name,
         slug: q.topic.slug,
         orderIndex: q.topic.orderIndex,
@@ -448,27 +449,26 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
       const chIds = chapters.map((c) => c.id);
       const scopedChapterCounts = await db
         .select({
-          chapterId: qbQuestionChapters.chapterId,
-          total: count(qbQuestionChapters.questionId),
+          chapterId: qbTopics.chapterId,
+          total: count(qbQuestions.id),
         })
-        .from(qbQuestionChapters)
+        .from(qbQuestions)
+        .innerJoin(qbTopics, eq(qbTopics.id, qbQuestions.topicId))
         .innerJoin(
           qbQuestionSources,
-          eq(qbQuestionSources.questionId, qbQuestionChapters.questionId),
+          eq(qbQuestionSources.questionId, qbQuestions.id),
         )
         .innerJoin(
           qbSources,
           and(eq(qbSources.id, qbQuestionSources.sourceId), eq(qbSources.type, targetSourceType)),
         )
-        .innerJoin(
-          qbQuestions,
+        .where(
           and(
-            eq(qbQuestions.id, qbQuestionChapters.questionId),
+            inArray(qbTopics.chapterId, chIds),
             eq(qbQuestions.status, "published"),
           ),
         )
-        .where(inArray(qbQuestionChapters.chapterId, chIds))
-        .groupBy(qbQuestionChapters.chapterId);
+        .groupBy(qbTopics.chapterId);
 
       const scopedMap = new Map(scopedChapterCounts.map((sc) => [sc.chapterId, Number(sc.total)]));
       chapters = chapters.map((ch) => ({
@@ -476,6 +476,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         questionCount: scopedMap.get(ch.id) ?? 0,
       }));
     }
+
 
     const examSheets = await db
       .select()
@@ -487,19 +488,17 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
       const esIds = examSheets.map((es) => es.id);
       const qChapters = await db
         .select({
-          chapterId: qbQuestionChapters.chapterId,
+          chapterId: qbTopics.chapterId,
           qCount: count(qbExamSheetQuestions.questionId),
         })
         .from(qbExamSheetQuestions)
-        .innerJoin(
-          qbQuestionChapters,
-          eq(qbQuestionChapters.questionId, qbExamSheetQuestions.questionId),
-        )
+        .innerJoin(qbQuestions, eq(qbQuestions.id, qbExamSheetQuestions.questionId))
+        .innerJoin(qbTopics, eq(qbTopics.id, qbQuestions.topicId))
         .where(inArray(qbExamSheetQuestions.examSheetId, esIds))
-        .groupBy(qbQuestionChapters.chapterId);
+        .groupBy(qbTopics.chapterId);
 
       const chMap = new Map(qChapters.map((qc) => [qc.chapterId, Number(qc.qCount)]));
-      const chIds = qChapters.map((qc) => qc.chapterId);
+      const chIds = qChapters.map((qc) => qc.chapterId).filter((id): id is string => id !== null);
 
       if (chIds.length > 0) {
         const foundChapters = await db
@@ -514,6 +513,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         }));
       }
     }
+
 
     c.header("Cache-Control", CACHE_CONTROL_PUBLIC);
     return c.json({
@@ -838,13 +838,10 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
                     total: count(qbQuestions.id),
                   })
                   .from(qbQuestions)
-                  .innerJoin(
-                    qbQuestionChapters,
-                    and(
-                      eq(qbQuestionChapters.questionId, qbQuestions.id),
-                      inArray(qbQuestionChapters.chapterId, subChapterIds),
-                    ),
-                  )
+                  .innerJoin(qbTopics, and(
+                    eq(qbTopics.id, qbQuestions.topicId),
+                    inArray(qbTopics.chapterId, subChapterIds),
+                  ))
                   .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestions.id))
                   .innerJoin(
                     qbSources,
@@ -861,13 +858,10 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
                     total: count(qbQuestions.id),
                   })
                   .from(qbQuestions)
-                  .innerJoin(
-                    qbQuestionChapters,
-                    and(
-                      eq(qbQuestionChapters.questionId, qbQuestions.id),
-                      inArray(qbQuestionChapters.chapterId, subChapterIds),
-                    ),
-                  )
+                  .innerJoin(qbTopics, and(
+                    eq(qbTopics.id, qbQuestions.topicId),
+                    inArray(qbTopics.chapterId, subChapterIds),
+                  ))
                   .where(eq(qbQuestions.status, "published"))
                   .groupBy(qbQuestions.topicId)
             : [],
@@ -885,7 +879,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
       const topicQueue: string[] = [];
 
       for (const t of allTopics) {
-        if (t.parentId && subChapterIds.includes(t.parentId)) {
+        if (t.parentTopicId && subChapterIds.includes(t.parentTopicId)) {
           chapterTopicIdSet.add(t.id);
           topicQueue.push(t.id);
         }
@@ -894,7 +888,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
       while (topicQueue.length > 0) {
         const currentParentId = topicQueue.shift()!;
         for (const t of allTopics) {
-          if (t.parentId === currentParentId && !chapterTopicIdSet.has(t.id)) {
+          if (t.parentTopicId === currentParentId && !chapterTopicIdSet.has(t.id)) {
             chapterTopicIdSet.add(t.id);
             topicQueue.push(t.id);
           }
@@ -954,10 +948,10 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
 
             let curr = topicMap.get(q.topicId);
             while (curr) {
-              if (curr.parentId) {
-                esTopicIdSet.add(curr.parentId);
-                if (chapterMap.has(curr.parentId)) {
-                  const ch = chapterMap.get(curr.parentId)!;
+              if (curr.parentTopicId) {
+                esTopicIdSet.add(curr.parentTopicId);
+                if (chapterMap.has(curr.parentTopicId)) {
+                  const ch = chapterMap.get(curr.parentTopicId)!;
                   const sub = subjectMap.get(ch.subjectId);
                   if (sub) {
                     const existing = esSubjectCounts.get(sub.id) || {
@@ -972,7 +966,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
                   }
                   break;
                 }
-                curr = topicMap.get(curr.parentId);
+                curr = topicMap.get(curr.parentTopicId);
               } else {
                 break;
               }
@@ -993,7 +987,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
                 .map((c) => c.id);
               const subjectTopicIds = new Set<string>();
               for (const t of allTopics) {
-                if (t.parentId && subChapterIdList.includes(t.parentId)) {
+                if (t.parentTopicId && subChapterIdList.includes(t.parentTopicId)) {
                   subjectTopicIds.add(t.id);
                 }
               }
@@ -1001,7 +995,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
               while (sQueue.length > 0) {
                 const parent = sQueue.shift()!;
                 for (const t of allTopics) {
-                  if (t.parentId === parent && !subjectTopicIds.has(t.id)) {
+                  if (t.parentTopicId === parent && !subjectTopicIds.has(t.id)) {
                     subjectTopicIds.add(t.id);
                     sQueue.push(t.id);
                   }
@@ -1043,11 +1037,11 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
       } else if (subChapterIds.length > 0) {
         conditions.push(
           inArray(
-            qbQuestions.id,
+            qbQuestions.topicId,
             db
-              .select({ questionId: qbQuestionChapters.questionId })
-              .from(qbQuestionChapters)
-              .where(inArray(qbQuestionChapters.chapterId, subChapterIds)),
+              .select({ id: qbTopics.id })
+              .from(qbTopics)
+              .where(inArray(qbTopics.chapterId, subChapterIds)),
           ),
         );
 
@@ -1094,11 +1088,11 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
           if (subChapterIdList.length > 0) {
             conditions.push(
               inArray(
-                qbQuestions.id,
+                qbQuestions.topicId,
                 db
-                  .select({ questionId: qbQuestionChapters.questionId })
-                  .from(qbQuestionChapters)
-                  .where(inArray(qbQuestionChapters.chapterId, subChapterIdList)),
+                  .select({ id: qbTopics.id })
+                  .from(qbTopics)
+                  .where(inArray(qbTopics.chapterId, subChapterIdList)),
               ),
             );
           }
@@ -1112,7 +1106,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
         while (stack.length > 0) {
           const currentId = stack.pop() as string;
           for (const t of allTopics) {
-            if (t.parentId === currentId && !descendantTopicIds.has(t.id)) {
+            if (t.parentTopicId === currentId && !descendantTopicIds.has(t.id)) {
               descendantTopicIds.add(t.id);
               stack.push(t.id);
             }
@@ -1148,11 +1142,11 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
             })
             .from(qbQuestions)
             .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestions.id))
-            .leftJoin(qbQuestionChapters, eq(qbQuestionChapters.questionId, qbQuestions.id))
+            .innerJoin(qbTopics, eq(qbTopics.id, qbQuestions.topicId))
             .where(
               and(
                 subChapterIds.length > 0
-                  ? inArray(qbQuestionChapters.chapterId, subChapterIds)
+                  ? inArray(qbTopics.chapterId, subChapterIds)
                   : undefined,
                 eq(qbQuestions.status, "published"),
                 eq(qbQuestionSources.sourceId, matchedSource.id),
@@ -1271,7 +1265,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
           subjects: examSheetSubjectsList,
           topics: topicsList.map((t) => ({
             id: t.id,
-            parentId: t.parentId,
+            parentId: t.parentTopicId,
             name: t.name,
             slug: t.slug,
             orderIndex: t.orderIndex,
@@ -1352,10 +1346,10 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
 
     const topicsByParent = new Map<string, typeof topicsList>();
     for (const top of topicsList) {
-      if (top.parentId) {
-        const list = topicsByParent.get(top.parentId) ?? [];
+      if (top.parentTopicId) {
+        const list = topicsByParent.get(top.parentTopicId) ?? [];
         list.push(top);
-        topicsByParent.set(top.parentId, list);
+        topicsByParent.set(top.parentTopicId, list);
       }
     }
 
@@ -1447,476 +1441,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
     c.header("Cache-Control", CACHE_CONTROL_PUBLIC);
     return c.json({ success: true, data: tree });
   })
-  .post(
-    "/custom",
-    zValidator(
-      "json",
-      z.object({
-        title: z.string().optional(),
-        examType: z.enum(["mcq", "written", "mixed"]).optional().default("mcq"),
-        questionCount: z.number().optional().default(10),
-        mcqCount: z.number().optional(),
-        writtenCount: z.number().optional(),
-        durationMinutes: z.number().optional(),
-        negativeMarks: z.string().optional().default("0.25"),
-        targetIds: z.array(z.string()).optional().default([]),
-        subjectIds: z.array(z.string()).optional().default([]),
-        chapterIds: z.array(z.string()).optional().default([]),
-        topicIds: z.array(z.string()).optional().default([]),
-        examSheetIds: z.array(z.string()).optional().default([]),
-        sourceIds: z.array(z.string()).optional().default([]),
-        sourceTypes: z.array(sourceTypeSchema).optional().default([]),
-      }),
-    ),
-    async (c) => {
-      const userSession = c.get("user");
-      const body = c.req.valid("json");
-
-      const examType = body.examType ?? "mcq";
-      const countRequested = Math.min(Math.max(Number(body.questionCount) || 10, 1), 100);
-      const negativeMarks = body.negativeMarks ?? "0.25";
-      const durationMinutes = Number(body.durationMinutes) || Math.max(5, countRequested);
-
-      const subjectIds = [...body.subjectIds];
-      if (body.targetIds.length > 0) {
-        const matchedSubjects = await db
-          .select({ id: qbSubjects.id })
-          .from(qbSubjects)
-          .where(inArray(qbSubjects.targetId, body.targetIds));
-        for (const s of matchedSubjects) subjectIds.push(s.id);
-      }
-
-      const hierarchyConditions: SQL[] = [];
-      if (subjectIds.length > 0 || body.chapterIds.length > 0) {
-        const chapterConditions: SQL[] = [];
-        if (subjectIds.length > 0) {
-          chapterConditions.push(inArray(qbChapters.subjectId, subjectIds));
-        }
-        if (body.chapterIds.length > 0) {
-          chapterConditions.push(inArray(qbQuestionChapters.chapterId, body.chapterIds));
-        }
-        const matchedQCs = await db
-          .selectDistinct({ questionId: qbQuestionChapters.questionId })
-          .from(qbQuestionChapters)
-          .innerJoin(qbChapters, eq(qbQuestionChapters.chapterId, qbChapters.id))
-          .where(or(...chapterConditions));
-
-        if (matchedQCs.length > 0) {
-          hierarchyConditions.push(
-            inArray(
-              qbQuestions.id,
-              matchedQCs.map((m) => m.questionId),
-            ),
-          );
-        } else {
-          hierarchyConditions.push(sql`false`);
-        }
-      }
-
-      if (body.topicIds.length > 0) {
-        hierarchyConditions.push(inArray(qbQuestions.topicId, body.topicIds));
-      }
-
-      const scopedConditions: SQL[] = [];
-      if (hierarchyConditions.length > 0) {
-        const combined = or(...hierarchyConditions);
-        if (combined) scopedConditions.push(combined);
-      }
-
-      if (body.examSheetIds.length > 0) {
-        const matched = await db
-          .selectDistinct({ questionId: qbExamSheetQuestions.questionId })
-          .from(qbExamSheetQuestions)
-          .where(inArray(qbExamSheetQuestions.examSheetId, body.examSheetIds));
-        const matchedIds = matched.map((m) => m.questionId);
-        scopedConditions.push(
-          matchedIds.length > 0 ? inArray(qbQuestions.id, matchedIds) : sql`false`,
-        );
-      }
-
-      if (body.sourceIds.length > 0 || body.sourceTypes.length > 0) {
-        const sourceConditions: SQL[] = [];
-        if (body.sourceIds.length > 0) sourceConditions.push(inArray(qbSources.id, body.sourceIds));
-        if (body.sourceTypes.length > 0) {
-          sourceConditions.push(inArray(qbSources.type, body.sourceTypes));
-        }
-        const matched = await db
-          .selectDistinct({ questionId: qbQuestionSources.questionId })
-          .from(qbQuestionSources)
-          .innerJoin(qbSources, eq(qbQuestionSources.sourceId, qbSources.id))
-          .where(or(...sourceConditions));
-        const matchedIds = matched.map((m) => m.questionId);
-        scopedConditions.push(
-          matchedIds.length > 0 ? inArray(qbQuestions.id, matchedIds) : sql`false`,
-        );
-      }
-
-      let sampledQuestionIds: string[] = [];
-
-      if (examType === "mixed") {
-        const mcqCountReq = Math.min(Math.max(Number(body.mcqCount) || 10, 1), 100);
-        const writtenCountReq = Math.min(Math.max(Number(body.writtenCount) || 2, 1), 50);
-
-        const candidates = await db
-          .select({ id: qbQuestions.id, qType: qbQuestions.qType })
-          .from(qbQuestions)
-          .where(
-            and(
-              eq(qbQuestions.status, "published"),
-              inArray(qbQuestions.qType, ["mcq", "written"]),
-              ...scopedConditions,
-            ),
-          );
-
-        const mcqPool = candidates.filter((r) => r.qType === "mcq").map((r) => r.id);
-        const writtenPool = candidates.filter((r) => r.qType === "written").map((r) => r.id);
-
-        sampledQuestionIds = [
-          ...mcqPool.sort(() => Math.random() - 0.5).slice(0, mcqCountReq),
-          ...writtenPool.sort(() => Math.random() - 0.5).slice(0, writtenCountReq),
-        ];
-      } else {
-        const typeCondition =
-          examType === "written" ? eq(qbQuestions.qType, "written") : eq(qbQuestions.qType, "mcq");
-
-        const candidateRows = await db
-          .select({ id: qbQuestions.id })
-          .from(qbQuestions)
-          .where(and(typeCondition, eq(qbQuestions.status, "published"), ...scopedConditions))
-          .limit(1000);
-
-        sampledQuestionIds = candidateRows
-          .map((r) => r.id)
-          .sort(() => Math.random() - 0.5)
-          .slice(0, countRequested);
-      }
-
-      if (sampledQuestionIds.length === 0) {
-        return c.json(
-          {
-            success: false,
-            error: "No questions available for this selection",
-          },
-          400,
-        );
-      }
-
-      const examId = uuidv7();
-      const examTitle =
-        body.title?.trim() || `কাস্টম পরীক্ষা (${new Date().toLocaleDateString("bn-BD")})`;
-
-      await db.insert(qbCustomExams).values({
-        id: examId,
-        userId: userSession?.id ?? null,
-        title: examTitle,
-        examType,
-        questionCount: sampledQuestionIds.length,
-        durationMinutes,
-        negativeMarks,
-        totalMarks: sampledQuestionIds.length,
-        config: JSON.stringify({
-          targetIds: body.targetIds,
-          subjectIds: body.subjectIds,
-          chapterIds: body.chapterIds,
-          topicIds: body.topicIds,
-          sourceIds: body.sourceIds,
-          sourceTypes: body.sourceTypes,
-        }),
-      });
-
-      await db.insert(qbCustomExamQuestions).values(
-        sampledQuestionIds.map((qId, idx) => ({
-          customExamId: examId,
-          questionId: qId,
-          questionNumber: idx + 1,
-        })),
-      );
-
-      return c.json({
-        success: true,
-        data: {
-          id: examId,
-          title: examTitle,
-          questionCount: sampledQuestionIds.length,
-          durationMinutes,
-        },
-      });
-    },
-  )
-  .get("/custom/:id/take", zValidator("param", z.object({ id: z.string() })), async (c) => {
-    const { id: examId } = c.req.valid("param");
-
-    const exam = await db.query.qbCustomExams.findFirst({
-      where: eq(qbCustomExams.id, examId),
-    });
-
-    if (!exam) {
-      return c.json({ success: false, error: "Exam not found" }, 404);
-    }
-
-    const examQuestionsList = await db.query.qbCustomExamQuestions.findMany({
-      where: eq(qbCustomExamQuestions.customExamId, examId),
-      orderBy: [asc(qbCustomExamQuestions.questionNumber)],
-      with: {
-        question: {
-          with: {
-            options: { orderBy: [asc(qbQuestionOptions.orderIndex)] },
-            parts: { orderBy: [asc(qbQuestionParts.orderIndex)] },
-            questionSources: { with: { source: true } },
-            topic: true,
-          },
-        },
-      },
-    });
-
-    c.header("Cache-Control", CACHE_CONTROL_PRIVATE);
-    return c.json({
-      success: true,
-      data: {
-        exam: {
-          id: exam.id,
-          userId: exam.userId,
-          title: exam.title,
-          examType: exam.examType,
-          questionCount: exam.questionCount,
-          durationMinutes: exam.durationMinutes,
-          negativeMarks: exam.negativeMarks,
-          totalMarks: exam.totalMarks,
-          createdAt: exam.createdAt.toISOString(),
-        },
-        questions: examQuestionsList.map((row) =>
-          mapQuestion(row.question, { includeAnswers: false }),
-        ),
-      },
-    });
-  })
-  .post(
-    "/custom/:id/submit",
-    zValidator("param", z.object({ id: z.string() })),
-    zValidator(
-      "json",
-      z.object({
-        answers: z.record(z.string(), z.string()).optional().default({}),
-        writtenAnswers: z
-          .array(
-            z.object({
-              questionId: z.string(),
-              partId: z.string().optional(),
-              pageNumber: z.number().optional().default(1),
-              imageUrl: z.string(),
-            }),
-          )
-          .optional(),
-        timeSpentSeconds: z.number().optional().default(0),
-      }),
-    ),
-    async (c) => {
-      const userSession = c.get("user");
-      const { id: examId } = c.req.valid("param");
-      const body = c.req.valid("json");
-
-      const exam = await db.query.qbCustomExams.findFirst({
-        where: eq(qbCustomExams.id, examId),
-      });
-
-      if (!exam) {
-        return c.json({ success: false, error: "Exam not found" }, 404);
-      }
-
-      const examQuestionsList = await db.query.qbCustomExamQuestions.findMany({
-        where: eq(qbCustomExamQuestions.customExamId, examId),
-        with: { question: { with: { options: true, parts: true } } },
-      });
-
-      const userAnswers = body.answers || {};
-      const negPenalty = Number.parseFloat(exam.negativeMarks) || 0.25;
-
-      let correctCount = 0;
-      let wrongCount = 0;
-      let unansweredCount = 0;
-      let mcqScore = 0;
-
-      for (const eqRow of examQuestionsList) {
-        const q = eqRow.question;
-        if (q.qType === "mcq") {
-          const studentChoice = userAnswers[q.id];
-          if (!studentChoice) {
-            unansweredCount++;
-          } else {
-            const correctOpt = q.options.find((opt) => opt.isCorrect);
-            if (correctOpt && correctOpt.id === studentChoice) {
-              correctCount++;
-              mcqScore += 1;
-            } else {
-              wrongCount++;
-              mcqScore -= negPenalty;
-            }
-          }
-        }
-      }
-
-      const finalScore = Math.max(0, mcqScore);
-      const hasWritten = exam.examType === "written" || exam.examType === "mixed";
-      const submissionStatus = hasWritten ? "pending_evaluation" : "auto_evaluated";
-      const submissionId = uuidv7();
-
-      await db.insert(qbCustomExamSubmissions).values({
-        id: submissionId,
-        customExamId: examId,
-        userId: userSession?.id ?? null,
-        status: submissionStatus,
-        score: finalScore.toFixed(2),
-        writtenScore: "0",
-        writtenTotalMarks: 0,
-        correctCount,
-        wrongCount,
-        unansweredCount,
-        timeSpentSeconds: Number(body.timeSpentSeconds) || 0,
-        answers: JSON.stringify(userAnswers),
-      });
-
-      if (body.writtenAnswers && body.writtenAnswers.length > 0) {
-        await db.insert(qbCustomExamWrittenSubmissions).values(
-          body.writtenAnswers.map((w) => ({
-            id: uuidv7(),
-            submissionId,
-            questionId: w.questionId,
-            partId: w.partId ?? null,
-            pageNumber: w.pageNumber || 1,
-            imageUrl: w.imageUrl,
-          })),
-        );
-      }
-
-      return c.json({
-        success: true,
-        data: {
-          id: submissionId,
-          customExamId: examId,
-          status: submissionStatus,
-          score: finalScore.toFixed(2),
-          correctCount,
-          wrongCount,
-          unansweredCount,
-        },
-      });
-    },
-  )
-  .get(
-    "/custom/:id/solve",
-    zValidator("param", z.object({ id: z.string() })),
-    zValidator("query", z.object({ submissionId: z.string().optional() })),
-    async (c) => {
-      const { id: examId } = c.req.valid("param");
-      const { submissionId } = c.req.valid("query");
-
-      const exam = await db.query.qbCustomExams.findFirst({
-        where: eq(qbCustomExams.id, examId),
-      });
-
-      if (!exam) {
-        return c.json({ success: false, error: "Exam not found" }, 404);
-      }
-
-      const submissionRow = submissionId
-        ? await db.query.qbCustomExamSubmissions.findFirst({
-            where: and(
-              eq(qbCustomExamSubmissions.id, submissionId),
-              eq(qbCustomExamSubmissions.customExamId, examId),
-            ),
-          })
-        : await db.query.qbCustomExamSubmissions.findFirst({
-            where: eq(qbCustomExamSubmissions.customExamId, examId),
-            orderBy: [desc(qbCustomExamSubmissions.submittedAt)],
-          });
-
-      const examQuestionsList = await db.query.qbCustomExamQuestions.findMany({
-        where: eq(qbCustomExamQuestions.customExamId, examId),
-        orderBy: [asc(qbCustomExamQuestions.questionNumber)],
-        with: {
-          question: {
-            with: {
-              options: { orderBy: [asc(qbQuestionOptions.orderIndex)] },
-              parts: { orderBy: [asc(qbQuestionParts.orderIndex)] },
-              questionSources: { with: { source: true } },
-              topic: true,
-            },
-          },
-        },
-      });
-
-      let studentAnswers: Record<string, string> = {};
-      if (submissionRow?.answers) {
-        try {
-          studentAnswers = JSON.parse(submissionRow.answers);
-        } catch {
-          studentAnswers = {};
-        }
-      }
-
-      const writtenSubmissionsList = submissionRow
-        ? await db.query.qbCustomExamWrittenSubmissions.findMany({
-            where: eq(qbCustomExamWrittenSubmissions.submissionId, submissionRow.id),
-            orderBy: [asc(qbCustomExamWrittenSubmissions.pageNumber)],
-          })
-        : [];
-
-      c.header("Cache-Control", CACHE_CONTROL_PRIVATE);
-      return c.json({
-        success: true,
-        data: {
-          exam: {
-            id: exam.id,
-            userId: exam.userId,
-            title: exam.title,
-            examType: exam.examType,
-            questionCount: exam.questionCount,
-            durationMinutes: exam.durationMinutes,
-            negativeMarks: exam.negativeMarks,
-            totalMarks: exam.totalMarks,
-            createdAt: exam.createdAt.toISOString(),
-          },
-          submission: submissionRow
-            ? {
-                id: submissionRow.id,
-                customExamId: submissionRow.customExamId,
-                userId: submissionRow.userId,
-                status: submissionRow.status,
-                score: submissionRow.score,
-                writtenScore: submissionRow.writtenScore,
-                writtenTotalMarks: submissionRow.writtenTotalMarks,
-                correctCount: submissionRow.correctCount,
-                wrongCount: submissionRow.wrongCount,
-                unansweredCount: submissionRow.unansweredCount,
-                timeSpentSeconds: submissionRow.timeSpentSeconds,
-                answers: submissionRow.answers,
-                evaluatorId: submissionRow.evaluatorId,
-                evaluatorFeedback: submissionRow.evaluatorFeedback,
-                evaluatedAt: submissionRow.evaluatedAt
-                  ? submissionRow.evaluatedAt.toISOString()
-                  : null,
-                submittedAt: submissionRow.submittedAt.toISOString(),
-              }
-            : null,
-          questions: examQuestionsList.map((row) =>
-            mapQuestion(row.question, { includeAnswers: true }),
-          ),
-          studentAnswers,
-          writtenSubmissions: writtenSubmissionsList.map((w) => ({
-            id: w.id,
-            questionId: w.questionId,
-            partId: w.partId,
-            pageNumber: w.pageNumber,
-            imageUrl: w.imageUrl,
-            annotatedImageUrl: w.annotatedImageUrl,
-            marksAwarded: w.marksAwarded,
-            maxMarks: w.maxMarks,
-            feedback: w.feedback,
-          })),
-        },
-      });
-    },
-  )
+  .route("/", examRoute)
   .post(
     "/bulk-import",
     zValidator(
@@ -2011,7 +1536,8 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
             const newId = uuidv7();
             await db.insert(qbTopics).values({
               id: newId,
-              parentId: t.parentId ?? null,
+              chapterId,
+              parentTopicId: (t as any).parentId ?? (t as any).parentTopicId ?? null,
               name: t.name,
               slug,
               orderIndex: t.orderIndex ?? 1,
@@ -2067,13 +1593,7 @@ export const qbRoute = new Hono<{ Variables: AuthContextVariables }>()
               },
             });
 
-          await db
-            .insert(qbQuestionChapters)
-            .values({
-              questionId,
-              chapterId,
-            })
-            .onConflictDoNothing();
+
 
           createdQuestionIds.push(questionId);
 

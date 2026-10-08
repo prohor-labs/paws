@@ -41,92 +41,6 @@ function CodeBlock({ language, value }: { language?: string; value: string }) {
   );
 }
 
-function convertHtmlTableToMarkdown(html: string): string {
-  return html.replace(/<table[^>]*>([\s\S]*?)<\/table>/gi, (_, tableContent) => {
-    const rows: string[][] = [];
-    const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-    let rowMatch = rowRegex.exec(tableContent);
-    while (rowMatch !== null) {
-      const cellRegex = /<(?:th|td)[^>]*>([\s\S]*?)<\/(?:th|td)>/gi;
-      const cells: string[] = [];
-      let cellMatch = cellRegex.exec(rowMatch[1]);
-      while (cellMatch !== null) {
-        cells.push(cellMatch[1].trim());
-        cellMatch = cellRegex.exec(rowMatch[1]);
-      }
-      if (cells.length > 0) {
-        rows.push(cells);
-      }
-      rowMatch = rowRegex.exec(tableContent);
-    }
-
-    if (rows.length === 0) return "";
-    const maxCols = Math.max(...rows.map((r) => r.length));
-    const padRow = (r: string[]) => {
-      const copy = [...r];
-      while (copy.length < maxCols) copy.push("");
-      return `| ${copy.join(" | ")} |`;
-    };
-
-    const header = padRow(rows[0]);
-    const separator = `| ${new Array(maxCols).fill("---").join(" | ")} |`;
-    const body = rows.slice(1).map(padRow).join("\n");
-
-    return `\n\n${header}\n${separator}${body ? `\n${body}` : ""}\n\n`;
-  });
-}
-
-function preprocessRichContent(content: string): string {
-  if (!content) return "";
-
-  // 1. Convert <table> HTML tags to Markdown tables
-  let s = convertHtmlTableToMarkdown(content);
-
-  // 2. Convert <img ... src='...'> to standard markdown image
-  s = s.replace(/<img\s+[^>]*src=["']([^"']+)["'][^>]*\s*\/?>/gi, (_, src) => {
-    return `\n\n![](${src})\n\n`;
-  });
-
-  // 3. Normalize HTML paragraphs and breaks
-  s = s
-    .replace(/<p[^>]*>/gi, "")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<div[^>]*>/gi, "")
-    .replace(/<\/div>/gi, "\n\n")
-    .replace(/<br\s*\/?>/gi, "  \n");
-
-  // 4. Scan for \( ... \) and \[ ... \] and normalize to $ ... $ and $$ ... $$
-  let result = "";
-  let i = 0;
-  while (i < s.length) {
-    if (s[i] === "\\" && s[i + 1] === "[") {
-      const closeIdx = s.indexOf("\\]", i + 2);
-      if (closeIdx !== -1) {
-        const math = s.slice(i + 2, closeIdx).trim();
-        result += `\n$$\n${math}\n$$\n`;
-        i = closeIdx + 2;
-        continue;
-      }
-    }
-    if (s[i] === "\\" && s[i + 1] === "(") {
-      const closeIdx = s.indexOf("\\)", i + 2);
-      if (closeIdx !== -1) {
-        const math = s.slice(i + 2, closeIdx).trim();
-        result += `$${math}$`;
-        i = closeIdx + 2;
-        continue;
-      }
-    }
-    result += s[i];
-    i++;
-  }
-
-  // 5. Fallback auto-repair: if raw string contains $ext{ or similar stripped escapes, normalize to $\text{
-  result = result.replace(/\$([^\$]*?)ext\{/g, "$\\text{");
-
-  return result.trim();
-}
-
 export const RichText = React.memo(function RichText({ content, className }: RichTextProps) {
   const rehypePlugins: ComponentProps<typeof ReactMarkdown>["rehypePlugins"] = React.useMemo(
     () => [
@@ -146,10 +60,6 @@ export const RichText = React.memo(function RichText({ content, className }: Ric
     () => [remarkGfm, [remarkMath, { singleDollarTextMath: true }]],
     [],
   );
-
-  const processedContent = React.useMemo(() => {
-    return preprocessRichContent(content || "");
-  }, [content]);
 
   if (!content) return null;
 
@@ -189,7 +99,7 @@ export const RichText = React.memo(function RichText({ content, className }: Ric
           },
         }}
       >
-        {processedContent}
+        {content}
       </ReactMarkdown>
     </div>
   );

@@ -24,6 +24,7 @@ export async function recalculateAllCounts(): Promise<void> {
     sql`ALTER TABLE public.qb_sources ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0;`,
   );
 
+  // Topics: count directly linked questions
   await db.execute(sql`
     UPDATE public.qb_topics t
     SET question_count = COALESCE((
@@ -33,6 +34,7 @@ export async function recalculateAllCounts(): Promise<void> {
     ), 0);
   `);
 
+  // Sources: count via junction (source tagging is still explicit)
   await db.execute(sql`
     UPDATE public.qb_sources s
     SET question_count = COALESCE((
@@ -43,24 +45,26 @@ export async function recalculateAllCounts(): Promise<void> {
     ), 0);
   `);
 
+  // Chapters: count via topic_id -> chapter (canonical path)
   await db.execute(sql`
     UPDATE public.qb_chapters c
     SET question_count = COALESCE((
-      SELECT COUNT(DISTINCT qc.question_id)
-      FROM public.qb_question_chapters qc
-      INNER JOIN public.qb_questions q ON q.id = qc.question_id
-      WHERE qc.chapter_id = c.id AND q.status = 'published'
+      SELECT COUNT(*)
+      FROM public.qb_questions q
+      INNER JOIN public.qb_topics t ON t.id = q.topic_id
+      WHERE t.chapter_id = c.id AND q.status = 'published'
     ), 0);
   `);
 
+  // Subjects: count via topic_id -> chapter -> subject (canonical path)
   await db.execute(sql`
     UPDATE public.qb_subjects s
-    SET 
+    SET
       question_count = COALESCE((
-        SELECT COUNT(DISTINCT qc.question_id)
-        FROM public.qb_question_chapters qc
-        INNER JOIN public.qb_questions q ON q.id = qc.question_id
-        INNER JOIN public.qb_chapters c ON c.id = qc.chapter_id
+        SELECT COUNT(*)
+        FROM public.qb_questions q
+        INNER JOIN public.qb_topics t ON t.id = q.topic_id
+        INNER JOIN public.qb_chapters c ON c.id = t.chapter_id
         WHERE c.subject_id = s.id AND q.status = 'published'
       ), 0),
       chapter_count = COALESCE((
@@ -70,6 +74,7 @@ export async function recalculateAllCounts(): Promise<void> {
       ), 0);
   `);
 
+  // Exam sheets: count their linked questions
   await db.execute(sql`
     UPDATE public.qb_exam_sheets es
     SET question_count = COALESCE((
@@ -80,22 +85,23 @@ export async function recalculateAllCounts(): Promise<void> {
     ), 0);
   `);
 
+  // Container items: exam sheets + subject questions filtered by target type
   await db.execute(sql`
     UPDATE public.qb_container_items ci
-    SET 
+    SET
       question_count = COALESCE((
         SELECT SUM(es.question_count)
         FROM public.qb_exam_sheets es
         WHERE es.container_item_id = ci.id
       ), 0) + COALESCE((
-        SELECT COUNT(DISTINCT qc.question_id)
-        FROM public.qb_question_chapters qc
-        JOIN public.qb_chapters ch ON ch.id = qc.chapter_id
-        JOIN public.qb_question_sources qs ON qs.question_id = qc.question_id
+        SELECT COUNT(DISTINCT q.id)
+        FROM public.qb_questions q
+        JOIN public.qb_topics t ON t.id = q.topic_id
+        JOIN public.qb_chapters ch ON ch.id = t.chapter_id
+        JOIN public.qb_question_sources qs ON qs.question_id = q.id
         JOIN public.qb_sources src ON src.id = qs.source_id
         JOIN public.qb_containers cont ON cont.id = ci.container_id
         JOIN public.qb_targets targ ON targ.id = cont.target_id
-        JOIN public.qb_questions q ON q.id = qc.question_id
         WHERE ch.subject_id = ci.subject_id
           AND q.status = 'published'
           AND (
@@ -113,9 +119,10 @@ export async function recalculateAllCounts(): Promise<void> {
       ), 0);
   `);
 
+  // Containers: sum their items
   await db.execute(sql`
     UPDATE public.qb_containers c
-    SET 
+    SET
       question_count = COALESCE((
         SELECT SUM(ci.question_count)
         FROM public.qb_container_items ci
@@ -128,9 +135,10 @@ export async function recalculateAllCounts(): Promise<void> {
       ), 0);
   `);
 
+  // Targets: sum their containers
   await db.execute(sql`
     UPDATE public.qb_targets t
-    SET 
+    SET
       question_count = COALESCE((
         SELECT SUM(c.question_count)
         FROM public.qb_containers c

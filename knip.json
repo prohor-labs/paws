@@ -1,7 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "ignore": ["ecosystem.config.cjs"],
+  "ignore": [".agents/**"],
   "ignoreBinaries": ["graphify"],
+
   "workspaces": {
     "apps/api": {
       "project": ["src/**/*.ts"]
@@ -19,7 +20,7 @@
       ],
       "project": ["src/**/*.{ts,tsx,css}"]
     },
-    "apps/sdk": {
+    "packages/sdk": {
       "entry": ["tests/**/*.ts"],
       "project": ["src/**/*.ts", "tests/**/*.ts"]
     }

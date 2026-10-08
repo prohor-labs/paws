@@ -4,17 +4,15 @@ import type {
   QBChapterDetailData,
   QBChapterQueryParams,
   QBContainerDetailData,
-  QBHubData,
   QBItemDetailData,
   QBQuestion,
   QBTargetDetailData,
-  QBTreeTarget,
+  QBTree,
 } from "@/types";
 
 const STALE_TIME = 5 * 60 * 1000;
 
 const qbQueryKeys = {
-  hub: () => ["qb", "hub"] as const,
   target: (slug: string) => ["qb", "target", slug] as const,
   container: (targetSlug: string, containerSlug: string) =>
     ["qb", "container", targetSlug, containerSlug] as const,
@@ -32,10 +30,6 @@ async function unwrap<T>(res: { ok: boolean; json: () => Promise<unknown> }, mes
   }
   const json = (await res.json()) as { success: boolean; data: T };
   return json.data;
-}
-
-async function fetchQBHub(): Promise<QBHubData> {
-  return unwrap<QBHubData>(await api.rpc.qb.hub.$get(), "Failed to fetch Question Bank hub data");
 }
 
 async function fetchQBTarget(slug: string): Promise<QBTargetDetailData> {
@@ -106,16 +100,8 @@ async function fetchQBQuestion(id: string): Promise<QBQuestion> {
   );
 }
 
-async function fetchQBTree(): Promise<QBTreeTarget[]> {
-  return unwrap<QBTreeTarget[]>(await api.rpc.qb.tree.$get(), "Failed to fetch QB tree");
-}
-
-export function qbHubQueryOptions() {
-  return queryOptions({
-    queryKey: qbQueryKeys.hub(),
-    queryFn: fetchQBHub,
-    staleTime: STALE_TIME,
-  });
+async function fetchQBTree(): Promise<QBTree> {
+  return unwrap<QBTree>(await api.rpc.qb.tree.$get(), "Failed to fetch QB tree");
 }
 
 export function qbTargetQueryOptions(slug: string) {

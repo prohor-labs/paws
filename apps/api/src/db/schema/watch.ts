@@ -1,12 +1,16 @@
-import { relations } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
+  foreignKey,
   index,
   integer,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
@@ -14,257 +18,294 @@ import { user } from "./auth";
 export const watchChannels = pgTable(
   "watch_channels",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    handle: text("handle").notNull().unique(),
-    name: text("name").notNull(),
-    avatar: text("avatar").notNull(),
-    banner: text("banner"),
-    subscribers: text("subscribers").default("0 subscribers").notNull(),
-    videoCount: text("video_count").default("0 videos").notNull(),
-    verified: boolean("verified").default(false).notNull(),
-    description: text("description").default("").notNull(),
-    joinedDate: text("joined_date").default("").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    handle: text().notNull(),
+    name: text().notNull(),
+    avatar: text().notNull(),
+    banner: text(),
+    subscribers: integer().default(0).notNull(),
+    videoCount: integer("video_count").default(0).notNull(),
+    verified: boolean().default(false).notNull(),
+    description: text().default("").notNull(),
+    joinedAt: timestamp("joined_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
-      .$onUpdate(() => new Date())
       .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
-  (table) => [index("watch_channels_handle_idx").on(table.handle)],
+  (table) => [
+    unique("watch_channels_handle_unique").on(table.handle),
+    check(
+      "watch_channels_counts_check",
+      sql`${table.subscribers} >= 0 and ${table.videoCount} >= 0`,
+    ),
+  ],
 );
 
 export const watchVideos = pgTable(
   "watch_videos",
   {
-    id: text("id").primaryKey(), // Using youtubeId or custom slug/id
-    youtubeId: text("youtube_id").notNull().unique(),
-    title: text("title").notNull(),
-    description: text("description").default("").notNull(),
-    channelHandle: text("channel_handle")
-      .notNull()
-      .references(() => watchChannels.handle, { onDelete: "cascade" }),
-    category: text("category").default("All").notNull(),
-    duration: text("duration").default("0:00").notNull(),
+    id: text().primaryKey().notNull(),
+    youtubeId: text("youtube_id").notNull(),
+    title: text().notNull(),
+    description: text().default("").notNull(),
+    channelId: uuid("channel_id").notNull(),
+    category: text().default("All").notNull(),
     durationSeconds: integer("duration_seconds").default(0).notNull(),
     viewsCount: integer("views_count").default(0).notNull(),
     likesCount: integer("likes_count").default(0).notNull(),
     commentsCount: integer("comments_count").default(0).notNull(),
-    publishedAt: text("published_at").default("Just now").notNull(),
-    tags: text("tags").array().default([]).notNull(),
-    customThumbnail: text("custom_thumbnail"),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
-      .defaultNow()
-      .$onUpdate(() => new Date())
+    publishedAt: timestamp("published_at", { withTimezone: true }).notNull(),
+    tags: text()
+      .array()
+      .default(sql`'{}'::text[]`)
       .notNull(),
+    customThumbnail: text("custom_thumbnail"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   (table) => [
-    index("watch_videos_youtube_id_idx").on(table.youtubeId),
-    index("watch_videos_channel_handle_idx").on(table.channelHandle),
-    index("watch_videos_category_idx").on(table.category),
+    index("watch_videos_category_idx").using("btree", table.category.asc().nullsLast()),
+    index("watch_videos_channel_idx").using(
+      "btree",
+      table.channelId.asc().nullsLast(),
+      table.publishedAt.desc(),
+    ),
+    unique("watch_videos_youtube_id_unique").on(table.youtubeId),
+    foreignKey({
+      columns: [table.channelId],
+      foreignColumns: [watchChannels.id],
+      name: "watch_videos_channel_id_watch_channels_id_fk",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    check(
+      "watch_videos_metrics_check",
+      sql`${table.durationSeconds} >= 0 and ${table.viewsCount} >= 0 and ${table.likesCount} >= 0 and ${table.commentsCount} >= 0`,
+    ),
   ],
 );
 
 export const watchPlaylists = pgTable(
   "watch_playlists",
   {
-    id: text("id").primaryKey(),
-    slug: text("slug").notNull().unique(),
-    title: text("title").notNull(),
-    description: text("description").default("").notNull(),
+    id: text().primaryKey().notNull(),
+    slug: text().notNull(),
+    title: text().notNull(),
+    description: text().default("").notNull(),
     customCover: text("custom_cover").notNull(),
-    category: text("category").default("All").notNull(),
-    channelName: text("channel_name").notNull(),
-    channelHandle: text("channel_handle"),
-    videoIds: text("video_ids").array().default([]).notNull(),
-    createdDate: text("created_date").default("Recently").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    category: text().default("All").notNull(),
+    channelId: uuid("channel_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
-      .$onUpdate(() => new Date())
       .notNull(),
-  },
-  (table) => [index("watch_playlists_slug_idx").on(table.slug)],
-);
-
-export const watchProgress = pgTable(
-  "watch_progress",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    videoId: text("video_id")
-      .notNull()
-      .references(() => watchVideos.id, { onDelete: "cascade" }),
-    lastPositionSeconds: integer("last_position_seconds").default(0).notNull(),
-    durationSeconds: integer("duration_seconds").default(0).notNull(),
-    completed: boolean("completed").default(false).notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique("watch_progress_user_video_unique").on(table.userId, table.videoId),
-    index("watch_progress_user_idx").on(table.userId),
-    index("watch_progress_video_idx").on(table.videoId),
+    unique("watch_playlists_slug_unique").on(table.slug),
+    foreignKey({
+      columns: [table.channelId],
+      foreignColumns: [watchChannels.id],
+      name: "watch_playlists_channel_id_watch_channels_id_fk",
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
   ],
 );
 
-export const watchInteractions = pgTable(
-  "watch_interactions",
+export const watchPlaylistVideos = pgTable(
+  "watch_playlist_videos",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    videoId: text("video_id")
-      .notNull()
-      .references(() => watchVideos.id, { onDelete: "cascade" }),
-    isLiked: boolean("is_liked").default(false).notNull(),
-    isSaved: boolean("is_saved").default(false).notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    playlistId: text("playlist_id").notNull(),
+    videoId: text("video_id").notNull(),
+    position: integer().default(0).notNull(),
   },
   (table) => [
-    unique("watch_interactions_user_video_unique").on(table.userId, table.videoId),
-    index("watch_interactions_user_idx").on(table.userId),
-    index("watch_interactions_video_idx").on(table.videoId),
+    index("watch_playlist_videos_video_idx").using("btree", table.videoId.asc().nullsLast()),
+    uniqueIndex("watch_playlist_videos_playlist_position_unique").on(
+      table.playlistId,
+      table.position,
+    ),
+    primaryKey({ columns: [table.playlistId, table.videoId], name: "watch_playlist_videos_pk" }),
+    foreignKey({
+      columns: [table.playlistId],
+      foreignColumns: [watchPlaylists.id],
+      name: "watch_playlist_videos_playlist_id_watch_playlists_id_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.videoId],
+      foreignColumns: [watchVideos.id],
+      name: "watch_playlist_videos_video_id_watch_videos_id_fk",
+    }).onDelete("cascade"),
+    check("watch_playlist_videos_position_check", sql`${table.position} >= 0`),
   ],
 );
 
 export const watchComments = pgTable(
   "watch_comments",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    videoId: text("video_id")
-      .notNull()
-      .references(() => watchVideos.id, { onDelete: "cascade" }),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    videoId: text("video_id").notNull(),
+    userId: uuid("user_id").notNull(),
     parentId: uuid("parent_id"),
-    content: text("content").notNull(),
+    content: text().notNull(),
     likesCount: integer("likes_count").default(0).notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
-      .$onUpdate(() => new Date())
       .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   (table) => [
-    index("watch_comments_video_idx").on(table.videoId),
-    index("watch_comments_user_idx").on(table.userId),
-    index("watch_comments_parent_idx").on(table.parentId),
-  ],
-);
-
-export const watchCommentLikes = pgTable(
-  "watch_comment_likes",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    commentId: uuid("comment_id")
-      .notNull()
-      .references(() => watchComments.id, { onDelete: "cascade" }),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
-  },
-  (table) => [
-    unique("watch_comment_likes_user_comment_unique").on(table.userId, table.commentId),
-    index("watch_comment_likes_comment_idx").on(table.commentId),
+    index("watch_comments_video_created_idx").using(
+      "btree",
+      table.videoId.asc().nullsLast(),
+      table.createdAt.desc(),
+    ),
+    index("watch_comments_user_idx").using("btree", table.userId.asc().nullsLast()),
+    index("watch_comments_parent_idx").using("btree", table.parentId.asc().nullsLast()),
+    foreignKey({
+      columns: [table.videoId],
+      foreignColumns: [watchVideos.id],
+      name: "watch_comments_video_id_watch_videos_id_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+      name: "watch_comments_parent_id_watch_comments_id_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [user.id],
+      name: "watch_comments_user_id_user_id_fk",
+    }).onDelete("cascade"),
+    check("watch_comments_likes_check", sql`${table.likesCount} >= 0`),
   ],
 );
 
 export const watchSubscriptions = pgTable(
   "watch_subscriptions",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    channelId: uuid("channel_id")
-      .notNull()
-      .references(() => watchChannels.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    userId: uuid("user_id").notNull(),
+    channelId: uuid("channel_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
+    index("watch_subscriptions_channel_idx").using("btree", table.channelId.asc().nullsLast()),
     unique("watch_subscriptions_user_channel_unique").on(table.userId, table.channelId),
-    index("watch_subscriptions_channel_idx").on(table.channelId),
-    index("watch_subscriptions_user_idx").on(table.userId),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [user.id],
+      name: "watch_subscriptions_user_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.channelId],
+      foreignColumns: [watchChannels.id],
+      name: "watch_subscriptions_channel_id_fkey",
+    }).onDelete("cascade"),
   ],
 );
 
-// Relations
-export const watchChannelsRelations = relations(watchChannels, ({ many }) => ({
-  videos: many(watchVideos),
-  subscriptions: many(watchSubscriptions),
-}));
+export const watchInteractions = pgTable(
+  "watch_interactions",
+  {
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    userId: uuid("user_id").notNull(),
+    videoId: text("video_id").notNull(),
+    isLiked: boolean("is_liked").default(false).notNull(),
+    isSaved: boolean("is_saved").default(false).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index("watch_interactions_video_idx").using("btree", table.videoId.asc().nullsLast()),
+    unique("watch_interactions_user_video_unique").on(table.userId, table.videoId),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [user.id],
+      name: "watch_interactions_user_id_user_id_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.videoId],
+      foreignColumns: [watchVideos.id],
+      name: "watch_interactions_video_id_watch_videos_id_fk",
+    }).onDelete("cascade"),
+  ],
+);
 
-export const watchVideosRelations = relations(watchVideos, ({ one, many }) => ({
-  channel: one(watchChannels, {
-    fields: [watchVideos.channelHandle],
-    references: [watchChannels.handle],
-  }),
-  progressList: many(watchProgress),
-  interactions: many(watchInteractions),
-  comments: many(watchComments),
-}));
+export const watchProgress = pgTable(
+  "watch_progress",
+  {
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    userId: uuid("user_id").notNull(),
+    videoId: text("video_id").notNull(),
+    lastPositionSeconds: integer("last_position_seconds").default(0).notNull(),
+    durationSeconds: integer("duration_seconds").default(0).notNull(),
+    completed: boolean().default(false).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index("watch_progress_video_idx").using("btree", table.videoId.asc().nullsLast()),
+    unique("watch_progress_user_video_unique").on(table.userId, table.videoId),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [user.id],
+      name: "watch_progress_user_id_user_id_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.videoId],
+      foreignColumns: [watchVideos.id],
+      name: "watch_progress_video_id_watch_videos_id_fk",
+    }).onDelete("cascade"),
+    check(
+      "watch_progress_position_check",
+      sql`${table.lastPositionSeconds} >= 0 and ${table.durationSeconds} >= 0`,
+    ),
+  ],
+);
 
-export const watchSubscriptionsRelations = relations(watchSubscriptions, ({ one }) => ({
-  user: one(user, {
-    fields: [watchSubscriptions.userId],
-    references: [user.id],
-  }),
-  channel: one(watchChannels, {
-    fields: [watchSubscriptions.channelId],
-    references: [watchChannels.id],
-  }),
-}));
-
-export const watchProgressRelations = relations(watchProgress, ({ one }) => ({
-  user: one(user, {
-    fields: [watchProgress.userId],
-    references: [user.id],
-  }),
-  video: one(watchVideos, {
-    fields: [watchProgress.videoId],
-    references: [watchVideos.id],
-  }),
-}));
-
-export const watchInteractionsRelations = relations(watchInteractions, ({ one }) => ({
-  user: one(user, {
-    fields: [watchInteractions.userId],
-    references: [user.id],
-  }),
-  video: one(watchVideos, {
-    fields: [watchInteractions.videoId],
-    references: [watchVideos.id],
-  }),
-}));
-
-export const watchCommentsRelations = relations(watchComments, ({ one, many }) => ({
-  user: one(user, {
-    fields: [watchComments.userId],
-    references: [user.id],
-  }),
-  video: one(watchVideos, {
-    fields: [watchComments.videoId],
-    references: [watchVideos.id],
-  }),
-  parent: one(watchComments, {
-    fields: [watchComments.parentId],
-    references: [watchComments.id],
-    relationName: "commentReplies",
-  }),
-  replies: many(watchComments, {
-    relationName: "commentReplies",
-  }),
-  likes: many(watchCommentLikes),
-}));
-
+export const watchCommentLikes = pgTable(
+  "watch_comment_likes",
+  {
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    commentId: uuid("comment_id").notNull(),
+    userId: uuid("user_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    unique("watch_comment_likes_user_comment_unique").on(table.commentId, table.userId),
+    foreignKey({
+      columns: [table.commentId],
+      foreignColumns: [watchComments.id],
+      name: "watch_comment_likes_comment_id_watch_comments_id_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [user.id],
+      name: "watch_comment_likes_user_id_user_id_fk",
+    }).onDelete("cascade"),
+  ],
+);

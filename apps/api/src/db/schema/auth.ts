@@ -1,123 +1,114 @@
-import { relations } from "drizzle-orm";
-import { boolean, index, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  foreignKey,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+} from "drizzle-orm/pg-core";
 
-export const user = pgTable("user", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified").default(false).notNull(),
-  image: text("image"),
-  onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
-  level: text("level"),
-  track: text("track"),
-  dailyReminderEnabled: boolean("daily_reminder_enabled").default(true).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
-
-export const session = pgTable(
-  "session",
+export const user = pgTable(
+  "user",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    expiresAt: timestamp("expires_at", {
-      withTimezone: true,
-      mode: "date",
-    }).notNull(),
-    token: text("token").notNull().unique(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
-      .$onUpdate(() => new Date())
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    name: text().notNull(),
+    email: text().notNull(),
+    emailVerified: boolean("email_verified").default(false).notNull(),
+    image: text(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
       .notNull(),
-    ipAddress: text("ip_address"),
-    userAgent: text("user_agent"),
-    userId: uuid("user_id")
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .$onUpdate(() => new Date()),
+    onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
+    level: text(),
+    track: text(),
+    dailyReminderEnabled: boolean("daily_reminder_enabled").default(true).notNull(),
   },
-  (table) => [
-    index("session_userId_idx").on(table.userId),
-    index("session_expires_at_idx").on(table.expiresAt),
-  ],
+  (table) => [unique("user_email_unique").on(table.email)],
 );
 
 export const account = pgTable(
   "account",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull(),
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     idToken: text("id_token"),
-    accessTokenExpiresAt: timestamp("access_token_expires_at", {
-      withTimezone: true,
-      mode: "date",
-    }),
-    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {
-      withTimezone: true,
-      mode: "date",
-    }),
-    scope: text("scope"),
-    password: text("password"),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
-      .$onUpdate(() => new Date())
+    accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { withTimezone: true }),
+    scope: text(),
+    password: text(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
       .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique("account_provider_account_unique").on(table.providerId, table.accountId),
-    index("account_userId_idx").on(table.userId),
+    index("account_userId_idx").using("btree", table.userId.asc().nullsLast()),
+    unique("account_provider_account_unique").on(table.accountId, table.providerId),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [user.id],
+      name: "account_user_id_user_id_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
+export const session = pgTable(
+  "session",
+  {
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    token: text().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: uuid("user_id").notNull(),
+  },
+  (table) => [
+    index("session_expires_at_idx").using("btree", table.expiresAt.asc().nullsLast()),
+    index("session_userId_idx").using("btree", table.userId.asc().nullsLast()),
+    unique("session_token_unique").on(table.token),
+    foreignKey({
+      columns: [table.userId],
+      foreignColumns: [user.id],
+      name: "session_user_id_user_id_fk",
+    }).onDelete("cascade"),
   ],
 );
 
 export const verification = pgTable(
   "verification",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    identifier: text("identifier").notNull(),
-    value: text("value").notNull(),
-    expiresAt: timestamp("expires_at", {
-      withTimezone: true,
-      mode: "date",
-    }).notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    identifier: text().notNull(),
+    value: text().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
-      .$onUpdate(() => new Date())
       .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   (table) => [
-    index("verification_identifier_idx").on(table.identifier),
-    index("verification_expires_at_idx").on(table.expiresAt),
+    index("verification_expires_at_idx").using("btree", table.expiresAt.asc().nullsLast()),
+    index("verification_identifier_idx").using("btree", table.identifier.asc().nullsLast()),
   ],
 );
-
-export const userRelations = relations(user, ({ many }) => ({
-  sessions: many(session),
-  accounts: many(account),
-}));
-
-export const sessionRelations = relations(session, ({ one }) => ({
-  user: one(user, {
-    fields: [session.userId],
-    references: [user.id],
-  }),
-}));
-
-export const accountRelations = relations(account, ({ one }) => ({
-  user: one(user, {
-    fields: [account.userId],
-    references: [user.id],
-  }),
-}));
-
-export type UserTable = typeof user.$inferSelect;
-export type SessionTable = typeof session.$inferSelect;
-export type AccountTable = typeof account.$inferSelect;
-export type VerificationTable = typeof verification.$inferSelect;

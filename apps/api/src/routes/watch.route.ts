@@ -16,10 +16,10 @@ import {
   watchVideos,
 } from "../db/schema";
 import { ApiError } from "../lib/errors";
+import { formatDuration } from "../lib/format";
 import type { AuthContextVariables } from "../middleware/auth.middleware";
 
 export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
-  // 1. Get/Sync Videos & Feed (Infinite feed with ranking algorithm)
   .get(
     "/feed",
     zValidator(
@@ -35,17 +35,14 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
       const user = c.get("user");
       const { category, search, cursor, limit } = c.req.valid("query");
 
-      // YouTube-like Feed Ranking Score:
-      // Combines engagement metrics (log views + weighted log likes), freshness bonuses,
-      // and a small deterministic hash factor to prevent staleness while keeping pagination stable.
       const feedScore = sql<number>`(
         LOG(GREATEST(${watchVideos.viewsCount}, 1) + 1) * 2.0 +
         LOG(GREATEST(${watchVideos.likesCount}, 1) + 1) * 3.5 +
-        (CASE 
-          WHEN ${watchVideos.publishedAt} ILIKE ${"%hour%"} OR ${watchVideos.publishedAt} ILIKE ${"%আজ%"} THEN 20.0
-          WHEN ${watchVideos.publishedAt} ILIKE ${"%day%"} OR ${watchVideos.publishedAt} ILIKE ${"%গতকাল%"} OR ${watchVideos.publishedAt} ILIKE ${"%দিন আগে%"} THEN 12.0
-          WHEN ${watchVideos.publishedAt} ILIKE ${"%week%"} OR ${watchVideos.publishedAt} ILIKE ${"%সপ্তাহ আগে%"} THEN 7.0
-          WHEN ${watchVideos.publishedAt} ILIKE ${"%month%"} OR ${watchVideos.publishedAt} ILIKE ${"%মাস আগে%"} THEN 3.0
+        (CASE
+          WHEN ${watchVideos.publishedAt} >= now() - interval '1 day' THEN 20.0
+          WHEN ${watchVideos.publishedAt} >= now() - interval '2 days' THEN 12.0
+          WHEN ${watchVideos.publishedAt} >= now() - interval '7 days' THEN 7.0
+          WHEN ${watchVideos.publishedAt} >= now() - interval '30 days' THEN 3.0
           ELSE 1.0
         END)
       )`;
@@ -70,16 +67,14 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      // Count total matching videos
       const [totalCountResult] = await db
         .select({ count: sql<number>`cast(count(*) as integer)` })
         .from(watchVideos)
-        .innerJoin(watchChannels, eq(watchVideos.channelHandle, watchChannels.handle))
+        .innerJoin(watchChannels, eq(watchVideos.channelId, watchChannels.id))
         .where(whereClause);
 
       const total = totalCountResult?.count ?? 0;
 
-      // Fetch limit + 1 items to see if there is a next page
       const videosQuery = db
         .select({
           id: watchVideos.id,
@@ -87,7 +82,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
           title: watchVideos.title,
           description: watchVideos.description,
           category: watchVideos.category,
-          duration: watchVideos.duration,
           durationSeconds: watchVideos.durationSeconds,
           viewsCount: watchVideos.viewsCount,
           likesCount: watchVideos.likesCount,
@@ -106,7 +100,7 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
           },
         })
         .from(watchVideos)
-        .innerJoin(watchChannels, eq(watchVideos.channelHandle, watchChannels.handle))
+        .innerJoin(watchChannels, eq(watchVideos.channelId, watchChannels.id))
         .where(whereClause)
         .orderBy(desc(feedScore), desc(watchVideos.createdAt), desc(watchVideos.id))
         .offset(cursor)
@@ -114,7 +108,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
 
       const videoRows = await videosQuery;
 
-      // Dynamic subscriber count map for feed channels using channel.id (UUID)
       const channelIds = Array.from(
         new Set(videoRows.map((v) => v.channel.id).filter(Boolean) as string[]),
       );
@@ -126,7 +119,7 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
             count: sql<number>`cast(count(*) as integer)`,
           })
           .from(watchSubscriptions)
-          .where(inArray(watchSubscriptions.channelId, channelIds as any))
+          .where(inArray(watchSubscriptions.channelId, channelIds))
           .groupBy(watchSubscriptions.channelId);
 
         for (const sc of subCounts) {
@@ -138,7 +131,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
       const paginatedVideos = hasNextPage ? videoRows.slice(0, limit) : videoRows;
       const nextCursor = hasNextPage ? cursor + limit : null;
 
-      // Fetch user progress and interactions for the sliced page
       const userProgressMap: Record<
         string,
         { lastPositionSeconds: number; durationSeconds: number; completed: boolean }
@@ -149,9 +141,14 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         const videoIds = paginatedVideos.map((v) => v.id);
 
         const progressRows = await db
-          .select()
+          .select({
+            videoId: watchProgress.videoId,
+            lastPositionSeconds: watchProgress.lastPositionSeconds,
+            durationSeconds: watchProgress.durationSeconds,
+            completed: watchProgress.completed,
+          })
           .from(watchProgress)
-          .where(and(eq(watchProgress.userId, user.id as any), inArray(watchProgress.videoId, videoIds)));
+          .where(and(eq(watchProgress.userId, user.id), inArray(watchProgress.videoId, videoIds)));
 
         for (const p of progressRows) {
           userProgressMap[p.videoId] = {
@@ -162,11 +159,15 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         }
 
         const interactionRows = await db
-          .select()
+          .select({
+            videoId: watchInteractions.videoId,
+            isLiked: watchInteractions.isLiked,
+            isSaved: watchInteractions.isSaved,
+          })
           .from(watchInteractions)
           .where(
             and(
-              eq(watchInteractions.userId, user.id as any),
+              eq(watchInteractions.userId, user.id),
               inArray(watchInteractions.videoId, videoIds),
             ),
           );
@@ -179,12 +180,30 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         }
       }
 
-      // Return playlists only on the first page
-      const playlists = cursor === 0 ? await db.select().from(watchPlaylists) : [];
+      const playlists =
+        cursor === 0
+          ? await db
+              .select({
+                id: watchPlaylists.id,
+                slug: watchPlaylists.slug,
+                title: watchPlaylists.title,
+                description: watchPlaylists.description,
+                customCover: watchPlaylists.customCover,
+                category: watchPlaylists.category,
+                channelName: watchChannels.name,
+                channelHandle: watchChannels.handle,
+                videoIds: sql<string[]>`coalesce(array(select wpv.video_id from watch_playlist_videos wpv where wpv.playlist_id = ${watchPlaylists.id} order by wpv.position), '{}')`,
+                createdAt: watchPlaylists.createdAt,
+                updatedAt: watchPlaylists.updatedAt,
+              })
+              .from(watchPlaylists)
+              .innerJoin(watchChannels, eq(watchPlaylists.channelId, watchChannels.id))
+          : [];
 
       return c.json({
         videos: paginatedVideos.map((v) => ({
           ...v,
+          duration: formatDuration(v.durationSeconds),
           channel: {
             ...v.channel,
             subscribersCount: (v.channel.id && subCountsMap[v.channel.id]) ?? 0,
@@ -199,7 +218,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     },
   )
 
-  // 2. Get Single Video with Progress & Interactions
   .get("/videos/:id", async (c) => {
     const id = c.req.param("id");
     const user = c.get("user");
@@ -211,7 +229,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         title: watchVideos.title,
         description: watchVideos.description,
         category: watchVideos.category,
-        duration: watchVideos.duration,
         durationSeconds: watchVideos.durationSeconds,
         viewsCount: watchVideos.viewsCount,
         likesCount: watchVideos.likesCount,
@@ -230,7 +247,7 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         },
       })
       .from(watchVideos)
-      .innerJoin(watchChannels, eq(watchVideos.channelHandle, watchChannels.handle))
+      .innerJoin(watchChannels, eq(watchVideos.channelId, watchChannels.id))
       .where(eq(watchVideos.id, id))
       .limit(1);
 
@@ -238,7 +255,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
       throw ApiError.notFound("Video not found");
     }
 
-    // Dynamic channel subscribers count by channel.id UUID
     const [subsCountRes] = await db
       .select({ count: sql<number>`cast(count(*) as integer)` })
       .from(watchSubscriptions)
@@ -251,25 +267,43 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     let userInteraction = null;
 
     if (user) {
-      const [subRow] = await db
-        .select()
-        .from(watchSubscriptions)
-        .where(
-          and(
-            eq(watchSubscriptions.userId, user.id as any),
-            eq(watchSubscriptions.channelId, video.channel.id),
-          ),
-        )
-        .limit(1);
-      if (subRow) {
+      const [subResult, progressResult, interactionResult] = await Promise.all([
+        db
+          .select({
+            id: watchSubscriptions.id,
+          })
+          .from(watchSubscriptions)
+          .where(
+            and(
+              eq(watchSubscriptions.userId, user.id),
+              eq(watchSubscriptions.channelId, video.channel.id),
+            ),
+          )
+          .limit(1),
+        db
+          .select({
+            lastPositionSeconds: watchProgress.lastPositionSeconds,
+            durationSeconds: watchProgress.durationSeconds,
+            completed: watchProgress.completed,
+          })
+          .from(watchProgress)
+          .where(and(eq(watchProgress.userId, user.id), eq(watchProgress.videoId, id)))
+          .limit(1),
+        db
+          .select({
+            isLiked: watchInteractions.isLiked,
+            isSaved: watchInteractions.isSaved,
+          })
+          .from(watchInteractions)
+          .where(and(eq(watchInteractions.userId, user.id), eq(watchInteractions.videoId, id)))
+          .limit(1),
+      ]);
+
+      if (subResult[0]) {
         isSubscribed = true;
       }
 
-      const [p] = await db
-        .select()
-        .from(watchProgress)
-        .where(and(eq(watchProgress.userId, user.id as any), eq(watchProgress.videoId, id)))
-        .limit(1);
+      const p = progressResult[0];
       if (p) {
         userProgress = {
           lastPositionSeconds: p.lastPositionSeconds,
@@ -278,11 +312,7 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         };
       }
 
-      const [inter] = await db
-        .select()
-        .from(watchInteractions)
-        .where(and(eq(watchInteractions.userId, user.id as any), eq(watchInteractions.videoId, id)))
-        .limit(1);
+      const inter = interactionResult[0];
       if (inter) {
         userInteraction = {
           isLiked: inter.isLiked,
@@ -294,9 +324,9 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     return c.json({
       video: {
         ...video,
+        duration: formatDuration(video.durationSeconds),
         channel: {
           ...video.channel,
-          subscribers: `${subscribersCount} subscribers`,
           subscribersCount,
           isSubscribed,
         },
@@ -306,14 +336,23 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     });
   })
 
-  // 2b. Get Channel Details with its Videos and Playlists
   .get("/channels/:handle", async (c) => {
     const handleParam = c.req.param("handle");
     const normalizedHandle = handleParam.startsWith("@") ? handleParam : `@${handleParam}`;
     const user = c.get("user");
 
     const [channel] = await db
-      .select()
+      .select({
+        id: watchChannels.id,
+        name: watchChannels.name,
+        handle: watchChannels.handle,
+        avatar: watchChannels.avatar,
+        banner: watchChannels.banner,
+        description: watchChannels.description,
+        subscribers: watchChannels.subscribers,
+        verified: watchChannels.verified,
+        createdAt: watchChannels.createdAt,
+      })
       .from(watchChannels)
       .where(eq(watchChannels.handle, normalizedHandle))
       .limit(1);
@@ -332,11 +371,11 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
 
     if (user) {
       const [subRow] = await db
-        .select()
+        .select({ id: watchSubscriptions.id })
         .from(watchSubscriptions)
         .where(
           and(
-            eq(watchSubscriptions.userId, user.id as any),
+            eq(watchSubscriptions.userId, user.id),
             eq(watchSubscriptions.channelId, channel.id),
           ),
         )
@@ -353,7 +392,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         title: watchVideos.title,
         description: watchVideos.description,
         category: watchVideos.category,
-        duration: watchVideos.duration,
         durationSeconds: watchVideos.durationSeconds,
         viewsCount: watchVideos.viewsCount,
         likesCount: watchVideos.likesCount,
@@ -372,28 +410,40 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         },
       })
       .from(watchVideos)
-      .innerJoin(watchChannels, eq(watchVideos.channelHandle, watchChannels.handle))
-      .where(eq(watchVideos.channelHandle, normalizedHandle));
+      .innerJoin(watchChannels, eq(watchVideos.channelId, watchChannels.id))
+      .where(eq(watchChannels.handle, normalizedHandle))
+      .limit(100);
 
     const playlists = await db
-      .select()
+      .select({
+        id: watchPlaylists.id,
+        slug: watchPlaylists.slug,
+        title: watchPlaylists.title,
+        description: watchPlaylists.description,
+        customCover: watchPlaylists.customCover,
+        category: watchPlaylists.category,
+        channelName: watchChannels.name,
+        channelHandle: watchChannels.handle,
+        videoIds: sql<string[]>`coalesce(array(select wpv.video_id from watch_playlist_videos wpv where wpv.playlist_id = ${watchPlaylists.id} order by wpv.position), '{}')`,
+        createdAt: watchPlaylists.createdAt,
+        updatedAt: watchPlaylists.updatedAt,
+      })
       .from(watchPlaylists)
-      .where(eq(watchPlaylists.channelHandle, normalizedHandle));
+      .innerJoin(watchChannels, eq(watchPlaylists.channelId, watchChannels.id))
+      .where(eq(watchChannels.handle, normalizedHandle));
 
     return c.json({
       channel: {
         ...channel,
-        videoCount: `${videos.length} videos`,
-        subscribers: `${subscribersCount} subscribers`,
+        videoCount: videos.length,
         subscribersCount,
         isSubscribed,
       },
-      videos,
+      videos: videos.map((v) => ({ ...v, duration: formatDuration(v.durationSeconds) })),
       playlists,
     });
   })
 
-  // 2c. Toggle Channel Subscription
   .post("/channels/:handle/subscribe", async (c) => {
     const user = c.get("user");
     if (!user) throw ApiError.unauthorized();
@@ -402,7 +452,7 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     const normalizedHandle = handleParam.startsWith("@") ? handleParam : `@${handleParam}`;
 
     const [channel] = await db
-      .select()
+      .select({ id: watchChannels.id })
       .from(watchChannels)
       .where(eq(watchChannels.handle, normalizedHandle))
       .limit(1);
@@ -412,11 +462,11 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     }
 
     const [existing] = await db
-      .select()
+      .select({ id: watchSubscriptions.id })
       .from(watchSubscriptions)
       .where(
         and(
-          eq(watchSubscriptions.userId, user.id as any),
+          eq(watchSubscriptions.userId, user.id),
           eq(watchSubscriptions.channelId, channel.id),
         ),
       )
@@ -428,14 +478,14 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         .delete(watchSubscriptions)
         .where(
           and(
-            eq(watchSubscriptions.userId, user.id as any),
+            eq(watchSubscriptions.userId, user.id),
             eq(watchSubscriptions.channelId, channel.id),
           ),
         );
       isSubscribed = false;
     } else {
       await db.insert(watchSubscriptions).values({
-        userId: user.id as any,
+        userId: user.id,
         channelId: channel.id,
       });
       isSubscribed = true;
@@ -452,15 +502,25 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     });
   })
 
-
-
-  // 2c. Get Playlist Details with its Videos
   .get("/playlists/:slugOrId", async (c) => {
     const slugOrId = c.req.param("slugOrId");
 
     const [playlist] = await db
-      .select()
+      .select({
+        id: watchPlaylists.id,
+        slug: watchPlaylists.slug,
+        title: watchPlaylists.title,
+        description: watchPlaylists.description,
+        customCover: watchPlaylists.customCover,
+        category: watchPlaylists.category,
+        channelName: watchChannels.name,
+        channelHandle: watchChannels.handle,
+        videoIds: sql<string[]>`coalesce(array(select wpv.video_id from watch_playlist_videos wpv where wpv.playlist_id = ${watchPlaylists.id} order by wpv.position), '{}')`,
+        createdAt: watchPlaylists.createdAt,
+        updatedAt: watchPlaylists.updatedAt,
+      })
       .from(watchPlaylists)
+      .innerJoin(watchChannels, eq(watchPlaylists.channelId, watchChannels.id))
       .where(or(eq(watchPlaylists.slug, slugOrId), eq(watchPlaylists.id, slugOrId)))
       .limit(1);
 
@@ -468,43 +528,45 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
       throw ApiError.notFound("Playlist not found");
     }
 
-    let videos: any[] = [];
+    const videoSelect = {
+      id: watchVideos.id,
+      youtubeId: watchVideos.youtubeId,
+      title: watchVideos.title,
+      description: watchVideos.description,
+      category: watchVideos.category,
+      durationSeconds: watchVideos.durationSeconds,
+      viewsCount: watchVideos.viewsCount,
+      likesCount: watchVideos.likesCount,
+      commentsCount: watchVideos.commentsCount,
+      publishedAt: watchVideos.publishedAt,
+      tags: watchVideos.tags,
+      customThumbnail: watchVideos.customThumbnail,
+      channel: {
+        name: watchChannels.name,
+        handle: watchChannels.handle,
+        avatar: watchChannels.avatar,
+        subscribers: watchChannels.subscribers,
+        verified: watchChannels.verified,
+      },
+    } as const;
+
+    type PlaylistVideo = Awaited<ReturnType<ReturnType<typeof db.select<typeof videoSelect>>["from"]>>[number];
+
+    let videos: PlaylistVideo[] = [];
     if (playlist.videoIds && playlist.videoIds.length > 0) {
       videos = await db
-        .select({
-          id: watchVideos.id,
-          youtubeId: watchVideos.youtubeId,
-          title: watchVideos.title,
-          description: watchVideos.description,
-          category: watchVideos.category,
-          duration: watchVideos.duration,
-          durationSeconds: watchVideos.durationSeconds,
-          viewsCount: watchVideos.viewsCount,
-          likesCount: watchVideos.likesCount,
-          commentsCount: watchVideos.commentsCount,
-          publishedAt: watchVideos.publishedAt,
-          tags: watchVideos.tags,
-          customThumbnail: watchVideos.customThumbnail,
-          channel: {
-            name: watchChannels.name,
-            handle: watchChannels.handle,
-            avatar: watchChannels.avatar,
-            subscribers: watchChannels.subscribers,
-            verified: watchChannels.verified,
-          },
-        })
+        .select(videoSelect)
         .from(watchVideos)
-        .innerJoin(watchChannels, eq(watchVideos.channelHandle, watchChannels.handle))
+        .innerJoin(watchChannels, eq(watchVideos.channelId, watchChannels.id))
         .where(inArray(watchVideos.id, playlist.videoIds));
     }
 
     return c.json({
       playlist,
-      videos,
+      videos: videos.map((v) => ({ ...v, duration: formatDuration(v.durationSeconds) })),
     });
   })
 
-  // 3. Register View (Increment count)
   .post("/videos/:id/view", async (c) => {
     const id = c.req.param("id");
 
@@ -518,7 +580,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     return c.json({ success: true });
   })
 
-  // 4. Update Playback Progress (Where left last time)
   .post(
     "/videos/:id/progress",
     zValidator(
@@ -539,7 +600,7 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
       await db
         .insert(watchProgress)
         .values({
-          userId: user.id as any,
+          userId: user.id,
           videoId,
           lastPositionSeconds,
           durationSeconds,
@@ -560,7 +621,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     },
   )
 
-  // 5. Toggle Like & Save
   .post(
     "/videos/:id/interact",
     zValidator(
@@ -577,12 +637,14 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
       const videoId = c.req.param("id");
       const { isLiked, isSaved } = c.req.valid("json");
 
-      // Check current interaction
       const [existing] = await db
-        .select()
+        .select({
+          isLiked: watchInteractions.isLiked,
+          isSaved: watchInteractions.isSaved,
+        })
         .from(watchInteractions)
         .where(
-          and(eq(watchInteractions.userId, user.id as any), eq(watchInteractions.videoId, videoId)),
+          and(eq(watchInteractions.userId, user.id), eq(watchInteractions.videoId, videoId)),
         )
         .limit(1);
 
@@ -592,7 +654,7 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
       await db
         .insert(watchInteractions)
         .values({
-          userId: user.id as any,
+          userId: user.id,
           videoId,
           isLiked: nextLiked,
           isSaved: nextSaved,
@@ -607,7 +669,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
           },
         });
 
-      // Adjust video like count if changed
       if (isLiked !== undefined && (!existing || existing.isLiked !== isLiked)) {
         await db
           .update(watchVideos)
@@ -626,7 +687,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     },
   )
 
-  // 6. Get Saved / Watch Later List
   .get("/library/saved", async (c) => {
     const user = c.get("user");
     if (!user) throw ApiError.unauthorized();
@@ -638,7 +698,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         title: watchVideos.title,
         description: watchVideos.description,
         category: watchVideos.category,
-        duration: watchVideos.duration,
         durationSeconds: watchVideos.durationSeconds,
         viewsCount: watchVideos.viewsCount,
         likesCount: watchVideos.likesCount,
@@ -655,8 +714,8 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
       })
       .from(watchInteractions)
       .innerJoin(watchVideos, eq(watchInteractions.videoId, watchVideos.id))
-      .innerJoin(watchChannels, eq(watchVideos.channelHandle, watchChannels.handle))
-      .where(and(eq(watchInteractions.userId, user.id as any), eq(watchInteractions.isSaved, true)))
+      .innerJoin(watchChannels, eq(watchVideos.channelId, watchChannels.id))
+      .where(and(eq(watchInteractions.userId, user.id), eq(watchInteractions.isSaved, true)))
       .orderBy(desc(watchInteractions.updatedAt));
 
     return c.json({
@@ -667,7 +726,7 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
           title: row.title,
           description: row.description,
           category: row.category,
-          duration: row.duration,
+          duration: formatDuration(row.durationSeconds),
           durationSeconds: row.durationSeconds,
           views: `${row.viewsCount}`,
           likes: `${row.likesCount}`,
@@ -688,7 +747,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     });
   })
 
-  // 7. Get Comments for Video
   .get("/videos/:id/comments", async (c) => {
     const videoId = c.req.param("id");
     const user = c.get("user");
@@ -721,12 +779,11 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
           name: comment.user?.name ?? "Student",
           avatar: comment.user?.image ?? "",
         },
-        isLikedByUser: user ? comment.likes.some((l) => l.userId === (user.id as any)) : false,
+        isLikedByUser: user ? comment.likes.some((l) => l.userId === user.id) : false,
       })),
     });
   })
 
-  // 8. Post Comment
   .post(
     "/videos/:id/comments",
     zValidator(
@@ -747,13 +804,12 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         .insert(watchComments)
         .values({
           videoId,
-          userId: user.id as any,
+          userId: user.id,
           content,
-          parentId: parentId as any,
+          parentId: parentId ?? null,
         })
         .returning();
 
-      // Increment video comments count
       await db
         .update(watchVideos)
         .set({
@@ -775,7 +831,6 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     },
   )
 
-  // 9. Like/Unlike Comment
   .post("/comments/:commentId/like", async (c) => {
     const user = c.get("user");
     if (!user) throw ApiError.unauthorized();
@@ -783,12 +838,12 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
     const commentId = c.req.param("commentId");
 
     const [existing] = await db
-      .select()
+      .select({ id: watchCommentLikes.id })
       .from(watchCommentLikes)
       .where(
         and(
-          eq(watchCommentLikes.userId, user.id as any),
-          eq(watchCommentLikes.commentId, commentId as any),
+          eq(watchCommentLikes.userId, user.id),
+          eq(watchCommentLikes.commentId, commentId),
         ),
       )
       .limit(1);
@@ -799,8 +854,8 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         .delete(watchCommentLikes)
         .where(
           and(
-            eq(watchCommentLikes.userId, user.id as any),
-            eq(watchCommentLikes.commentId, commentId as any),
+            eq(watchCommentLikes.userId, user.id),
+            eq(watchCommentLikes.commentId, commentId),
           ),
         );
       await db
@@ -808,19 +863,19 @@ export const watchRoute = new Hono<{ Variables: AuthContextVariables }>()
         .set({
           likesCount: sql`GREATEST(0, ${watchComments.likesCount} - 1)`,
         })
-        .where(eq(watchComments.id, commentId as any));
+        .where(eq(watchComments.id, commentId));
       isLiked = false;
     } else {
       await db.insert(watchCommentLikes).values({
-        userId: user.id as any,
-        commentId: commentId as any,
+        userId: user.id,
+        commentId: commentId,
       });
       await db
         .update(watchComments)
         .set({
           likesCount: sql`${watchComments.likesCount} + 1`,
         })
-        .where(eq(watchComments.id, commentId as any));
+        .where(eq(watchComments.id, commentId));
       isLiked = true;
     }
 

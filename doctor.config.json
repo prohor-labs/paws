@@ -8,7 +8,7 @@
       "**/components/ui/**",
       "**/src/components/ui/**",
       "apps/api/**",
-      "apps/sdk/**",
+      "packages/sdk/**",
       "**/node_modules/**",
       "**/.next/**",
       "**/dist/**"

@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "skills": {
+    "api-design-principles": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/api-design-principles/skills/api-design-principles/SKILL.md",
+      "computedHash": "e5b15476bb966aa2639f44316f8238d69c171db2592a992debb42eaa3c85a524"
+    },
+    "api-filtering-sorting": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/api-filtering-sorting/skills/api-filtering-sorting/SKILL.md",
+      "computedHash": "19207fcd7c2e26ec7567ffd6aa0b04e953517fb071fc2d3b693efcfa4c68d716"
+    },
+    "api-pagination": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/api-pagination/skills/api-pagination/SKILL.md",
+      "computedHash": "df5f45aa75db2fc22748d38d9fc0c12a7260329260ce23d130e17cac7aebe4c3"
+    },
+    "api-response-optimization": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/api-response-optimization/skills/api-response-optimization/SKILL.md",
+      "computedHash": "ecb57ceaec943401d3b1e1040df5e5e09e8bfd0f92f979e3b3e7206e26a17d67"
+    },
+    "bun-hono-integration": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/bun/skills/bun-hono-integration/SKILL.md",
+      "computedHash": "2b5ff0aac520f891ac8cc441791d4d1e919f9a0aba5ab5318d1bca4da45d557d"
+    },
+    "hono-routing": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/hono-routing/skills/hono-routing/SKILL.md",
+      "computedHash": "3ebf782ebe3ecf01d89610b97a3bbde704f5898aafc6b66356d9a64c0cbf1bf4"
+    }
+  }
+}

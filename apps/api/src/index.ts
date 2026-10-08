@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { compress } from "hono/compress";
 import { cors } from "hono/cors";
+import { etag } from "hono/etag";
 import { requestId } from "hono/request-id";
 import { secureHeaders } from "hono/secure-headers";
 import { auth } from "./auth";
@@ -26,6 +27,7 @@ const app = new Hono()
     );
   })
   .use("*", secureHeaders())
+  .use("*", etag({ weak: true }))
   .use("*", compress())
   .use("*", async (c, next) => {
     if (c.req.method === "OPTIONS") {

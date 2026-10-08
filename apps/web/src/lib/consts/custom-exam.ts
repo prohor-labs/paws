@@ -21,23 +21,6 @@ export interface CustomExamSubject {
   readonly targetName?: string;
 }
 
-export interface CustomExamSourceOption {
-  readonly id: string;
-  readonly label: string;
-  readonly description: string;
-  readonly group?: string;
-}
-
-export const SOURCE_TYPE_LABELS: Readonly<Record<string, string>> = Object.freeze({
-  board: "বোর্ড",
-  university: "বিশ্ববিদ্যালয়",
-  medical: "মেডিকেল",
-  engineering: "ইঞ্জিনিয়ারিং",
-  bcs: "বিসিএস",
-  bank_job: "ব্যাংক জব",
-  model_test: "মডেল টেস্ট",
-  other: "অন্যান্য",
-});
 
 const ICON_KEYWORDS: readonly {
   readonly match: RegExp;

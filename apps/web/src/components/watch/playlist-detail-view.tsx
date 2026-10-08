@@ -8,6 +8,7 @@ import { PageLoading } from "@/components/shared";
 import { WatchCard } from "@/components/watch/watch-card";
 import { useWatchPlaylist } from "@/hooks/use-watch";
 import { EMPTY_WATCH_VIDEOS } from "@/lib/consts/empty";
+import { formatBengaliRelativeTime } from "@/lib/utils";
 
 export function PlaylistDetailView() {
   const params = useParams<{ slug: string }>();
@@ -73,7 +74,7 @@ export function PlaylistDetailView() {
                 {playlist.videoIds.length} টি ভিডিও
               </span>
               <span>•</span>
-              <span>তৈরি: {playlist.createdDate}</span>
+              <span>তৈরি: {formatBengaliRelativeTime(playlist.createdAt)}</span>
             </div>
 
             {firstVideoId && (

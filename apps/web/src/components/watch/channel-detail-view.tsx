@@ -33,7 +33,7 @@ export function ChannelDetailView() {
   const subscribersDisplay =
     subscribersCount > 0
       ? `${formatBengaliCount(subscribersCount)} জন সাবস্ক্রাইবার`
-      : channel?.subscribers || "০ জন সাবস্ক্রাইবার";
+      : `${formatBengaliCount(channel?.subscribers ?? 0)} জন সাবস্ক্রাইবার`;
 
   if (isLoading) {
     return <PageLoading />;
@@ -108,7 +108,7 @@ export function ChannelDetailView() {
               <span>
                 {videos.length > 0
                   ? `${toBengaliNumber(videos.length)} টি ভিডিও`
-                  : channel.videoCount}
+                  : `${formatBengaliCount(channel.videoCount)} টি ভিডিও`}
               </span>
             </div>
 
