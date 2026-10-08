@@ -1,12 +1,25 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-// 1. Explicitly Allowed Search Engine Indexers & User-Initiated AI Browsers (for live chat citation)
+// 1. Explicitly Allowed Search Engine Indexers, Social Preview Crawlers & User-Initiated AI Browsers
 const ALLOWED_BOT_PATTERNS = [
   /googlebot/i,
   /bingbot/i,
   /duckduckbot/i,
   /baiduspider/i,
   /yandexbot/i,
+  // Social Media & Messaging Link Preview Crawlers (OpenGraph Unfurlers)
+  /facebookexternalhit/i,
+  /twitterbot/i,
+  /linkedinbot/i,
+  /slackbot/i,
+  /discordbot/i,
+  /whatsapp/i,
+  /telegrambot/i,
+  /skypeuripreview/i,
+  /opengraph/i,
+  /embedly/i,
+  /quora link preview/i,
+  /pinterest/i,
   // Live Chat AI User-Browsing (User pasted link in ChatGPT / Claude / Perplexity to quote)
   /chatgpt-user/i,
   /claude-web/i,

@@ -33,25 +33,25 @@ const hindSiliguri = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://paws.academy"),
+  metadataBase: process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL) : undefined,
   title: {
-    default: "Paws Academy",
+    default: "Paws Academy | Smart Question Bank & AI Model Tests",
     template: "%s | Paws Academy",
   },
   description:
-    "Next-generation smart question bank, AI tutor, and model test platform for students.",
+    "Master university admission and board exams with smart chapterwise question banks, instant AI tutoring, detailed solutions, and real-time model tests.",
   openGraph: {
-    title: "Paws Academy",
+    title: "Paws Academy | Smart Question Bank & AI Model Tests",
     description:
-      "Next-generation smart question bank, AI tutor, and model test platform for students.",
-    url: "https://paws.academy",
+      "Master university admission and board exams with smart chapterwise question banks, instant AI tutoring, detailed solutions, and real-time model tests.",
+    url: process.env.NEXT_PUBLIC_APP_URL || "",
     siteName: "Paws Academy",
     images: [
       {
         url: "/images/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Paws Academy",
+        alt: "Paws Academy — Smart Question Bank & AI Model Tests",
       },
     ],
     locale: "bn_BD",
@@ -59,9 +59,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Paws Academy",
+    title: "Paws Academy | Smart Question Bank & AI Model Tests",
     description:
-      "Next-generation smart question bank, AI tutor, and model test platform for students.",
+      "Master university admission and board exams with smart chapterwise question banks, instant AI tutoring, detailed solutions, and real-time model tests.",
     images: ["/images/og-image.jpg"],
   },
   icons: {
