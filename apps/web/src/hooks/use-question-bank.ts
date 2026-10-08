@@ -11,7 +11,6 @@ import {
 } from "@/lib/qb/query-options";
 import type { QBChapterQueryParams } from "@/types";
 
-
 export function useQBTargetDetail(targetSlug: string) {
   return useQuery(qbTargetQueryOptions(targetSlug));
 }

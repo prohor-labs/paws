@@ -31,6 +31,7 @@ function canon(s: string): string {
     .replace(/<\/?(?:p|div|span|b|i|br|table|thead|tbody|tr|th|td|u)[^>]*>/gi, " ")
     .replace(/\|/g, " ")
     .replace(/\\text\{([^}]*)\}/g, "$1")
+    .replace(/\\[()[\]]/g, "") // legacy math delimiters \( \) \[ \]
     .replace(/[²³¹⁴⁻]/g, (c) => ({ "²": "2", "³": "3", "¹": "1", "⁴": "4", "⁻": "-" }[c] || c))
     .replace(/[\\$%{}~_^\u00B0\u2212\u2013\u2014\-]/g, "") // ignore LaTeX escapes / math delimiters / braces / tildes / degree / minus / dashes
     .replace(/[\u09AF\u09DF]/g, "\u09AF")

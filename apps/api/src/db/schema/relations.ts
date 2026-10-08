@@ -1,6 +1,14 @@
 import { relations } from "drizzle-orm/relations";
 import { account, session, user, verification } from "./auth";
 import {
+  billingOrders,
+  creditTransactions,
+  dailyExplanationUsage,
+  subscriptions,
+  userBatchAccess,
+  userCredits,
+} from "./billing";
+import {
   qbChapterSources,
   qbChapters,
   qbContainerItems,
@@ -11,7 +19,6 @@ import {
   qbCustomExamWrittenSubmissions,
   qbExamSheetQuestions,
   qbExamSheets,
-
   qbQuestionOptions,
   qbQuestionParts,
   qbQuestionSources,
@@ -33,9 +40,15 @@ import {
   watchVideos,
 } from "./watch";
 
-export const userRelations = relations(user, ({ many }) => ({
+export const userRelations = relations(user, ({ one, many }) => ({
   accounts: many(account),
   sessions: many(session),
+  subscription: one(subscriptions),
+  credits: one(userCredits),
+  orders: many(billingOrders),
+  batchAccesses: many(userBatchAccess),
+  creditTransactions: many(creditTransactions),
+  dailyExplanationUsages: many(dailyExplanationUsage),
   qbCustomExams: many(qbCustomExams),
   qbCustomExamSubmissions: many(qbCustomExamSubmissions),
   qbEvaluatedSubmissions: many(qbCustomExamSubmissions, { relationName: "evaluator" }),
@@ -44,6 +57,13 @@ export const userRelations = relations(user, ({ many }) => ({
   watchCommentLikes: many(watchCommentLikes),
   watchInteractions: many(watchInteractions),
   watchProgresses: many(watchProgress),
+}));
+
+export const billingOrdersRelations = relations(billingOrders, ({ one }) => ({
+  user: one(user, {
+    fields: [billingOrders.userId],
+    references: [user.id],
+  }),
 }));
 
 export const accountRelations = relations(account, ({ one }) => ({
@@ -310,4 +330,24 @@ export const watchCommentLikesRelations = relations(watchCommentLikes, ({ one })
     references: [watchComments.id],
   }),
   user: one(user, { fields: [watchCommentLikes.userId], references: [user.id] }),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(user, { fields: [subscriptions.userId], references: [user.id] }),
+}));
+
+export const userCreditsRelations = relations(userCredits, ({ one }) => ({
+  user: one(user, { fields: [userCredits.userId], references: [user.id] }),
+}));
+
+export const userBatchAccessRelations = relations(userBatchAccess, ({ one }) => ({
+  user: one(user, { fields: [userBatchAccess.userId], references: [user.id] }),
+}));
+
+export const creditTransactionsRelations = relations(creditTransactions, ({ one }) => ({
+  user: one(user, { fields: [creditTransactions.userId], references: [user.id] }),
+}));
+
+export const dailyExplanationUsageRelations = relations(dailyExplanationUsage, ({ one }) => ({
+  user: one(user, { fields: [dailyExplanationUsage.userId], references: [user.id] }),
 }));

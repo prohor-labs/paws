@@ -31,6 +31,12 @@
       "skillPath": "plugins/bun/skills/bun-hono-integration/SKILL.md",
       "computedHash": "2b5ff0aac520f891ac8cc441791d4d1e919f9a0aba5ab5318d1bca4da45d557d"
     },
+    "dayjs": {
+      "source": "fandhe-ai/agent-reference-skills",
+      "sourceType": "github",
+      "skillPath": "skills/dayjs/SKILL.md",
+      "computedHash": "cacc85c2f4437c4aa6e2556ac4b81578fa458a7a2b62c5ed1a120ad41d6b1310"
+    },
     "hono-routing": {
       "source": "secondsky/claude-skills",
       "sourceType": "github",

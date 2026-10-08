@@ -6,6 +6,7 @@ import { createDedupedFetch } from "./fetch";
 import { createRpcClient, type HcApp, type RpcClient, type RpcHeaders } from "./rpc";
 import { getPresignedUploadUrl, uploadFile, uploadViaPresignedUrl } from "./upload";
 
+import { BillingClient } from "./billing";
 import { ExamClient } from "./exam";
 import { QuestionBankClient } from "./qb";
 
@@ -19,6 +20,7 @@ export interface ApiClient<TAppType extends HcApp> {
   baseUrl: string;
   fetch: typeof fetch;
   rpc: RpcClient<TAppType>;
+  billing: BillingClient<TAppType>;
   exam: ExamClient<TAppType>;
   qb: QuestionBankClient<TAppType>;
   health: {
@@ -54,6 +56,7 @@ export function createApiClient<TAppType extends HcApp>(
     baseUrl,
     fetch: apiFetch,
     rpc,
+    billing: new BillingClient(rpc),
     exam: new ExamClient(rpc),
     qb: new QuestionBankClient(rpc),
     health: {

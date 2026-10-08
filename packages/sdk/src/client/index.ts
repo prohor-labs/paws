@@ -3,6 +3,7 @@ export { hc } from "hono/client";
 export * from "./api-client";
 export * from "./auth";
 export * from "./base-url";
+export * from "./billing";
 export * from "./errors";
 export * from "./exam";
 export * from "./fetch";

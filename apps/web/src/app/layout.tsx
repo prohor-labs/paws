@@ -11,7 +11,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
-
 const hindSiliguri = localFont({
   src: [
     {
@@ -35,7 +34,9 @@ const hindSiliguri = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL) : undefined,
+  metadataBase: process.env.NEXT_PUBLIC_APP_URL
+    ? new URL(process.env.NEXT_PUBLIC_APP_URL)
+    : undefined,
   title: {
     default: "Paws Academy | Smart Question Bank & AI Model Tests",
     template: "%s | Paws Academy",

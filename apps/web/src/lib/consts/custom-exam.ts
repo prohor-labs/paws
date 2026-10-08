@@ -21,7 +21,6 @@ export interface CustomExamSubject {
   readonly targetName?: string;
 }
 
-
 const ICON_KEYWORDS: readonly {
   readonly match: RegExp;
   readonly icon: string;

@@ -9,7 +9,6 @@ import {
   qbContainers,
   qbExamSheetQuestions,
   qbExamSheets,
-  qbQuestionChapters,
   qbQuestionOptions,
   qbQuestionParts,
   qbQuestionSources,
@@ -326,7 +325,6 @@ export async function importExamQuestionsToDb({
   if (qIdsToDelete.length > 0) {
     await db.delete(qbExamSheetQuestions).where(eq(qbExamSheetQuestions.examSheetId, examSheet.id));
     await db.delete(qbQuestionOptions).where(inArray(qbQuestionOptions.questionId, qIdsToDelete));
-    await db.delete(qbQuestionChapters).where(inArray(qbQuestionChapters.questionId, qIdsToDelete));
     await db.delete(qbQuestionSources).where(inArray(qbQuestionSources.questionId, qIdsToDelete));
     await db.delete(qbQuestions).where(inArray(qbQuestions.id, qIdsToDelete));
   }
@@ -463,10 +461,6 @@ export async function importExamQuestionsToDb({
     }
 
     if (assignedChapterId) {
-      await db
-        .insert(qbQuestionChapters)
-        .values({ questionId: qId, chapterId: assignedChapterId })
-        .onConflictDoNothing();
       for (const srcId of sourcesToLink) {
         await db
           .insert(qbChapterSources)

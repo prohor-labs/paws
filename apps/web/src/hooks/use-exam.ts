@@ -58,4 +58,3 @@ export function useCustomExamSolve(id: string, submissionId?: string) {
     staleTime: 1000 * 60 * 5,
   });
 }
-

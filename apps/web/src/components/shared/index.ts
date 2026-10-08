@@ -20,3 +20,4 @@ export * from "./sidebar-footer";
 export * from "./tabs-with-search";
 export * from "./theme-provider";
 export * from "./theme-toggle";
+export * from "./upgrade-dialog";
