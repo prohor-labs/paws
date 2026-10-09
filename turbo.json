@@ -4,16 +4,39 @@
   "globalPassThroughEnv": [
     "CHORCHA_TOKEN",
     "DATABASE_URL",
+    "DIRECT_URL",
+    "DB_MAX_CONNECTIONS",
+    "DB_PREPARE",
+    "PORT",
+    "HOST",
+    "NODE_ENV",
+    "BETTER_AUTH_URL",
+    "BETTER_AUTH_SECRET",
+    "TRUSTED_ORIGINS",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "RESEND_API_KEY",
+    "EMAIL_FROM",
+    "UPLOAD_MAX_BYTES",
     "AWS_REGION",
+    "AWS_DEFAULT_REGION",
     "AWS_ENDPOINT",
+    "AWS_ENDPOINT_URL",
     "AWS_ENDPOINT_URL_S3",
     "AWS_ACCESS_KEY_ID",
     "AWS_SECRET_ACCESS_KEY",
     "AWS_BUCKET_NAME",
+    "S3_BUCKET_NAME",
     "AWS_PUBLIC_URL",
+    "S3_BUCKET_URL",
+    "AWS_FORCE_PATH_STYLE",
     "API_URL",
     "INTERNAL_API_URL",
-    "INTERNAL_PROXY_SECRET"
+    "API_INTERNAL_URL",
+    "INTERNAL_PROXY_SECRET",
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_APP_URL",
+    "CORS_ORIGIN"
   ],
   "tasks": {
     "build": {
@@ -25,7 +48,7 @@
       "dependsOn": ["^lint"]
     },
     "check-types": {
-      "dependsOn": ["^build", "^check-types"]
+      "dependsOn": ["^check-types"]
     },
     "test": {
       "dependsOn": ["^build"],

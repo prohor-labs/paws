@@ -1,528 +1,547 @@
-# Graph Report - paws.academy  (2026-10-08)
+# Graph Report - paws.academy  (2026-10-09)
 
 ## Corpus Check
-- 192 files · ~338,046 words
-- Verdict: corpus is large enough that graph structure adds value.
+- cluster-only mode — file stats not available
 
 ## Summary
-- 1900 nodes · 3312 edges · 165 communities (89 shown, 19 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 17 edges (avg confidence: 0.85)
+- 2078 nodes · 4284 edges · 119 communities (93 shown, 14 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 60 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
+## Graph Freshness
+- Built from commit: `1214a823`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
+
 ## Community Hubs (Navigation)
-- api/src/index.ts
-- relations.ts
-- qb.route.ts
-- question-card.tsx
-- responsive-dialog.tsx
-- sidebar.tsx
-- rpc-pattern.ts
-- sdk/package.json
-- custom-exam-steps.tsx
-- upload.route.ts
-- menubar.tsx
-- toBengaliNumber
-- step-profile.tsx
-- dependencies
+- exam.controller.ts
+- database/schema/relations.ts
+- client/src/components/ui/button.tsx
+- schema/qb.ts
+- client/src/components/upgrade/upgrade-view.tsx
+- AuthUser
+- client/src/components/ui/field.tsx
+- custom/page.tsx
+- ApiClient
+- billing.controller.ts
+- ApiError
+- client/src/components/ui/menubar.tsx
+- client/src/components/features/onboarding/onboarding-wizard.tsx
 - types/qb.ts
-- combobox.tsx
-- sign-in-card.tsx
-- cn
-- client/errors.ts
-- shared/index.ts
-- biome.json
-- field.tsx
-- use-watch.ts
-- components.json
-- react
-- next
-- use-question-bank.ts
-- web/package.json
-- tasks
-- validation-zod.ts
-- assemble-19-20.ts
-- questionnaire.tsx
-- db/index.ts
-- item.tsx
-- compilerOptions
-- packages/sdk/src/client/rpc.ts
-- client/qb.ts
-- utils.ts
-- packages/sdk/src/client/api-client.ts
-- PageLoading
-- share-sheet.tsx
-- compilerOptions
-- middleware-composition.ts
-- app/layout.tsx
-- [subSlug]/page.tsx
-- qb-target-content.tsx
-- templates/package.json
-- validation-valibot.ts
-- take/page.tsx
-- assemble_bup_fsss_15_16.ts
-- assemble_bup_fsss_17_18.ts
-- sync-exam.ts
-- compilerOptions
-- carousel.tsx
-- chart.tsx
-- knip.json
-- error-handling.ts
-- spinner.tsx
-- topic-wise-view.tsx
-- class-variance-authority
-- button.tsx
-- attachment.tsx
+- upload.controller.ts
+- client/src/hooks/use-question-bank.ts
+- toBengaliNumber
 - dependencies
-- page-breadcrumbs.tsx
-- theme-toggle.tsx
-- client/auth.ts
+- client/src/components/watch/watch-player-view.tsx
+- api/client.ts
+- scripts
+- client/package.json
+- client/src/components/exam/custom-exam-steps.tsx
+- client/src/components/profile/profile-card.tsx
+- app.module.ts
+- client/src/lib/utils.ts
+- client/src/components/shared/question-card.tsx
+- client/src/components/ui/sidebar.tsx
+- drizzle.service.ts
+- biome.json
+- DrizzleService
+- @nestjs/common
+- client/components.json
+- server/package.json
+- Authenticated
+- compilerOptions
+- react
+- app/layout.tsx
+- tasks
+- components/auth/index.ts
+- client/src/components/ui/questionnaire.tsx
+- client/src/hooks/use-exam.ts
+- session.guard.ts
+- client/src/components/checkout/order-checkout-view.tsx
+- cn
+- billing/billing.service.ts
+- qb.service.ts
+- client/src/components/watch/channel-detail-view.tsx
+- compilerOptions
+- dependencies
+- client/src/components/icons.tsx
+- client/src/components/shared/responsive-dialog.tsx
+- client/src/components/ui/combobox.tsx
 - devDependencies
-- navigation-menu.tsx
+- client/src/components/ui/spinner.tsx
+- list-card.tsx
 - scripts
-- optionalDependencies
-- api/package.json
-- build-explanations.ts
-- validate-processed.ts
-- route.ts
-- grid-cover.tsx
-- package.json
-- exam.ts
-- storage.service.ts
+- class-variance-authority
+- client/src/components/ui/carousel.tsx
+- api-error.ts
+- (landing)/page.tsx
+- client/src/components/exam/written-answer-uploader.tsx
+- client/src/components/ui/chart.tsx
+- createApiClient
+- client/src/components/ui/item.tsx
+- api/index.ts
+- auth/client.ts
+- client/src/components/ui/attachment.tsx
+- knip.json
+- coupon-manage-dialog.tsx
+- client/src/lib/consts/landing.ts
+- client/src/components/shared/page-breadcrumbs.tsx
+- client/src/components/ui/command.tsx
+- client/src/components/ui/sheet.tsx
+- qb.controller.ts
+- devDependencies
+- client/src/components/ui/navigation-menu.tsx
+- AuthInstance
+- client/src/app/api/[...all]/route.ts
+- client/src/components/shared/grid-cover.tsx
+- client/src/components/ui/input-group.tsx
+- watch.controller.ts
 - scripts
-- empty.tsx
-- types/watch.ts
-- routing-patterns.ts
-- rich-text.tsx
-- bubble.tsx
-- context-extension.ts
-- scripts
-- alert.tsx
-- input-otp.tsx
-- tabs.tsx
-- proxy.ts
+- client/src/components/ui/bubble.tsx
+- client/src/components/ui/button-group.tsx
+- client/src/components/ui/toggle-group.tsx
+- .oxlintrc.json
+- tsconfig.build.json
+- client/src/components/landing/landing-faq.tsx
+- client/src/components/shared/app-shell.tsx
+- client/src/components/ui/input-otp.tsx
+- client/src/components/ui/tabs.tsx
+- client/src/proxy.ts
+- nest-cli.json
 - doctor.config.json
-- scripts
-- resizable.tsx
-- devDependencies
-- devDependencies
-- devDependencies
-- packageManager
-- check-versions.sh
-- engines
-- bup_fst_25_26/part5.py
-- Web AGENTS.md
-- Web DESIGN.md
-- postcss.config.mjs
+- client/src/components/exam/exam-result-summary.tsx
+- client/src/components/ui/marker.tsx
+- client/src/components/ui/resizable.tsx
+- useIsMobile
+- .handleAuth
+- createDedupedFetch
+- split-hsc-subjects.ts
+- vite-tsconfig-paths
+- client/postcss.config.mjs
 - AGENTS.md Guidance
-- API README
 - { signIn, signUp, signOut, useSession, getSession }
-- Chorcha Migration Doc
 - Root README
 
 ## God Nodes (most connected - your core abstractions)
-1. `react` - 95 edges
+1. `react` - 104 edges
 2. `cn` - 60 edges
-3. `Button()` - 37 edges
-4. `toBengaliNumber()` - 34 edges
-5. `class-variance-authority` - 17 edges
-6. `compilerOptions` - 16 edges
-7. `compilerOptions` - 16 edges
-8. `ApiError` - 15 edges
-9. `getDefaultApiUrl()` - 15 edges
-10. `normalizeBaseUrl()` - 14 edges
+3. `ApiClient` - 49 edges
+4. `Button()` - 45 edges
+5. `toBengaliNumber()` - 41 edges
+6. `@nestjs/common` - 36 edges
+7. `AuthUser` - 35 edges
+8. `ApiError` - 31 edges
+9. `BillingService` - 26 edges
+10. `Authenticated()` - 21 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `ActiveExamSession()` --calls--> `toBengaliNumber()`  [EXTRACTED]
-  apps/web/src/app/(student)/exam/[id]/take/page.tsx → apps/web/src/lib/utils.ts
-- `WrittenAnswerUploader()` --calls--> `toBengaliNumber()`  [EXTRACTED]
-  apps/web/src/components/exam/written-answer-uploader.tsx → apps/web/src/lib/utils.ts
-- `EditProfileDialog()` --calls--> `updateUser()`  [EXTRACTED]
-  apps/web/src/components/profile/edit-profile-dialog.tsx → apps/web/src/lib/sdk/client.ts
-- `healthQueryOptions()` --calls--> `getApiClient()`  [EXTRACTED]
-  apps/web/src/lib/sdk/queries.ts → apps/web/src/lib/sdk/client.ts
-- `QbItemContent()` --calls--> `useQBItemDetail()`  [EXTRACTED]
-  apps/web/src/app/(student)/qb/[targetSlug]/[containerSlug]/[itemSlug]/qb-item-content.tsx → apps/web/src/hooks/use-question-bank.ts
+- `CustomExamStep1()` --calls--> `toBengaliNumber()`  [EXTRACTED]
+  apps/client/src/components/exam/custom-exam-steps.tsx → apps/client/src/lib/utils.ts
+- `CustomExamStep2()` --calls--> `toBengaliNumber()`  [EXTRACTED]
+  apps/client/src/components/exam/custom-exam-steps.tsx → apps/client/src/lib/utils.ts
+- `CustomExamStep4()` --calls--> `toBengaliNumber()`  [EXTRACTED]
+  apps/client/src/components/exam/custom-exam-steps.tsx → apps/client/src/lib/utils.ts
+- `StepHeader()` --calls--> `toBengaliNumber()`  [EXTRACTED]
+  apps/client/src/components/exam/custom-exam-steps.tsx → apps/client/src/lib/utils.ts
+- `QuestionHeader()` --calls--> `toBengaliNumber()`  [EXTRACTED]
+  apps/client/src/components/shared/question-card.tsx → apps/client/src/lib/utils.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (165 total, 19 thin omitted)
+## Communities (119 total, 14 thin omitted)
 
-### Community 0 - "api/src/index.ts"
+### Community 0 - "exam.controller.ts"
 Cohesion: 0.05
-Nodes (49): closeDatabase(), ALLOWED_METHODS, ApiRoutesType, app, AppType, Auth, authApp, ApiRoutes (+41 more)
+Nodes (33): Header(), ExamController, Body, Controller, Get, Param, Post, Query (+25 more)
 
-### Community 1 - "relations.ts"
-Cohesion: 0.06
-Nodes (47): account, session, user, verification, accountRelations, qbChapterSourcesRelations, qbChaptersRelations, qbContainerItemsRelations (+39 more)
+### Community 1 - "database/schema/relations.ts"
+Cohesion: 0.05
+Nodes (50): account, session, user, verification, accountRelations, billingOrdersRelations, creditTransactionsRelations, dailyExplanationUsageRelations (+42 more)
 
-### Community 2 - "qb.route.ts"
+### Community 2 - "client/src/components/ui/button.tsx"
+Cohesion: 0.09
+Nodes (33): metadata, metadata, CouponsView(), formatDate(), isExpired(), formatDate(), getQuickBadgeVariant(), getStatusLabel() (+25 more)
+
+### Community 3 - "schema/qb.ts"
+Cohesion: 0.09
+Nodes (40): fetchQuestions(), main(), worker(), parseAndDeduplicateMetaTags(), ScrapedOption, ScrapedQuestion, fetchQuestions(), main() (+32 more)
+
+### Community 4 - "client/src/components/upgrade/upgrade-view.tsx"
+Cohesion: 0.05
+Nodes (20): nextConfig, metadata, metadata, metadata, OrderCheckoutPageProps, metadata, metadata, metadata (+12 more)
+
+### Community 5 - "AuthUser"
+Cohesion: 0.13
+Nodes (14): formatDuration(), AuthUser, CurrentUser, Body, Controller, Get, Param, Post (+6 more)
+
+### Community 6 - "client/src/components/ui/field.tsx"
 Cohesion: 0.08
-Nodes (44): cleanSolutionText(), decodeChorcha(), fetchChorchaExam(), imageCache, migrateImagesInText(), S3_PUBLIC_URL, s3Client, sanitizeRichText() (+36 more)
+Nodes (22): AuthFormFields(), AuthFormFieldsProps, AuthMethodToggle(), AuthMethodToggleProps, WrittenAnswerUploader(), StepProfile(), StepProfileProps, AppPreferences() (+14 more)
 
-### Community 3 - "question-card.tsx"
-Cohesion: 0.06
-Nodes (32): LandingFaq(), LandingFooter(), LandingHeader(), LandingHero(), LandingRoadmap(), LandingStats(), LandingStory(), LandingSupporters() (+24 more)
+### Community 7 - "custom/page.tsx"
+Cohesion: 0.09
+Nodes (24): CustomExamPage(), CustomExamStep1, CustomExamStep2, CustomExamStep4, CustomExamStepStandard, QbHubContent(), QbTargetContent(), GridCard() (+16 more)
 
-### Community 4 - "responsive-dialog.tsx"
-Cohesion: 0.07
-Nodes (20): EvaluatedScriptItem, WrittenAnswerUploaderProps, WrittenPageItem, Dialog(), DialogContent(), DialogDescription(), DialogHeader(), DialogTitle() (+12 more)
+### Community 8 - "ApiClient"
+Cohesion: 0.10
+Nodes (32): ApiClient, AddonConfig, BillingConfigResponse, BillingOrderUser, BillingStatusResponse, CheckoutInput, CheckoutResponse, CreateCouponInput (+24 more)
 
-### Community 5 - "sidebar.tsx"
-Cohesion: 0.06
-Nodes (18): Sheet(), SheetContent(), SheetDescription(), SheetHeader(), SheetTitle(), Sidebar(), SidebarContext, SidebarContextProps (+10 more)
+### Community 9 - "billing.controller.ts"
+Cohesion: 0.10
+Nodes (32): PaginationQueryDto, IsInt, IsOptional, Max, Min, Type, CheckoutDto, checkoutSchema (+24 more)
 
-### Community 6 - "rpc-pattern.ts"
-Cohesion: 0.06
-Nodes (28): client, postsClient, searchClient, UsersComponent(), app, AppType, commentsApp, CommentsType (+20 more)
+### Community 10 - "ApiError"
+Cohesion: 0.10
+Nodes (5): ApiError, BillingService, Injectable, CouponInput, UpdateCouponInput
 
-### Community 7 - "sdk/package.json"
-Cohesion: 0.06
-Nodes (37): dependencies, better-auth, hono, zod, description, devDependencies, tsdown, @types/node (+29 more)
-
-### Community 8 - "custom-exam-steps.tsx"
-Cohesion: 0.08
-Nodes (24): CustomExamStep1Props, CustomExamStep2Props, CustomExamStep4Props, CustomExamStepStandardProps, DURATION_PRESETS, EXAM_STANDARDS, ExamStandardOption, ExamStandardType (+16 more)
-
-### Community 9 - "upload.route.ts"
-Cohesion: 0.11
-Nodes (17): ApiError, ApiErrorOptions, codeForStatus(), STATUS_CODES, buildObjectKey(), resolveUploadFolder(), sanitizeFilename(), attachSession (+9 more)
-
-### Community 10 - "menubar.tsx"
+### Community 11 - "client/src/components/ui/menubar.tsx"
 Cohesion: 0.09
 Nodes (13): DropdownMenu(), DropdownMenuContent(), DropdownMenuGroup(), DropdownMenuItem(), DropdownMenuLabel(), DropdownMenuPortal(), DropdownMenuRadioGroup(), DropdownMenuSeparator() (+5 more)
 
-### Community 11 - "toBengaliNumber"
-Cohesion: 0.11
-Nodes (23): QbItemContent(), CustomExamStep1(), CustomExamStep2(), CustomExamStep4(), StepHeader(), ExamBottomBar(), ExamBottomBarProps, ExamResultSummary() (+15 more)
-
-### Community 12 - "step-profile.tsx"
-Cohesion: 0.14
-Nodes (17): StepProfileProps, StepReadyProps, AppSidebar(), MobileNav(), Header(), SidebarFooter(), Avatar(), AvatarFallback() (+9 more)
-
-### Community 13 - "dependencies"
-Cohesion: 0.07
-Nodes (30): dependencies, @base-ui/react, class-variance-authority, cmdk, cn, date-fns, disable-devtool, embla-carousel-react (+22 more)
-
-### Community 14 - "types/qb.ts"
-Cohesion: 0.07
-Nodes (28): CustomExamData, CustomExamSubmissionData, CustomExamWrittenSubmissionItem, QBChapter, QBContainer, QBContainerDetailData, QBContainerItem, QBExamSheet (+20 more)
-
-### Community 15 - "combobox.tsx"
-Cohesion: 0.09
-Nodes (7): InputGroupAddon(), inputGroupAddonVariants, InputGroupButton(), inputGroupButtonVariants, InputGroupInput(), Textarea(), @base-ui/react
-
-### Community 16 - "sign-in-card.tsx"
-Cohesion: 0.11
-Nodes (16): metadata, AuthLogo(), AuthBackdrop(), LoginView(), OAuthButtons(), OAuthButtonsProps, PlusDivider(), PlusFrame() (+8 more)
-
-### Community 18 - "client/errors.ts"
+### Community 12 - "client/src/components/features/onboarding/onboarding-wizard.tsx"
 Cohesion: 0.10
-Nodes (15): ApiErrorOptions, isApiError(), idParamSchema, paginationQuerySchema, healthResponseSchema, FOLDER_PATTERN, presignedUploadSchema, createWatchCommentSchema (+7 more)
+Nodes (23): metadata, OnboardingWizard(), LEVEL_ICONS, StepLevel(), StepLevelProps, StepReady(), StepSchedule(), StepScheduleProps (+15 more)
 
-### Community 19 - "shared/index.ts"
+### Community 13 - "types/qb.ts"
+Cohesion: 0.07
+Nodes (30): CreateExamResult, CustomExamData, CustomExamSubmissionData, CustomExamWrittenSubmissionItem, QBChapterDetailData, QBContainer, QBContainerDetailData, QBContainerItem (+22 more)
+
+### Community 14 - "upload.controller.ts"
+Cohesion: 0.11
+Nodes (20): buildObjectKey(), resolveUploadFolder(), sanitizeFilename(), PresignedUrlResult, StorageService, Injectable, UploadResult, PresignedUploadInput (+12 more)
+
+### Community 15 - "client/src/hooks/use-question-bank.ts"
+Cohesion: 0.13
+Nodes (20): CustomExamSolveContent(), ExamResultSummary, SingleQuestionPage(), QbItemContent(), QbContainerContent(), EmptyState(), PageBreadcrumbs(), QuestionCard() (+12 more)
+
+### Community 16 - "toBengaliNumber"
+Cohesion: 0.11
+Nodes (23): ActiveExamSession(), ActiveExamSessionProps, CustomExamTakePage(), ExamSubmittingOverlay, QuestionPaletteDialog, ExamBottomBar(), ExamBottomBarProps, QuestionPaletteDialog() (+15 more)
+
+### Community 17 - "dependencies"
+Cohesion: 0.07
+Nodes (29): dependencies, @base-ui/react, better-auth, class-variance-authority, cmdk, cn, date-fns, disable-devtool (+21 more)
+
+### Community 18 - "client/src/components/watch/watch-player-view.tsx"
+Cohesion: 0.15
+Nodes (23): ScrollArea(), Textarea(), ChannelDetailView(), WatchPlayerView(), useWatchChannel(), useWatchComments(), useWatchMutations(), useWatchPlaylist() (+15 more)
+
+### Community 19 - "api/client.ts"
+Cohesion: 0.11
+Nodes (24): API_V1_PREFIX, ApiClientConfig, getPresignedUploadUrlRequest(), parseUploadResponse(), QueryParams, RequestOptions, uploadFileRequest(), UploadRequestOptions (+16 more)
+
+### Community 20 - "scripts"
+Cohesion: 0.07
+Nodes (28): devDependencies, prettier, turbo, @types/bun, typescript, devEngines, packageManager, engines (+20 more)
+
+### Community 21 - "client/package.json"
+Cohesion: 0.08
+Nodes (26): ignoreScripts, name, packageManager, private, trustedDependencies, version, RichText, RichTextProps (+18 more)
+
+### Community 22 - "client/src/components/exam/custom-exam-steps.tsx"
+Cohesion: 0.08
+Nodes (22): CustomExamStep1(), CustomExamStep1Props, CustomExamStep2(), CustomExamStep2Props, CustomExamStep4(), CustomExamStep4Props, CustomExamStepStandardProps, DURATION_PRESETS (+14 more)
+
+### Community 23 - "client/src/components/profile/profile-card.tsx"
+Cohesion: 0.17
+Nodes (14): StepReadyProps, QuickListProps, QuickListTag, SidebarFooter(), Avatar(), AvatarFallback(), AvatarImage(), Tooltip() (+6 more)
+
+### Community 24 - "app.module.ts"
 Cohesion: 0.09
-Nodes (15): AppPreferences(), EditProfileDialog, MenuItemProps, ConfirmDialog(), ConfirmDialogProps, ConfirmContext, ConfirmContextType, ConfirmOptions (+7 more)
+Nodes (19): AppModule, Module, AuthModule, Global, Module, RolesGuard, Injectable, BillingModule (+11 more)
 
-### Community 20 - "biome.json"
+### Community 25 - "client/src/lib/utils.ts"
+Cohesion: 0.16
+Nodes (17): ActionSheet(), ActionSheetGroup, ActionSheetItem, ActionSheetProps, ShareSheet(), ShareSheetProps, PlaylistDetailView(), WatchCard() (+9 more)
+
+### Community 26 - "client/src/components/shared/question-card.tsx"
+Cohesion: 0.10
+Nodes (22): DEFAULT_OPTION_KEYS, EvaluatedScriptItem, McqOptionsProps, QuestionAnswersProps, QuestionCardProps, QuestionExplanation(), QuestionHeader(), QuestionHeaderProps (+14 more)
+
+### Community 27 - "client/src/components/ui/sidebar.tsx"
+Cohesion: 0.09
+Nodes (8): Sidebar(), SidebarContext, SidebarContextProps, SidebarMenuButton(), sidebarMenuButtonVariants, SidebarRail(), SidebarTrigger(), useSidebar()
+
+### Community 28 - "drizzle.service.ts"
+Cohesion: 0.13
+Nodes (13): DRIZZLE, DRIZZLE_CLIENT, DatabaseModule, Global, Module, Database, env, isTrustedOrigin() (+5 more)
+
+### Community 29 - "biome.json"
 Cohesion: 0.08
 Nodes (25): css, parser, files, ignoreUnknown, includes, formatter, enabled, indentStyle (+17 more)
 
-### Community 21 - "field.tsx"
+### Community 30 - "DrizzleService"
 Cohesion: 0.11
-Nodes (13): AuthFormFields(), AuthFormFieldsProps, AuthMethodToggle(), AuthMethodToggleProps, AuthSubmitButton(), EditProfileDialogProps, Field(), FieldDescription() (+5 more)
+Nodes (13): DrizzleService, Inject, Injectable, dailyExplanationUsage, subscriptions, DHAKA_TIMEZONE, getDhakaDateString(), getDhakaNow() (+5 more)
 
-### Community 22 - "use-watch.ts"
-Cohesion: 0.19
-Nodes (23): useWatchChannel(), useWatchComments(), useWatchInfiniteFeed(), useWatchMutations(), useWatchPlaylist(), useWatchVideo(), incrementVideoView(), postWatchComment() (+15 more)
+### Community 31 - "@nestjs/common"
+Cohesion: 0.14
+Nodes (14): AUTH_INSTANCE, AuthController, Controller, AuthService, Injectable, AuthSessionResult, Public(), SessionGuard (+6 more)
 
-### Community 23 - "components.json"
+### Community 32 - "client/components.json"
 Cohesion: 0.08
 Nodes (23): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+15 more)
 
-### Community 24 - "react"
-Cohesion: 0.14
-Nodes (8): metadata, PawsLogo(), PlaylistCard(), WatchFeed(), GridCardProps, ResponsiveDialogProps, RichTextProps, react
-
-### Community 25 - "next"
+### Community 33 - "server/package.json"
 Cohesion: 0.09
-Nodes (10): nextConfig, metadata, metadata, metadata, metadata, metadata, ChannelDetailView(), PlaylistDetailView() (+2 more)
+Nodes (22): @types/node, author, description, prettier, license, name, private, type (+14 more)
 
-### Community 26 - "use-question-bank.ts"
-Cohesion: 0.18
-Nodes (20): useCustomExamSolve(), useCustomExamTake(), useSubmitCustomExam(), useQBTree(), fetchQBChapter(), fetchQBContainer(), fetchQBItem(), fetchQBQuestion() (+12 more)
+### Community 34 - "Authenticated"
+Cohesion: 0.21
+Nodes (11): Authenticated(), Roles(), BillingController, Body, Controller, Get, Param, Post (+3 more)
 
-### Community 27 - "web/package.json"
+### Community 35 - "compilerOptions"
 Cohesion: 0.09
-Nodes (21): ignoreScripts, name, packageManager, private, trustedDependencies, version, babel-plugin-react-compiler, @biomejs/biome (+13 more)
+Nodes (22): compilerOptions, allowSyntheticDefaultImports, declaration, emitDecoratorMetadata, esModuleInterop, experimentalDecorators, incremental, isolatedModules (+14 more)
 
-### Community 28 - "tasks"
+### Community 36 - "react"
+Cohesion: 0.15
+Nodes (9): AppShell(), AuthGuard(), emptySubscribe(), Role, useMounted(), PageLoading(), PillTabItem, PillTabsProps (+1 more)
+
+### Community 37 - "app/layout.tsx"
+Cohesion: 0.13
+Nodes (15): hindSiliguri, metadata, DisableDevtool(), ConfirmContext, ConfirmContextType, ConfirmOptions, ConfirmProvider(), getQueryClient() (+7 more)
+
+### Community 38 - "tasks"
 Cohesion: 0.09
 Nodes (21): dependsOn, inputs, outputs, dependsOn, cache, cache, persistent, persistent (+13 more)
 
-### Community 29 - "validation-zod.ts"
-Cohesion: 0.10
-Nodes (20): addressSchema, app, batchCreateSchema, bodyDataSchema, contentSchema, customErrorSchema, eventSchema, formSchema (+12 more)
+### Community 39 - "components/auth/index.ts"
+Cohesion: 0.14
+Nodes (11): metadata, AuthBackdrop(), LoginView(), PlusDivider(), PlusFrame(), SignInCard(), TrustStrip(), CUSTOMER_LOGOS (+3 more)
 
-### Community 30 - "assemble-19-20.ts"
-Cohesion: 0.13
-Nodes (15): allExps, chById, cleanHtml(), customMap19_20, processed, raw, resolve(), taxonomy (+7 more)
-
-### Community 31 - "questionnaire.tsx"
+### Community 40 - "client/src/components/ui/questionnaire.tsx"
 Cohesion: 0.12
 Nodes (7): buttonVariants, Calendar(), QuestionnaireNext(), QuestionnairePrevious(), QuestionnaireSkip(), QuestionnaireSubmit(), react-day-picker
 
-### Community 32 - "db/index.ts"
-Cohesion: 0.16
-Nodes (10): auth, client, db, client, db, env, isTrustedOrigin(), LOOPBACK_HOSTNAMES (+2 more)
-
-### Community 33 - "item.tsx"
+### Community 41 - "client/src/hooks/use-exam.ts"
 Cohesion: 0.13
-Nodes (7): ButtonGroup(), buttonGroupVariants, Item(), ItemMedia(), itemMediaVariants, itemVariants, Separator()
+Nodes (17): apiQueryKeys, billingKeys, examKeys, qbKeys, healthQueryOptions(), api, getApiClient(), getPresignedUploadUrl() (+9 more)
 
-### Community 34 - "compilerOptions"
-Cohesion: 0.10
-Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+11 more)
-
-### Community 35 - "packages/sdk/src/client/rpc.ts"
-Cohesion: 0.23
-Nodes (16): ApiClientConfig, getDefaultApiUrl(), normalizeBaseUrl(), createDedupedFetch(), resolveMethod(), resolveUrl(), API_V1_PREFIX, createRpcClient() (+8 more)
-
-### Community 36 - "client/qb.ts"
-Cohesion: 0.17
-Nodes (9): QuestionBankClient, RpcClient, QBChapterDetailData, QBChapterQueryParams, QBHubData, QBItemDetailData, QBQuestion, QBTargetDetailData (+1 more)
-
-### Community 37 - "utils.ts"
-Cohesion: 0.25
-Nodes (9): VerifiedBadge(), ScrollArea(), WatchCard(), WatchThumbnail(), EMPTY_WATCH_VIDEOS, formatBengaliCount(), formatBengaliRelativeTime(), getYouTubeThumbnailUrl() (+1 more)
-
-### Community 38 - "packages/sdk/src/client/api-client.ts"
-Cohesion: 0.25
-Nodes (15): ApiClient, createApiClient(), withCredentialsFetch(), ApiError, ExamClient, getPresignedUploadUrl(), parseUploadResponse(), UploadEnvelope (+7 more)
-
-### Community 39 - "PageLoading"
-Cohesion: 0.14
-Nodes (9): SingleQuestionPage(), QbContainerContent(), AppShell(), EmptyState(), GridCard(), PageBreadcrumbs(), PageLoading(), useQBContainerDetail() (+1 more)
-
-### Community 40 - "share-sheet.tsx"
+### Community 42 - "session.guard.ts"
 Cohesion: 0.20
-Nodes (13): ActionSheet(), ActionSheetGroup, ActionSheetItem, ActionSheetProps, ShareSheet(), ShareSheetProps, useCopyToClipboard(), UseCopyToClipboardOptions (+5 more)
+Nodes (14): AUTHENTICATED_KEY, IS_PUBLIC_KEY, REQUEST_SESSION_KEY, REQUEST_USER_KEY, ROLES_KEY, toWebHeaders(), AuthSession, AuthSessionData (+6 more)
 
-### Community 41 - "compilerOptions"
-Cohesion: 0.11
-Nodes (17): compilerOptions, declaration, emitDeclarationOnly, esModuleInterop, isolatedModules, lib, module, moduleDetection (+9 more)
-
-### Community 42 - "middleware-composition.ts"
-Cohesion: 0.12
-Nodes (5): app, Bindings, rateLimits, typedApp, Variables
-
-### Community 43 - "app/layout.tsx"
-Cohesion: 0.17
-Nodes (11): hindSiliguri, metadata, DisableDevtool(), getQueryClient(), makeQueryClient(), QueryProvider(), ThemeProvider(), Toaster() (+3 more)
-
-### Community 44 - "[subSlug]/page.tsx"
+### Community 43 - "client/src/components/checkout/order-checkout-view.tsx"
 Cohesion: 0.16
-Nodes (12): ExamResultSummary, QBSubSlugPage(), QuestionTypeFilter, useQBChapterDetail(), useQBItemDetail(), EMPTY_CHAPTERS, EMPTY_QUESTIONS, EMPTY_STRING_MAP (+4 more)
+Nodes (15): formatDate(), getStatusBadge(), OrderManageDialog(), OrderManageDialogProps, OrderCheckoutView(), OrderCheckoutViewProps, PaymentMethod, CodeBlock() (+7 more)
 
-### Community 45 - "qb-target-content.tsx"
-Cohesion: 0.18
-Nodes (9): QbHubContent(), QbTargetContent(), useQBTargetDetail(), ICON_KEYWORDS, QB_TARGET_GROUP_LABELS, QB_TARGET_GROUPS, QBTargetGroupKey, chapterLevelLabel() (+1 more)
+### Community 45 - "billing/billing.service.ts"
+Cohesion: 0.14
+Nodes (17): billingOrders, coupons, creditTransactions, orderStatusEnum, planTypeEnum, subStatusEnum, transactionTypeEnum, userBatchAccess (+9 more)
 
-### Community 46 - "templates/package.json"
+### Community 46 - "qb.service.ts"
+Cohesion: 0.11
+Nodes (16): qbChapterSources, qbExamSheets, cleanAndFormatMathText(), MappableQuestion, MappableSource, MappableTopic, QBQuestionTypeValue, QBSourceGroupValue (+8 more)
+
+### Community 47 - "client/src/components/watch/channel-detail-view.tsx"
+Cohesion: 0.16
+Nodes (12): metadata, VerifiedBadge(), PlaylistCard(), WatchFeed(), useWatchInfiniteFeed(), WatchFeedItem, WatchPlaylist, EMPTY_CHAPTERS (+4 more)
+
+### Community 48 - "compilerOptions"
+Cohesion: 0.11
+Nodes (18): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+10 more)
+
+### Community 49 - "dependencies"
+Cohesion: 0.11
+Nodes (19): dependencies, @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, better-auth, cheerio, class-transformer, class-validator, compression (+11 more)
+
+### Community 50 - "client/src/components/icons.tsx"
+Cohesion: 0.20
+Nodes (10): PawsLogo(), emptySubscribe(), ThemeToggle(), ThemeToggleProps, AnimatedThemeToggler(), AnimatedThemeTogglerProps, getThemeTransitionClipPaths(), polygonCollapsed() (+2 more)
+
+### Community 51 - "client/src/components/shared/responsive-dialog.tsx"
+Cohesion: 0.16
+Nodes (11): DialogContent(), Drawer(), DrawerContent(), DrawerContext, DrawerContextProps, DrawerDescription(), DrawerHeader(), DrawerTitle() (+3 more)
+
+### Community 53 - "devDependencies"
+Cohesion: 0.11
+Nodes (18): devDependencies, drizzle-kit, @nestjs/cli, @nestjs/schematics, @nestjs/testing, oxlint, oxlint-tsgolint, prettier (+10 more)
+
+### Community 54 - "client/src/components/ui/spinner.tsx"
+Cohesion: 0.16
+Nodes (9): AuthLogo(), AuthSubmitButton(), AuthSubmitButtonProps, OAuthButtons(), OAuthButtonsProps, AuthMode, SignInMethod, ExamSubmittingOverlayProps (+1 more)
+
+### Community 55 - "list-card.tsx"
+Cohesion: 0.19
+Nodes (9): ListCardAction, ListCardMetaItem, ListCardProps, Badge(), badgeVariants, Card(), CardContent(), CardHeader() (+1 more)
+
+### Community 57 - "scripts"
 Cohesion: 0.12
-Nodes (15): dependencies, hono, description, hono, zod, name, type, version (+7 more)
+Nodes (16): scripts, build, check-types, db:generate, db:migrate, dev, dev:https, format (+8 more)
 
-### Community 47 - "validation-valibot.ts"
-Cohesion: 0.12
-Nodes (15): addressSchema, app, batchCreateSchema, contentSchema, customErrorSchema, eventSchema, headerSchema, numericIdSchema (+7 more)
+### Community 58 - "class-variance-authority"
+Cohesion: 0.15
+Nodes (5): Alert(), alertVariants, EmptyMedia(), emptyMediaVariants, class-variance-authority
 
-### Community 48 - "take/page.tsx"
-Cohesion: 0.19
-Nodes (11): CustomExamPage(), CustomExamStep1, CustomExamStep2, CustomExamStep4, CustomExamStepStandard, ActiveExamSession(), ActiveExamSessionProps, ExamSubmittingOverlay (+3 more)
-
-### Community 50 - "assemble_bup_fsss_15_16.ts"
-Cohesion: 0.19
-Nodes (9): all, cleanHtml(), processed, raw, b1, b2, b3, b4 (+1 more)
-
-### Community 51 - "assemble_bup_fsss_17_18.ts"
-Cohesion: 0.19
-Nodes (9): all, cleanHtml(), processed, raw, b1, b2, b3, b4 (+1 more)
-
-### Community 52 - "sync-exam.ts"
-Cohesion: 0.21
-Nodes (12): importExamQuestionsToDb(), dumpExamQuestions(), ExamMetadata, extractExamIdFromUrl(), extractExamsFromPage(), extractSheetSlugFromUrl(), extractUnitsFromBundle(), importProcessedQuestions() (+4 more)
-
-### Community 53 - "compilerOptions"
-Cohesion: 0.13
-Nodes (14): compilerOptions, jsx, jsxImportSource, module, moduleResolution, paths, skipLibCheck, strict (+6 more)
-
-### Community 54 - "carousel.tsx"
+### Community 59 - "client/src/components/ui/carousel.tsx"
 Cohesion: 0.17
 Nodes (13): CarouselApi, CarouselContent(), CarouselContext, CarouselContextProps, CarouselItem(), CarouselNext(), CarouselOptions, CarouselPlugin (+5 more)
 
-### Community 55 - "chart.tsx"
+### Community 60 - "api-error.ts"
+Cohesion: 0.20
+Nodes (10): ApiErrorOptions, codeForStatus(), errorBody(), STATUS_CODES, AllExceptionsFilter, AppPipelineMiddleware, runMiddleware(), Injectable (+2 more)
+
+### Community 61 - "(landing)/page.tsx"
+Cohesion: 0.19
+Nodes (7): LandingFaq(), LandingFooter(), LandingHeader(), LandingHero(), LandingStats(), LandingStory(), LandingSupporters()
+
+### Community 62 - "client/src/components/exam/written-answer-uploader.tsx"
+Cohesion: 0.19
+Nodes (8): EvaluatedScriptItem, WrittenAnswerUploaderProps, WrittenPageItem, Dialog(), DialogDescription(), DialogHeader(), DialogTitle(), DialogTrigger()
+
+### Community 63 - "client/src/components/ui/chart.tsx"
 Cohesion: 0.19
 Nodes (11): ChartConfig, ChartContext, ChartContextProps, ChartLegendContent(), ChartTooltipContent(), getPayloadConfigFromPayload(), INITIAL_DIMENSION, THEMES (+3 more)
 
-### Community 56 - "knip.json"
-Cohesion: 0.14
-Nodes (13): project, entry, next, project, ignore, ignoreBinaries, entry, project (+5 more)
+### Community 64 - "createApiClient"
+Cohesion: 0.29
+Nodes (7): buildQuery(), createApiClient(), getDefaultApiUrl(), normalizeBaseUrl(), RequestCore, getServerApiClient(), resolveServerApiUrl()
 
-### Community 57 - "error-handling.ts"
-Cohesion: 0.15
-Nodes (7): app, AuthenticationError, AuthorizationError, ErrorResponse, NotFoundError, userSchema, ValidationError
+### Community 66 - "client/src/components/ui/item.tsx"
+Cohesion: 0.18
+Nodes (4): Item(), ItemMedia(), itemMediaVariants, itemVariants
 
-### Community 58 - "spinner.tsx"
-Cohesion: 0.23
-Nodes (6): AuthSubmitButtonProps, ExamSubmittingOverlayProps, AuthGuard(), emptySubscribe(), useMounted(), Spinner()
+### Community 67 - "api/index.ts"
+Cohesion: 0.17
+Nodes (7): ApiError, ApiErrorOptions, ApiErrorResponse, ApiResponse, IdParam, PaginatedResponse, PaginationQuery
 
-### Community 59 - "topic-wise-view.tsx"
-Cohesion: 0.26
-Nodes (11): getPageItems(), TopicWiseView(), TopicWiseViewProps, Pagination(), PaginationContent(), PaginationEllipsis(), PaginationItem(), PaginationLink() (+3 more)
+### Community 68 - "auth/client.ts"
+Cohesion: 0.18
+Nodes (11): AuthClient, AuthSession, AuthSessionData, AuthUser, AuthClient, AuthSession, AuthSessionData, AuthUser (+3 more)
 
-### Community 61 - "class-variance-authority"
-Cohesion: 0.22
-Nodes (7): Marker(), markerVariants, ToggleGroupContext, ToggleGroupItem(), Toggle(), toggleVariants, class-variance-authority
-
-### Community 63 - "attachment.tsx"
+### Community 69 - "client/src/components/ui/attachment.tsx"
 Cohesion: 0.20
 Nodes (4): Attachment(), AttachmentMedia(), attachmentMediaVariants, attachmentVariants
 
-### Community 64 - "dependencies"
-Cohesion: 0.18
-Nodes (11): dependencies, @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, better-auth, drizzle-orm, hono, @hono/zod-validator, @paws/sdk (+3 more)
+### Community 70 - "knip.json"
+Cohesion: 0.17
+Nodes (11): entry, next, project, entry, project, ignore, ignoreBinaries, $schema (+3 more)
 
-### Community 65 - "page-breadcrumbs.tsx"
+### Community 71 - "coupon-manage-dialog.tsx"
+Cohesion: 0.29
+Nodes (8): CouponManageDialog(), CouponManageDialogProps, Label(), Switch(), useCreateCoupon(), useDeleteCoupon(), useUpdateCoupon(), Coupon
+
+### Community 72 - "client/src/lib/consts/landing.ts"
+Cohesion: 0.20
+Nodes (9): LandingRoadmap(), FaqItem, LANDING_FAQS, LANDING_NAV_LINKS, LANDING_ROADMAP, LANDING_STATS, NavItem, RoadmapItem (+1 more)
+
+### Community 73 - "client/src/components/shared/page-breadcrumbs.tsx"
 Cohesion: 0.31
 Nodes (9): BreadcrumbStep, PageBreadcrumbsProps, Breadcrumb(), BreadcrumbEllipsis(), BreadcrumbItem(), BreadcrumbLink(), BreadcrumbList(), BreadcrumbPage() (+1 more)
 
-### Community 66 - "theme-toggle.tsx"
-Cohesion: 0.29
-Nodes (9): emptySubscribe(), ThemeToggle(), ThemeToggleProps, AnimatedThemeToggler(), AnimatedThemeTogglerProps, getThemeTransitionClipPaths(), polygonCollapsed(), TransitionVariant (+1 more)
+### Community 75 - "client/src/components/ui/sheet.tsx"
+Cohesion: 0.18
+Nodes (5): Sheet(), SheetContent(), SheetDescription(), SheetHeader(), SheetTitle()
 
-### Community 67 - "client/auth.ts"
-Cohesion: 0.24
-Nodes (9): AuthClientConfig, createAuthClient(), DefaultAuthClient, getAuthClient(), updateUser(), AuthClient, AuthSession, AuthSessionData (+1 more)
+### Community 76 - "qb.controller.ts"
+Cohesion: 0.25
+Nodes (6): Injectable, zodPipe(), ZodValidationPipe, bulkImportSchema, chapterQuerySchema, sourceTypeSchema
 
-### Community 68 - "devDependencies"
+### Community 77 - "devDependencies"
 Cohesion: 0.20
 Nodes (10): devDependencies, babel-plugin-react-compiler, @biomejs/biome, shadcn, tailwindcss, @tailwindcss/postcss, @types/node, @types/react (+2 more)
 
-### Community 71 - "scripts"
-Cohesion: 0.20
-Nodes (10): scripts, build, check-types, dev, dev:https, format, graphify, graphify:apps (+2 more)
-
-### Community 72 - "optionalDependencies"
+### Community 80 - "AuthInstance"
 Cohesion: 0.22
-Nodes (9): optionalDependencies, arktype, @hono/arktype-validator, @hono/typia-validator, @hono/valibot-validator, @hono/zod-validator, typia, valibot (+1 more)
+Nodes (5): AuthInstance, Inject, AuthRouteMiddleware, Inject, Injectable
 
-### Community 73 - "api/package.json"
-Cohesion: 0.22
-Nodes (7): exports, hono, @hono/zod-validator, @paws/sdk, zod, name, drizzle-kit
-
-### Community 74 - "build-explanations.ts"
-Cohesion: 0.22
-Nodes (6): chById, raw, taxonomy, tById, tBySlug, unmapped
-
-### Community 75 - "validate-processed.ts"
-Cohesion: 0.22
-Nodes (6): byIndex, errors, inPath, processed, raw, rawPath
-
-### Community 76 - "route.ts"
+### Community 81 - "client/src/app/api/[...all]/route.ts"
 Cohesion: 0.22
 Nodes (7): DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT
 
-### Community 77 - "grid-cover.tsx"
+### Community 82 - "client/src/components/shared/grid-cover.tsx"
 Cohesion: 0.33
 Nodes (8): getBasePalette(), getCoverTheme(), GridCover(), GridCoverProps, PaletteTheme, resolveCoverContent(), resolveStyle(), VariantStyle
 
-### Community 79 - "package.json"
-Cohesion: 0.22
-Nodes (8): engines, node, @types/bun, name, private, workspaces, prettier, turbo
+### Community 83 - "client/src/components/ui/input-group.tsx"
+Cohesion: 0.28
+Nodes (6): InputGroup(), InputGroupAddon(), inputGroupAddonVariants, InputGroupButton(), inputGroupButtonVariants, InputGroupInput()
 
-### Community 80 - "exam.ts"
-Cohesion: 0.22
-Nodes (5): CreateExamResult, SubmitExamResult, CreateCustomExamInput, CustomExamSolveData, CustomExamTakeData
+### Community 85 - "watch.controller.ts"
+Cohesion: 0.42
+Nodes (7): CreateWatchCommentDto, createWatchCommentSchema, feedQuerySchema, WatchInteractionDto, watchInteractionSchema, WatchProgressDto, watchProgressSchema
 
-### Community 81 - "storage.service.ts"
-Cohesion: 0.25
-Nodes (6): PresignedUrlResult, s3Client, storageService, UploadResult, @aws-sdk/client-s3, @aws-sdk/s3-request-presigner
-
-### Community 82 - "scripts"
+### Community 86 - "scripts"
 Cohesion: 0.25
 Nodes (8): scripts, build, check-types, dev, dev:https, format, lint, start
 
-### Community 84 - "types/watch.ts"
-Cohesion: 0.25
-Nodes (7): WatchChannel, WatchCommentItem, WatchFeedItem, WatchPlaylist, WatchUserInteraction, WatchUserProgress, WatchVideo
-
-### Community 85 - "routing-patterns.ts"
-Cohesion: 0.29
-Nodes (6): admin, api, app, Bindings, typedApp, Variables
-
-### Community 86 - "rich-text.tsx"
-Cohesion: 0.29
-Nodes (5): RichText, react-markdown, rehype-raw, remark-gfm, remark-math
-
-### Community 87 - "bubble.tsx"
+### Community 87 - "client/src/components/ui/bubble.tsx"
 Cohesion: 0.38
 Nodes (4): Bubble(), BubbleReactions(), bubbleReactionsVariants, bubbleVariants
 
-### Community 89 - "context-extension.ts"
-Cohesion: 0.40
-Nodes (5): app, Bindings, getAuthenticatedUser(), requireAdmin(), Variables
+### Community 88 - "client/src/components/ui/button-group.tsx"
+Cohesion: 0.38
+Nodes (3): ButtonGroup(), buttonGroupVariants, Separator()
 
-### Community 90 - "scripts"
+### Community 92 - "client/src/components/ui/toggle-group.tsx"
+Cohesion: 0.43
+Nodes (4): ToggleGroupContext, ToggleGroupItem(), Toggle(), toggleVariants
+
+### Community 93 - ".oxlintrc.json"
+Cohesion: 0.29
+Nodes (6): env, node, rules, typescript/no-explicit-any, typescript/no-floating-promises, $schema
+
+### Community 94 - "tsconfig.build.json"
+Cohesion: 0.29
+Nodes (6): compilerOptions, rootDir, exclude, extends, include, ./tsconfig.json
+
+### Community 95 - "client/src/components/landing/landing-faq.tsx"
+Cohesion: 0.60
+Nodes (4): Accordion(), AccordionContent(), AccordionItem(), AccordionTrigger()
+
+### Community 96 - "client/src/components/shared/app-shell.tsx"
 Cohesion: 0.33
-Nodes (6): scripts, build, check-types, db:generate, db:migrate, dev
+Nodes (4): AppSidebar(), MobileNav(), SidebarInset(), SidebarProvider()
 
-### Community 95 - "proxy.ts"
+### Community 100 - "client/src/proxy.ts"
 Cohesion: 0.33
 Nodes (4): ALLOWED_BOT_PATTERNS, BLOCKED_SCRAPER_PATTERNS, config, middleware
 
-### Community 96 - "doctor.config.json"
+### Community 101 - "nest-cli.json"
+Cohesion: 0.33
+Nodes (5): collection, compilerOptions, deleteOutDir, $schema, sourceRoot
+
+### Community 102 - "doctor.config.json"
 Cohesion: 0.33
 Nodes (5): ignore, files, rules, react-doctor/nextjs-no-client-side-redirect, $schema
 
-### Community 97 - "scripts"
-Cohesion: 0.40
-Nodes (5): scripts, build, dev, start, type-check
-
-### Community 99 - "devDependencies"
-Cohesion: 0.40
-Nodes (5): devDependencies, prettier, turbo, @types/bun, typescript
-
-### Community 100 - "devDependencies"
+### Community 103 - "client/src/components/exam/exam-result-summary.tsx"
 Cohesion: 0.50
-Nodes (4): devDependencies, tsx, @types/node, typescript
+Nodes (4): ExamResultSummary(), ExamResultSummaryProps, ExamSolveFilter, formatDuration()
 
-### Community 101 - "devDependencies"
-Cohesion: 0.50
-Nodes (4): devDependencies, drizzle-kit, @types/bun, typescript
+### Community 106 - "useIsMobile"
+Cohesion: 0.70
+Nodes (4): getServerSnapshot(), getSnapshot(), subscribe(), useIsMobile()
 
-### Community 103 - "packageManager"
+### Community 107 - ".handleAuth"
 Cohesion: 0.50
-Nodes (4): devEngines, packageManager, name, version
+Nodes (3): All, Res, Req
+
+### Community 109 - "createDedupedFetch"
+Cohesion: 0.83
+Nodes (3): createDedupedFetch(), resolveMethod(), resolveUrl()
 
 ## Knowledge Gaps
-- **627 isolated node(s):** `StepLevelProps`, `StepScheduleProps`, `StepSubjectsProps`, `WizardFooterProps`, `WizardFormBodyProps` (+622 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1006 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **19 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **550 isolated node(s):** `ExamResultSummaryProps`, `StepLevelProps`, `StepScheduleProps`, `StepSubjectsProps`, `WizardFooterProps` (+545 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 923 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `react` to `api/src/index.ts`, `question-card.tsx`, `responsive-dialog.tsx`, `sidebar.tsx`, `rpc-pattern.ts`, `custom-exam-steps.tsx`, `menubar.tsx`, `toBengaliNumber`, `step-profile.tsx`, `combobox.tsx`, `sign-in-card.tsx`, `cn`, `shared/index.ts`, `field.tsx`, `next`, `web/package.json`, `questionnaire.tsx`, `item.tsx`, `utils.ts`, `PageLoading`, `share-sheet.tsx`, `app/layout.tsx`, `[subSlug]/page.tsx`, `qb-target-content.tsx`, `take/page.tsx`, `context-menu.tsx`, `carousel.tsx`, `chart.tsx`, `spinner.tsx`, `topic-wise-view.tsx`, `alert-dialog.tsx`, `class-variance-authority`, `button.tsx`, `attachment.tsx`, `page-breadcrumbs.tsx`, `theme-toggle.tsx`, `select.tsx`, `table.tsx`, `rich-text.tsx`, `bubble.tsx`, `popover.tsx`, `alert.tsx`, `input-otp.tsx`?**
-  _High betweenness centrality (0.206) - this node is a cross-community bridge._
-- **Why does `@paws/sdk` connect `api/package.json` to `web/package.json`?**
-  _High betweenness centrality (0.126) - this node is a cross-community bridge._
-- **Why does `cn` connect `cn` to `api/src/index.ts`, `question-card.tsx`, `responsive-dialog.tsx`, `sidebar.tsx`, `custom-exam-steps.tsx`, `menubar.tsx`, `step-profile.tsx`, `combobox.tsx`, `field.tsx`, `web/package.json`, `questionnaire.tsx`, `item.tsx`, `utils.ts`, `context-menu.tsx`, `carousel.tsx`, `chart.tsx`, `spinner.tsx`, `topic-wise-view.tsx`, `alert-dialog.tsx`, `class-variance-authority`, `button.tsx`, `attachment.tsx`, `page-breadcrumbs.tsx`, `navigation-menu.tsx`, `select.tsx`, `table.tsx`, `empty.tsx`, `bubble.tsx`, `popover.tsx`, `alert.tsx`, `input-otp.tsx`, `progress.tsx`, `tabs.tsx`, `resizable.tsx`?**
-  _High betweenness centrality (0.081) - this node is a cross-community bridge._
-- **What connects `StepLevelProps`, `StepScheduleProps`, `StepSubjectsProps` to the rest of the system?**
-  _627 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `api/src/index.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.05076679005817028 - nodes in this community are weakly interconnected._
-- **Should `relations.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.05805515239477504 - nodes in this community are weakly interconnected._
-- **Should `qb.route.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.08163265306122448 - nodes in this community are weakly interconnected._
+- **Why does `@types/node` connect `server/package.json` to `client/package.json`?**
+  _High betweenness centrality (0.290) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `client/src/components/ui/button.tsx`, `client/src/components/upgrade/upgrade-view.tsx`, `client/src/components/ui/field.tsx`, `custom/page.tsx`, `client/src/components/ui/menubar.tsx`, `client/src/components/features/onboarding/onboarding-wizard.tsx`, `client/src/hooks/use-question-bank.ts`, `toBengaliNumber`, `client/src/components/watch/watch-player-view.tsx`, `client/package.json`, `client/src/components/exam/custom-exam-steps.tsx`, `client/src/components/profile/profile-card.tsx`, `client/src/lib/utils.ts`, `client/src/components/shared/question-card.tsx`, `client/src/components/ui/sidebar.tsx`, `app/layout.tsx`, `components/auth/index.ts`, `client/src/components/ui/questionnaire.tsx`, `client/src/components/checkout/order-checkout-view.tsx`, `cn`, `client/src/components/watch/channel-detail-view.tsx`, `client/src/components/icons.tsx`, `client/src/components/shared/responsive-dialog.tsx`, `client/src/components/ui/combobox.tsx`, `client/src/components/ui/spinner.tsx`, `list-card.tsx`, `client/src/components/ui/context-menu.tsx`, `class-variance-authority`, `client/src/components/ui/carousel.tsx`, `(landing)/page.tsx`, `client/src/components/exam/written-answer-uploader.tsx`, `client/src/components/ui/chart.tsx`, `client/src/components/ui/alert-dialog.tsx`, `client/src/components/ui/item.tsx`, `client/src/components/ui/attachment.tsx`, `coupon-manage-dialog.tsx`, `client/src/components/shared/page-breadcrumbs.tsx`, `client/src/components/ui/command.tsx`, `client/src/components/ui/sheet.tsx`, `client/src/components/ui/select.tsx`, `client/src/components/ui/input-group.tsx`, `client/src/components/ui/table.tsx`, `client/src/components/ui/bubble.tsx`, `client/src/components/ui/message.tsx`, `client/src/components/ui/message-scroller.tsx`, `client/src/components/ui/popover.tsx`, `client/src/components/ui/toggle-group.tsx`, `client/src/components/shared/app-shell.tsx`, `client/src/components/ui/input-otp.tsx`, `client/src/components/ui/marker.tsx`, `useIsMobile`?**
+  _High betweenness centrality (0.287) - this node is a cross-community bridge._
+- **Why does `@nestjs/common` connect `@nestjs/common` to `exam.controller.ts`, `server/package.json`, `database/schema/relations.ts`, `schema/qb.ts`, `AuthUser`, `billing.controller.ts`, `session.guard.ts`, `qb.controller.ts`, `billing/billing.service.ts`, `api-error.ts`, `qb.service.ts`, `AuthInstance`, `upload.controller.ts`, `watch.controller.ts`, `app.module.ts`, `drizzle.service.ts`, `DrizzleService`?**
+  _High betweenness centrality (0.209) - this node is a cross-community bridge._
+- **What connects `ExamResultSummaryProps`, `StepLevelProps`, `StepScheduleProps` to the rest of the system?**
+  _550 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `exam.controller.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.054244306418219465 - nodes in this community are weakly interconnected._
+- **Should `database/schema/relations.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.05117845117845118 - nodes in this community are weakly interconnected._
+- **Should `client/src/components/ui/button.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.0898989898989899 - nodes in this community are weakly interconnected._

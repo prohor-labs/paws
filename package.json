@@ -8,6 +8,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
+    "clean:turbo": "rm -rf .turbo node_modules/.cache/turbo apps/*/.turbo apps/*/node_modules/.cache/turbo packages/*/.turbo packages/*/node_modules/.cache/turbo",
     "graphify": "graphify .",
     "graphify:apps": "graphify apps/",
     "graphify:update": "graphify --update"
