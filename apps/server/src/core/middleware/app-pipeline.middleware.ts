@@ -51,7 +51,12 @@ export class AppPipelineMiddleware implements NestMiddleware {
       );
     });
 
-    if (request.method !== 'OPTIONS' && !request.originalUrl.startsWith('/api/auth') && !request.originalUrl.startsWith('/api/v1/auth')) {
+    if (
+      request.method !== 'OPTIONS' &&
+      !request.originalUrl.startsWith('/api/auth') &&
+      !request.originalUrl.startsWith('/api/v1/auth') &&
+      !request.originalUrl.startsWith('/api/v1/health')
+    ) {
       const secret = env.internalProxySecret;
       if (secret && request.headers['x-internal-proxy-secret'] !== secret) {
         response
