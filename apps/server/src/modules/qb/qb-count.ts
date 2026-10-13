@@ -115,21 +115,19 @@ export async function recalculateAllCounts(db: Database): Promise<void> {
   await db.execute(sql`
     UPDATE public.qb_containers c
     SET
-      question_count = CASE
-        WHEN c.target_id IN (SELECT id FROM public.qb_targets WHERE slug IN ('hsc', 'hsc-academic', 'ssc-academic')) THEN
-          COALESCE((
-            SELECT SUM(ci.question_count)
-            FROM public.qb_container_items ci
-            WHERE ci.container_id = c.id
-          ), 0)
-        ELSE
-          COALESCE((
-            SELECT COUNT(DISTINCT qs.question_id)
-            FROM public.qb_question_sources qs
-            JOIN public.qb_sources src ON src.id = qs.source_id
-            WHERE src.container_id = c.id
-          ), 0)
-      END,
+      question_count = GREATEST(
+        COALESCE((
+          SELECT COUNT(DISTINCT qs.question_id)
+          FROM public.qb_question_sources qs
+          JOIN public.qb_sources src ON src.id = qs.source_id
+          WHERE src.container_id = c.id
+        ), 0),
+        COALESCE((
+          SELECT SUM(ci.question_count)
+          FROM public.qb_container_items ci
+          WHERE ci.container_id = c.id
+        ), 0)
+      ),
       item_count = COALESCE((
         SELECT COUNT(*)
         FROM public.qb_container_items ci

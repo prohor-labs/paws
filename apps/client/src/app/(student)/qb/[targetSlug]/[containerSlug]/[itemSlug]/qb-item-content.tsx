@@ -29,6 +29,22 @@ export function QbItemContent() {
   const item = data?.item;
   const subject = data?.subject;
   const chapters = data?.chapters ?? [];
+  const sources = data?.sources ?? [];
+
+  const isAdmissionOrJob =
+    target?.group === "admission" ||
+    target?.group === "job" ||
+    ["varsity-admission", "engineering-admission", "medical-admission", "job"].includes(targetSlug);
+
+  const [activeTab, setActiveTab] = React.useState<"years" | "chapters">("chapters");
+
+  React.useEffect(() => {
+    if (sources.length > 0 && isAdmissionOrJob) {
+      setActiveTab("years");
+    } else {
+      setActiveTab("chapters");
+    }
+  }, [sources.length, isAdmissionOrJob]);
 
   const filteredChapters = React.useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -38,7 +54,22 @@ export function QbItemContent() {
     );
   }, [chapters, query]);
 
-  const totalQuestions = item?.questionCount ?? chapters.reduce((acc, c) => acc + (c.questionCount ?? 0), 0);
+  const filteredSources = React.useMemo(() => {
+    const q = query.toLowerCase().trim();
+    if (!q) return sources;
+    return sources.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.slug.toLowerCase().includes(q) ||
+        (s.year ? String(s.year).includes(q) : false),
+    );
+  }, [sources, query]);
+
+  const totalQuestions =
+    item?.questionCount ??
+    (sources.length > 0
+      ? sources.reduce((acc, s) => acc + (s.questionCount ?? 0), 0)
+      : chapters.reduce((acc, c) => acc + (c.questionCount ?? 0), 0));
 
   const handleStartPractice = async () => {
     try {
@@ -70,6 +101,8 @@ export function QbItemContent() {
     );
   }
 
+  const showTabs = sources.length > 0 && chapters.length > 0;
+
   return (
     <div className="w-full flex flex-col gap-5 max-w-5xl mx-auto pb-16">
       <div className="flex flex-col gap-2">
@@ -98,7 +131,9 @@ export function QbItemContent() {
                 {item.name}
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {`${toBengaliNumber(chapters.length)} টি অধ্যায় / সেকশন • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`}
+                {activeTab === "years"
+                  ? `${toBengaliNumber(sources.length)} টি প্রশ্নপত্র • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`
+                  : `${toBengaliNumber(chapters.length)} টি অধ্যায় • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`}
               </p>
             </div>
           </div>
@@ -109,7 +144,7 @@ export function QbItemContent() {
               aria-label="খুঁজো"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="অধ্যায় খুঁজুন..."
+              placeholder={activeTab === "years" ? "সাল বা প্রশ্নপত্র খুঁজুন..." : "অধ্যায় খুঁজুন..."}
               className="w-full sm:w-56 rounded-full border border-border bg-background px-4 py-1.5 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary h-9"
             />
             <Button
@@ -124,13 +159,62 @@ export function QbItemContent() {
             </Button>
           </div>
         </div>
+
+        {showTabs && (
+          <div className="flex items-center gap-1.5 border-b border-border/60 pt-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab("years")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-t-lg transition-colors border-b-2 cursor-pointer ${
+                activeTab === "years"
+                  ? "border-primary text-primary bg-primary/5"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              }`}
+            >
+              সালভিত্তিক প্রশ্নপত্র ({toBengaliNumber(sources.length)})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("chapters")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-t-lg transition-colors border-b-2 cursor-pointer ${
+                activeTab === "chapters"
+                  ? "border-primary text-primary bg-primary/5"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              }`}
+            >
+              অধ্যায়সমূহ ({toBengaliNumber(chapters.length)})
+            </button>
+          </div>
+        )}
       </div>
 
-      {filteredChapters.length === 0 ? (
+      {activeTab === "years" ? (
+        filteredSources.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title="কোনো প্রশ্নপত্র পাওয়া যায়নি"
+            description="এই বিষয়ে এখনো কোনো সালভিত্তিক প্রশ্নপত্র যোগ করা হয়নি।"
+          />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {filteredSources.map((s) => (
+              <GridCard
+                key={s.id}
+                href={`/qb/${targetSlug}/${containerSlug}/${itemSlug}/${s.slug}`}
+                title={s.year ? `${toBengaliNumber(s.year)} প্রশ্নব্যাংক` : s.name}
+                subtitle={s.name !== (s.year ? `${toBengaliNumber(s.year)} প্রশ্নব্যাংক` : s.name) ? s.name : item.name}
+                category={target.name}
+                badge={s.questionCount ? `${toBengaliNumber(s.questionCount)} টি প্রশ্ন` : undefined}
+                eventLabel={`Source_${s.slug}`}
+              />
+            ))}
+          </div>
+        )
+      ) : filteredChapters.length === 0 ? (
         <EmptyState
           icon={BookOpen}
           title="কোনো অধ্যায় বা সেকশন পাওয়া যায়নি"
-          description="এই বিষয়ে এখনো কোনো প্রশ্নপত্র বা অধ্যায় যোগ করা হয়নি।"
+          description="এই বিষয়ে এখনো কোনো অধ্যায় যোগ করা হয়নি।"
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">

@@ -45,6 +45,7 @@ type ContainerItemRow = typeof qbContainerItems.$inferSelect;
 type SubjectRow = typeof qbSubjects.$inferSelect;
 type ChapterRow = typeof qbChapters.$inferSelect;
 type TopicRow = typeof qbTopics.$inferSelect;
+type SourceRow = typeof qbSources.$inferSelect;
 
 function isUUID(str: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
@@ -574,6 +575,22 @@ export class QbService {
       }
     }
 
+    const sources = await this.db
+      .select({
+        id: qbSources.id,
+        sourceGroup: qbSources.sourceGroup,
+        type: qbSources.type,
+        name: qbSources.name,
+        slug: qbSources.slug,
+        institution: qbSources.institution,
+        unit: qbSources.unit,
+        year: qbSources.year,
+        questionCount: qbSources.questionCount,
+      })
+      .from(qbSources)
+      .where(eq(qbSources.containerItemId, item.id))
+      .orderBy(desc(qbSources.year), asc(qbSources.name));
+
     return {
       success: true,
       data: {
@@ -628,6 +645,17 @@ export class QbService {
           orderIndex: chapter.orderIndex,
           topicCount: chapter.topicCount,
           questionCount: chapter.questionCount,
+        })),
+        sources: sources.map((s) => ({
+          id: s.id,
+          sourceGroup: s.sourceGroup,
+          type: s.type,
+          name: s.name,
+          slug: s.slug,
+          institution: s.institution,
+          unit: s.unit,
+          year: s.year,
+          questionCount: s.questionCount,
         })),
         examSheets: examSheets.map((examSheet) => ({
           id: examSheet.id,
@@ -780,6 +808,8 @@ export class QbService {
 
     const isAll = chapterSlug === 'all';
     let chapter: ChapterRow | undefined;
+    let isSourceChapter = false;
+    let sourceChapter: SourceRow | undefined;
 
     if (isAll) {
       chapter = {
@@ -816,13 +846,50 @@ export class QbService {
             : eq(qbChapters.slug, chapterSlug),
         });
       }
+      if (!chapter) {
+        let matchedSourceRow = containerItem
+          ? await this.db.query.qbSources.findFirst({
+              where: and(
+                eq(qbSources.containerItemId, containerItem.id),
+                isUUID(chapterSlug)
+                  ? or(eq(qbSources.slug, chapterSlug), eq(qbSources.id, chapterSlug))
+                  : eq(qbSources.slug, chapterSlug),
+              ),
+            })
+          : undefined;
+
+        if (!matchedSourceRow) {
+          matchedSourceRow = await this.db.query.qbSources.findFirst({
+            where: isUUID(chapterSlug)
+              ? or(eq(qbSources.slug, chapterSlug), eq(qbSources.id, chapterSlug))
+              : eq(qbSources.slug, chapterSlug),
+          });
+        }
+
+        if (matchedSourceRow) {
+          isSourceChapter = true;
+          sourceChapter = matchedSourceRow;
+          chapter = {
+            id: matchedSourceRow.id,
+            subjectId: effectiveSubject.id,
+            containerItemId: matchedSourceRow.containerItemId ?? (containerItem?.id ?? null),
+            name: matchedSourceRow.name,
+            slug: matchedSourceRow.slug,
+            orderIndex: 0,
+            topicCount: 0,
+            questionCount: matchedSourceRow.questionCount,
+          };
+        }
+      }
     }
 
     if (!chapter) {
       throw ApiError.notFound('Chapter not found');
     }
 
-    const subChapterIds = isAll
+    const subChapterIds = isSourceChapter
+      ? []
+      : isAll
       ? subject
         ? (
             await this.db
@@ -1332,14 +1399,16 @@ export class QbService {
       );
     }
 
-    const effectiveSource = source || sourceSlug || sourceId;
+    const effectiveSource =
+      source || sourceSlug || sourceId || (isSourceChapter && sourceChapter ? sourceChapter.slug : undefined);
     let matchedSource: (typeof sourcesList)[number] | undefined;
     let sourceTopicCountMap: Map<string, number> | undefined;
 
     if (effectiveSource && effectiveSource !== 'all') {
-      matchedSource = sourcesList.find(
-        (sourceRow) => sourceRow.id === effectiveSource || sourceRow.slug === effectiveSource,
-      );
+      matchedSource =
+        sourcesList.find(
+          (sourceRow) => sourceRow.id === effectiveSource || sourceRow.slug === effectiveSource,
+        ) || (isSourceChapter && sourceChapter ? sourceChapter : undefined);
       if (matchedSource) {
         const questionIdsWithSource = this.db
           .select({ questionId: qbQuestionSources.questionId })
