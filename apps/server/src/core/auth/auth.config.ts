@@ -67,6 +67,10 @@ export function createAuth(db: Database) {
       ipAddress: {
         ipAddressHeaders: ['x-forwarded-for', 'x-real-ip', 'cf-connecting-ip'],
       },
+      crossSubDomainCookies: {
+        enabled: true,
+        domain: '.prohor.dev',
+      },
       defaultCookieAttributes: {
         sameSite: 'lax',
         secure: true,

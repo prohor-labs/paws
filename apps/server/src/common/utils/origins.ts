@@ -10,6 +10,7 @@ export const STATIC_TRUSTED_ORIGINS: readonly string[] = [
   env.betterAuthUrl,
   'https://api.prohor.dev',
   'https://paws-api.prohor.dev',
+  'https://study.prohor.dev',
   'https://app.prohor.dev',
   'https://paws.academy',
   'http://localhost:3000',
