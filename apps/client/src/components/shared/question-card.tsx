@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Bookmark, BookOpen, Lock, Share, Sparkle } from "@/components/icons";
+import { Bookmark, BookOpen, ChevronDown, Lock, Share, Sparkle } from "@/components/icons";
 import { RichText } from "@/components/shared/rich-text";
 import { ShareSheet } from "@/components/shared/share-sheet";
 import { UpgradeDialog } from "@/components/shared/upgrade-dialog";
@@ -281,14 +281,17 @@ function WrittenParts({
 function QuestionExplanation({
   questionId,
   explanation: initialExplanation,
-  title = "সমাধান / ব্যাখ্যা",
+  title = "ব্যাখ্যা",
   onUnlockClick,
+  isOpenDefault = false,
 }: {
   questionId?: string;
   explanation: string;
   title?: string;
   onUnlockClick?: () => void;
+  isOpenDefault?: boolean;
 }) {
+  const [isOpen, setIsOpen] = React.useState<boolean>(isOpenDefault);
   const [revealedExplanation, setRevealedExplanation] = React.useState<string | null>(
     initialExplanation || null,
   );
@@ -302,7 +305,7 @@ function QuestionExplanation({
   const isPro = billingStatus?.subscription?.isPro ?? false;
   const aiCredits = billingStatus?.credits?.aiCredits ?? 0;
 
-  React.useEffect(() => {
+  const triggerReveal = React.useCallback(() => {
     if (requestedRef.current || !questionId) return;
     requestedRef.current = true;
 
@@ -324,6 +327,17 @@ function QuestionExplanation({
       });
   }, [questionId, revealMutation]);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      triggerReveal();
+    }
+  }, [isOpen, triggerReveal]);
+
+  const handleToggle = () => {
+    const nextState = !isOpen;
+    setIsOpen(nextState);
+  };
+
   const handleOpenUpgrade = () => {
     if (onUnlockClick) {
       onUnlockClick();
@@ -332,87 +346,92 @@ function QuestionExplanation({
     }
   };
 
-  const quotaBadge = (
-    <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
-      <Sparkle className="size-3 text-primary" />
-      <span>AI ক্রেডিট: {toBengaliNumber(aiCredits)}</span>
-    </span>
-  );
-
   return (
     <>
-      <div className="pt-3 border-t border-border/40 mt-1">
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-            <span>{title}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {quotaBadge}
-            {!isPro && (
-              <button
-                type="button"
-                onClick={handleOpenUpgrade}
-                className="text-[11px] font-semibold text-primary hover:underline ml-1 cursor-pointer bg-transparent border-none p-0"
-              >
-                আপগ্রেড
-              </button>
-            )}
-          </div>
-        </div>
-
-        {isLocked ? (
-          <div className="relative overflow-hidden rounded-xl border border-border/80 bg-muted/30 p-6 text-center">
-            <div className="select-none blur-xs opacity-25 text-xs leading-relaxed text-muted-foreground">
-              {revealedExplanation ||
-                initialExplanation ||
-                "এখানে প্রশ্নের সম্পূর্ণ বিস্তারিত ব্যাখ্যা ও সলিউশন রয়েছে। সঠিক কনসেপ্ট এবং শর্টকাট টেকনিকসহ বিস্তারিত আলোচনা..."}
+      <div className="mt-3 overflow-hidden rounded-xl bg-[#EEF5F2] dark:bg-[#13211D] border border-emerald-900/10 dark:border-emerald-800/20">
+        <button
+          type="button"
+          onClick={handleToggle}
+          aria-expanded={isOpen}
+          className="w-full bg-[#DCEBE5] dark:bg-[#29423B] px-4 py-3 text-left text-[#0D1A16] dark:text-emerald-50 transition-colors duration-200 hover:bg-[#CFE3DA] dark:hover:bg-[#36534B] flex items-center justify-between cursor-pointer"
+        >
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <BookOpen className="size-5 shrink-0 text-[#0E7A56] dark:text-emerald-400" />
+              <span className="text-base font-semibold leading-none">{title}</span>
             </div>
+            <p className="mt-1.5 text-xs font-medium text-[#6F7A76] dark:text-emerald-300/90">
+              {isPro ? "আনলিমিটেড এআই ব্যাখ্যা (প্রো প্ল্যান)" : `এআই ক্রেডিট বাকি: ${toBengaliNumber(aiCredits)}`}
+            </p>
+          </div>
+          <ChevronDown
+            className={cn(
+              "size-5 text-[#0E7A56] dark:text-emerald-300 transition-transform duration-200",
+              isOpen && "rotate-180",
+            )}
+          />
+        </button>
 
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/90 p-4 backdrop-blur-xs">
-              <div className="flex size-9 items-center justify-center rounded-full bg-amber-500/10 text-amber-500 mb-2 border border-amber-500/20">
-                <Lock className="size-4.5" />
+        {isOpen && (
+          <div className="p-4 bg-transparent border-t border-[#DCEBE5]/80 dark:border-[#29423B]/80">
+            {isLocked ? (
+              <div className="relative overflow-hidden rounded-xl border border-border/80 bg-background/50 p-6 text-center">
+                <div className="select-none blur-xs opacity-25 text-xs leading-relaxed text-muted-foreground">
+                  {revealedExplanation ||
+                    initialExplanation ||
+                    "এখানে প্রশ্নের সম্পূর্ণ বিস্তারিত ব্যাখ্যা ও সলিউশন রয়েছে। সঠিক কনসেপ্ট এবং শর্টকাট টেকনিকসহ বিস্তারিত আলোচনা..."}
+                </div>
+
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/90 p-4 backdrop-blur-xs">
+                  <div className="flex size-9 items-center justify-center rounded-full bg-amber-500/10 text-amber-500 mb-2 border border-amber-500/20">
+                    <Lock className="size-4.5" />
+                  </div>
+                  <h4 className="text-sm font-bold text-foreground">
+                    পর্যাপ্ত AI ক্রেডিট নেই
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-1 mb-3 max-w-sm">
+                    নতুন AI জেনারেটেড ব্যাখ্যা ও স্টেপ-বাই-স্টেপ সমাধান পেতে ক্রেডিট টপ-আপ বা প্রো প্ল্যানে আপগ্রেড করুন।
+                  </p>
+                  <Button
+                    size="sm"
+                    onClick={handleOpenUpgrade}
+                    className="bg-gradient-to-r from-teal-500 to-indigo-600 font-semibold text-xs text-white shadow-sm hover:opacity-95 cursor-pointer"
+                  >
+                    <Sparkle className="size-3.5 fill-white mr-1.5" />
+                    ক্রেডিট বা প্রো আনলক করুন
+                  </Button>
+                </div>
               </div>
-              <h4 className="text-sm font-bold text-foreground">
-                পর্যাপ্ত AI ক্রেডিট নেই
-              </h4>
-              <p className="text-xs text-muted-foreground mt-1 mb-3 max-w-sm">
-                নতুন AI জেনারেটেড ব্যাখ্যা ও স্টেপ-বাই-স্টেপ সমাধান পেতে ক্রেডিট টপ-আপ বা প্রো প্ল্যানে আপগ্রেড করুন।
-              </p>
-              <Button
-                size="sm"
-                onClick={handleOpenUpgrade}
-                className="bg-gradient-to-r from-teal-500 to-indigo-600 font-semibold text-xs text-white shadow-sm hover:opacity-95 cursor-pointer"
-              >
-                <Sparkle className="size-3.5 fill-white mr-1.5" />
-                ক্রেডিট বা প্রো আনলক করুন
-              </Button>
-            </div>
-          </div>
-        ) : revealMutation.isPending && !revealedExplanation ? (
-          <div className="p-4 rounded-xl bg-muted/30 border border-border/60 flex items-center justify-center min-h-[72px]">
-            <AILoader label="AI ব্যাখ্যা তৈরি হচ্ছে..." variant="dots" showElapsed />
-          </div>
-        ) : (
-          <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60">
-            {revealedExplanation ? (
-              <AIResponse text={revealedExplanation} className="text-foreground text-xs sm:text-sm" />
+            ) : revealMutation.isPending && !revealedExplanation ? (
+              <div className="p-4 rounded-xl bg-background/40 flex items-center justify-center min-h-[80px]">
+                <AILoader label="AI মেন্টর ব্যাখ্যা তৈরি হচ্ছে..." variant="dots" showElapsed />
+              </div>
             ) : (
-              <RichText
-                content={initialExplanation}
-                className="text-foreground text-xs sm:text-sm"
-              />
-            )}
-            {!isPro && (
-              <div className="mt-3 pt-2.5 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                <span className="text-[11px]">দৈনিক আরও দ্রুত প্রস্তুতি ও আনলিমিটেড ব্যাখ্যার জন্য</span>
-                <button
-                  type="button"
-                  onClick={handleOpenUpgrade}
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer bg-transparent border-none p-0"
-                >
-                  <Sparkle className="size-3 text-primary" />
-                  <span>প্রো আপগ্রেড করুন →</span>
-                </button>
+              <div className="space-y-3">
+                {revealedExplanation ? (
+                  <AIResponse
+                    text={revealedExplanation}
+                    className="text-foreground text-sm leading-relaxed space-y-3"
+                  />
+                ) : (
+                  <RichText
+                    content={initialExplanation}
+                    className="text-foreground text-sm leading-relaxed space-y-3"
+                  />
+                )}
+                {!isPro && (
+                  <div className="mt-4 pt-3 border-t border-[#DCEBE5] dark:border-[#29423B] flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                    <span className="text-[11px]">দৈনিক আরও দ্রুত প্রস্তুতি ও আনলিমিটেড ব্যাখ্যার জন্য</span>
+                    <button
+                      type="button"
+                      onClick={handleOpenUpgrade}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer bg-transparent border-none p-0"
+                    >
+                      <Sparkle className="size-3 text-primary" />
+                      <span>প্রো আপগ্রেড করুন →</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -500,11 +519,6 @@ function QuestionAnswers({
 }: QuestionAnswersProps) {
   const isMcq = question.qType === "mcq" || options.length > 0;
   const isWritten = question.qType === "written" || parts.length > 0;
-  const [showExplanation, setShowExplanation] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!isRevealed) setShowExplanation(false);
-  }, [isRevealed]);
 
   return (
     <>
@@ -541,25 +555,12 @@ function QuestionAnswers({
         )}
 
       {isRevealed && parts.length === 0 && (
-        <div className="mt-3">
-          {!showExplanation ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-xs"
-              onClick={() => setShowExplanation(true)}
-            >
-              <BookOpen size={13} />
-              ব্যাখ্যা দেখুন
-            </Button>
-          ) : (
-            <QuestionExplanation
-              questionId={question.id}
-              explanation={question.explanation ?? ""}
-              title="সমাধান / ব্যাখ্যা"
-            />
-          )}
-        </div>
+        <QuestionExplanation
+          questionId={question.id}
+          explanation={question.explanation ?? ""}
+          title="ব্যাখ্যা"
+          isOpenDefault={false}
+        />
       )}
     </>
   );
