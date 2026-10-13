@@ -41,43 +41,13 @@ export class ExplanationService {
       };
     }
 
-    return await this.db.transaction(async (tx) => {
-      const [record] = await tx
-        .insert(dailyExplanationUsage)
-        .values({
-          userId,
-          date: dhakaDate,
-          viewCount: 1,
-        })
-        .onConflictDoUpdate({
-          target: [dailyExplanationUsage.userId, dailyExplanationUsage.date],
-          set: {
-            viewCount: sql`${dailyExplanationUsage.viewCount} + 1`,
-            updatedAt: new Date(),
-          },
-        })
-        .returning({ viewCount: dailyExplanationUsage.viewCount });
-
-      const currentCount = record.viewCount;
-
-      if (currentCount > FREE_DAILY_EXPLANATION_LIMIT) {
-        return {
-          allowed: false,
-          isPro: false,
-          remaining: 0,
-          limit: FREE_DAILY_EXPLANATION_LIMIT,
-          resetsInSeconds: secondsUntilReset,
-        };
-      }
-
-      return {
-        allowed: true,
-        isPro: false,
-        remaining: Math.max(0, FREE_DAILY_EXPLANATION_LIMIT - currentCount),
-        limit: FREE_DAILY_EXPLANATION_LIMIT,
-        resetsInSeconds: secondsUntilReset,
-      };
-    });
+    return {
+      allowed: true,
+      isPro,
+      remaining: Number.POSITIVE_INFINITY,
+      limit: Number.POSITIVE_INFINITY,
+      resetsInSeconds: secondsUntilReset,
+    };
   }
 
   async getQuotaStatus(userId: string): Promise<ExplanationAccessResult> {
@@ -99,21 +69,11 @@ export class ExplanationService {
       };
     }
 
-    const usage = await this.db.query.dailyExplanationUsage.findFirst({
-      where: and(
-        eq(dailyExplanationUsage.userId, userId),
-        eq(dailyExplanationUsage.date, dhakaDate),
-      ),
-    });
-
-    const currentCount = usage?.viewCount ?? 0;
-    const remaining = Math.max(0, FREE_DAILY_EXPLANATION_LIMIT - currentCount);
-
     return {
-      allowed: remaining > 0,
-      isPro: false,
-      remaining,
-      limit: FREE_DAILY_EXPLANATION_LIMIT,
+      allowed: true,
+      isPro,
+      remaining: Number.POSITIVE_INFINITY,
+      limit: Number.POSITIVE_INFINITY,
       resetsInSeconds: secondsUntilReset,
     };
   }

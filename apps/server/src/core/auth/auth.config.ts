@@ -26,6 +26,33 @@ export function createAuth(db: Database) {
       },
       skipStateCookieCheck: true,
     },
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (createdUser) => {
+            try {
+              await db
+                .insert(schema.userCredits)
+                .values({
+                  userId: createdUser.id,
+                  aiCredits: 100,
+                })
+                .onConflictDoNothing();
+
+              await db.insert(schema.creditTransactions).values({
+                userId: createdUser.id,
+                type: 'addon_topup',
+                amount: 100,
+                balanceAfter: 100,
+                reason: 'Welcome Bonus Free AI Credits',
+              });
+            } catch (err) {
+              console.error('Failed to grant signup credits:', err);
+            }
+          },
+        },
+      },
+    },
     user: {
       additionalFields: {
         role: {

@@ -298,17 +298,11 @@ function QuestionExplanation({
   const revealMutation = useRevealExplanation();
 
   const isPro = billingStatus?.subscription?.isPro ?? false;
-  const limit = billingStatus?.explanationQuota?.limit ?? 10;
-  const remaining = isPro ? Infinity : (billingStatus?.explanationQuota?.remaining ?? limit);
+  const aiCredits = billingStatus?.credits?.aiCredits ?? 0;
 
   React.useEffect(() => {
-    if (requestedRef.current || isPro || !questionId) return;
+    if (requestedRef.current || !questionId) return;
     requestedRef.current = true;
-
-    if (remaining <= 0) {
-      setIsLocked(true);
-      return;
-    }
 
     revealMutation
       .mutateAsync(questionId)
@@ -320,15 +314,13 @@ function QuestionExplanation({
       })
       .catch((err: { code?: string; status?: number; error?: { code?: string } }) => {
         if (
-          err?.code === "DAILY_LIMIT_REACHED" ||
-          err?.status === 403 ||
-          err?.error?.code === "DAILY_LIMIT_REACHED" ||
-          remaining <= 0
+          err?.code === "INSUFFICIENT_AI_CREDITS" ||
+          err?.error?.code === "INSUFFICIENT_AI_CREDITS"
         ) {
           setIsLocked(true);
         }
       });
-  }, [questionId, isPro, remaining, revealMutation]);
+  }, [questionId, revealMutation]);
 
   const handleOpenUpgrade = () => {
     if (onUnlockClick) {
@@ -338,13 +330,10 @@ function QuestionExplanation({
     }
   };
 
-  const quotaBadge = isPro ? (
-    <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-      প্রো মেম্বার • আনলিমিটেড ব্যাখ্যা
-    </span>
-  ) : (
-    <span className="text-[11px] font-medium text-muted-foreground">
-      দৈনিক বাকি: {toBengaliNumber(remaining)}/{toBengaliNumber(limit)}
+  const quotaBadge = (
+    <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+      <Sparkle className="size-3 text-primary" />
+      <span>AI ক্রেডিট: {toBengaliNumber(aiCredits)}</span>
     </span>
   );
 
@@ -382,10 +371,10 @@ function QuestionExplanation({
                 <Lock className="size-4.5" />
               </div>
               <h4 className="text-sm font-bold text-foreground">
-                দৈনিক ফ্রি {toBengaliNumber(limit)}টি ব্যাখ্যার সীমা শেষ!
+                পর্যাপ্ত AI ক্রেডিট নেই
               </h4>
               <p className="text-xs text-muted-foreground mt-1 mb-3 max-w-sm">
-                আনলিমিটেড ব্যাখ্যা, শর্টকাট ট্রিকস ও AI ডাউট সলভার পেতে প্রো-তে আপগ্রেড করো।
+                নতুন AI জেনারেটেড ব্যাখ্যা ও স্টেপ-বাই-স্টেপ সমাধান পেতে ক্রেডিট টপ-আপ বা প্রো প্ল্যানে আপগ্রেড করুন।
               </p>
               <Button
                 size="sm"
@@ -393,7 +382,7 @@ function QuestionExplanation({
                 className="bg-gradient-to-r from-teal-500 to-indigo-600 font-semibold text-xs text-white shadow-sm hover:opacity-95 cursor-pointer"
               >
                 <Sparkle className="size-3.5 fill-white mr-1.5" />
-                আনলিমিটেড আনলক করো
+                ক্রেডিট বা প্রো আনলক করুন
               </Button>
             </div>
           </div>

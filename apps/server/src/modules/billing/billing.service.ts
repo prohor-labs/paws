@@ -321,14 +321,17 @@ export class BillingService {
     const currentExp = question.explanation?.trim();
     const isTagOnly = !currentExp || (currentExp.startsWith('[') && currentExp.endsWith(']'));
 
+    if (!isTagOnly && currentExp) {
+      return { explanation: cleanAndFormatMathText(currentExp), aiGenerated: false };
+    }
+
     if (!userId) {
       return { explanation: currentExp ? cleanAndFormatMathText(currentExp) : null, aiGenerated: false };
     }
 
-    await this.consumeAiCredits(userId, 1, 'Question Explanation Access', { questionId });
-
-    if (!isTagOnly && currentExp) {
-      return { explanation: cleanAndFormatMathText(currentExp), aiGenerated: false };
+    const userCreditsBalance = await this.getUserCredits(userId);
+    if (userCreditsBalance < 1) {
+      throw new ApiError(400, 'INSUFFICIENT_AI_CREDITS', 'আপনার অ্যাকাউন্টে পর্যাপ্ত AI ক্রেডিট নেই।');
     }
 
     try {
@@ -357,23 +360,48 @@ ${formattedOptions}
 - ৩-৪ বাক্যে মূল বৈজ্ঞানিক/ব্যাকরণগত/তাত্ত্বিক কারণ স্পষ্টভাবে বিশ্লেষণ করো।
 - সরাসরি মূল ব্যাখ্যা দাও। অতিরিক্ত ভূমিকা বা অপ্রাসঙ্গিক কথা বাদ দাও।`;
 
-      const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${env.geminiApiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
-        },
-      );
+      const candidateModels = [
+        'models/gemini-3.5-flash',
+        'models/gemini-3.5-flash-lite',
+        'models/gemini-3.6-flash',
+        'models/gemini-3.8-flash',
+      ];
 
-      const geminiData = (await geminiRes.json()) as {
-        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-      };
-      const generated = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      let generated: string | undefined;
+
+      for (const model of candidateModels) {
+        try {
+          const geminiRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${env.geminiApiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+              }),
+            },
+          );
+
+          if (!geminiRes.ok) {
+            continue;
+          }
+
+          const geminiData = (await geminiRes.json()) as {
+            candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+          };
+          const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+          if (text) {
+            generated = text;
+            break;
+          }
+        } catch {
+          continue;
+        }
+      }
 
       if (generated) {
+        await this.consumeAiCredits(userId, 1, 'Question Explanation AI Generation', { questionId });
+
         const fullExplanation = currentExp && isTagOnly ? `${generated}\n\n${currentExp}` : generated;
         await this.db
           .update(qbQuestions)
@@ -382,8 +410,10 @@ ${formattedOptions}
 
         return { explanation: cleanAndFormatMathText(fullExplanation), aiGenerated: true };
       }
-    } catch {
-      await this.grantAiCredits(userId, 1, 'Refund: Explanation generation failed');
+    } catch (err) {
+      if (err instanceof ApiError) {
+        throw err;
+      }
     }
 
     return { explanation: currentExp ? cleanAndFormatMathText(currentExp) : null, aiGenerated: false };
