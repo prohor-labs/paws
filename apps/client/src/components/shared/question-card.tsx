@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Bookmark, Lock, Share, Sparkle } from "@/components/icons";
+import { Bookmark, BookOpen, Lock, Share, Sparkle } from "@/components/icons";
 import { RichText } from "@/components/shared/rich-text";
 import { ShareSheet } from "@/components/shared/share-sheet";
 import { UpgradeDialog } from "@/components/shared/upgrade-dialog";
@@ -500,6 +500,11 @@ function QuestionAnswers({
 }: QuestionAnswersProps) {
   const isMcq = question.qType === "mcq" || options.length > 0;
   const isWritten = question.qType === "written" || parts.length > 0;
+  const [showExplanation, setShowExplanation] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isRevealed) setShowExplanation(false);
+  }, [isRevealed]);
 
   return (
     <>
@@ -536,11 +541,25 @@ function QuestionAnswers({
         )}
 
       {isRevealed && parts.length === 0 && question.explanation && (
-        <QuestionExplanation
-          questionId={question.id}
-          explanation={question.explanation}
-          title="সমাধান / ব্যাখ্যা"
-        />
+        <div className="mt-3">
+          {!showExplanation ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs"
+              onClick={() => setShowExplanation(true)}
+            >
+              <BookOpen size={13} />
+              ব্যাখ্যা দেখুন
+            </Button>
+          ) : (
+            <QuestionExplanation
+              questionId={question.id}
+              explanation={question.explanation}
+              title="সমাধান / ব্যাখ্যা"
+            />
+          )}
+        </div>
       )}
     </>
   );
