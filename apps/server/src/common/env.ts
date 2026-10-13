@@ -64,4 +64,5 @@ export const env = {
       Boolean(process.env.AWS_ENDPOINT || process.env.AWS_ENDPOINT_URL),
   },
   geminiApiKey: process.env.GEMINI_API_KEY || '',
+  groqApiKey: process.env.GROQ_API_KEY || '',
 } as const;

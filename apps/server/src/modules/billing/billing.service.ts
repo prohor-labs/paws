@@ -360,42 +360,78 @@ ${formattedOptions}
 - ৩-৪ বাক্যে মূল বৈজ্ঞানিক/ব্যাকরণগত/তাত্ত্বিক কারণ স্পষ্টভাবে বিশ্লেষণ করো।
 - সরাসরি মূল ব্যাখ্যা দাও। অতিরিক্ত ভূমিকা বা অপ্রাসঙ্গিক কথা বাদ দাও।`;
 
-      const candidateModels = [
-        'models/gemini-3.5-flash',
-        'models/gemini-3.5-flash-lite',
-        'models/gemini-3.6-flash',
-        'models/gemini-3.8-flash',
-      ];
-
       let generated: string | undefined;
 
-      for (const model of candidateModels) {
-        try {
-          const geminiRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${env.geminiApiKey}`,
-            {
+      if (env.groqApiKey) {
+        const groqModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+        for (const gModel of groqModels) {
+          try {
+            const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                Authorization: `Bearer ${env.groqApiKey}`,
+                'Content-Type': 'application/json',
+              },
               body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
+                model: gModel,
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.3,
+                max_completion_tokens: 1024,
               }),
-            },
-          );
+            });
 
-          if (!geminiRes.ok) {
+            if (groqRes.ok) {
+              const groqData = (await groqRes.json()) as {
+                choices?: Array<{ message?: { content?: string } }>;
+              };
+              const text = groqData.choices?.[0]?.message?.content?.trim();
+              if (text) {
+                generated = text;
+                break;
+              }
+            }
+          } catch {
             continue;
           }
+        }
+      }
 
-          const geminiData = (await geminiRes.json()) as {
-            candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-          };
-          const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-          if (text) {
-            generated = text;
-            break;
+      if (!generated && env.geminiApiKey) {
+        const candidateModels = [
+          'models/gemini-3.5-flash',
+          'models/gemini-3.5-flash-lite',
+          'models/gemini-3.6-flash',
+          'models/gemini-3.8-flash',
+        ];
+
+        for (const model of candidateModels) {
+          try {
+            const geminiRes = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${env.geminiApiKey}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }],
+                }),
+              },
+            );
+
+            if (!geminiRes.ok) {
+              continue;
+            }
+
+            const geminiData = (await geminiRes.json()) as {
+              candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+            };
+            const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            if (text) {
+              generated = text;
+              break;
+            }
+          } catch {
+            continue;
           }
-        } catch {
-          continue;
         }
       }
 
