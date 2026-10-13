@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "Manage your studies and exam preparation on Paws Academy",
+  description: "Manage your studies and exam preparation on Prohor",
 };
 
 import { BangladeshMap } from "@/components/dashboard/bangladesh-map";

@@ -5,7 +5,7 @@ import { PageLoading } from "@/components/shared";
 
 export const metadata: Metadata = {
   title: "Login",
-  description: "Sign in or create an account on Paws Academy",
+  description: "Sign in or create an account on Prohor",
 };
 
 export default function LoginPage() {

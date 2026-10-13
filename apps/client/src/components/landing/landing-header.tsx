@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowDown, ArrowRight, X as CloseIcon, PawsLogo } from "@/components/icons";
+import { ArrowDown, ArrowRight, X as CloseIcon } from "@/components/icons";
+import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { LANDING_NAV_LINKS } from "@/lib/consts/landing";
@@ -30,10 +31,8 @@ export function LandingHeader() {
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-        <Link href="#home" className="group flex items-center outline-none" aria-label="PAWS হোম">
-          <div className="relative flex size-9 items-center justify-center rounded-full border border-border/60 bg-card/60 p-1.5 transition-transform duration-300 group-hover:scale-105">
-            <PawsLogo className="size-6 text-foreground" />
-          </div>
+        <Link href="#home" className="group flex items-center outline-none select-none" aria-label="Prohor">
+          <Logo width={100} height={32} className="h-7 w-auto transition-transform duration-300 group-hover:scale-105" priority />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex" aria-label="প্রধান নেভিগেশন">

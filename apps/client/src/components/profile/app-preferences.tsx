@@ -152,7 +152,7 @@ export function AppPreferences() {
       <MenuSection>
         <MenuItem
           icon={InfoCircle}
-          label="Paws Academy সম্পর্কে"
+          label="Prohor সম্পর্কে"
           href="/qb"
           iconBg="bg-fuchsia-500"
         />

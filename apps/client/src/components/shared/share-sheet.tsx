@@ -27,7 +27,7 @@ export function ShareSheet({
   title = "শেয়ার করুন",
   description = "লিংক কপি করে অথবা সোশ্যাল মিডিয়ায় শেয়ার করুন",
   url,
-  shareTitle = "Paws Academy",
+  shareTitle = "Prohor",
   shareText,
 }: ShareSheetProps) {
   const [canNativeShare, setCanNativeShare] = React.useState(false);

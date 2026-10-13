@@ -28,7 +28,7 @@ export async function shareContent(options: ShareOptions): Promise<boolean> {
   if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
     try {
       await navigator.share({
-        title: options.title || "Paws Academy",
+        title: options.title || "Prohor",
         text: options.text || options.title,
         url: fullUrl,
       });

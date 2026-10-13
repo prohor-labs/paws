@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { PawsLogo, User as UserIcon } from "@/components/icons";
+import { User as UserIcon } from "@/components/icons";
+import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession } from "@/lib/auth";
@@ -29,7 +30,7 @@ export function Header() {
         className="absolute left-1/2 -translate-x-1/2 flex cursor-pointer items-center justify-center p-1.5 transition-transform hover:scale-105 active:scale-95 select-none"
         aria-label="Home"
       >
-        <PawsLogo className="size-7 text-foreground" />
+        <Logo width={90} height={30} className="h-6 w-auto max-w-[100px]" priority />
       </Link>
 
       {/* Right: Profile Avatar */}

@@ -1,13 +1,13 @@
-import { PawsLogo } from "@/components/icons";
+import { Logo } from "@/components/shared/logo";
 import { cn } from "@/lib/utils";
 
 export function AuthLogo({ className }: { className?: string }) {
   return (
     <div
-      className={cn("flex size-10 shrink-0 items-center justify-center", className)}
+      className={cn("flex items-center justify-center py-1", className)}
       aria-hidden="true"
     >
-      <PawsLogo className="size-10 text-foreground" />
+      <Logo width={140} height={46} className="h-9 sm:h-10 w-auto" priority />
     </div>
   );
 }

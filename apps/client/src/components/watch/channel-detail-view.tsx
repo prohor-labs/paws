@@ -161,7 +161,7 @@ export function ChannelDetailView() {
             onOpenChange={setIsShareOpen}
             url={`/watch/channel/${(channel.handle || "").replace("@", "")}`}
             title={channel.name}
-            shareText={`${channel.name} - ${channel.handle} on Paws Academy`}
+            shareText={`${channel.name} - ${channel.handle} on Prohor`}
           />
         </div>
       </div>

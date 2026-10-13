@@ -9,6 +9,7 @@ export * from "./grid-card";
 export * from "./grid-cover";
 export * from "./header";
 export * from "./list-card";
+export * from "./logo";
 export * from "./page-breadcrumbs";
 export * from "./page-loading";
 export * from "./pill-tabs";

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { OrdersView } from "@/components/admin/orders-view";
 
 export const metadata: Metadata = {
-  title: "অর্ডার ও পেমেন্ট ব্যবস্থাপনা | PAWS Academy",
+  title: "অর্ডার ও পেমেন্ট ব্যবস্থাপনা | Prohor",
   description: "অর্ডার ও পেমেন্ট লেনদেন পরিচালনা ও অনুমোদন",
 };
 

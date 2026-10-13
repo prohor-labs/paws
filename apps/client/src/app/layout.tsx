@@ -38,23 +38,23 @@ export const metadata: Metadata = {
     ? new URL(process.env.NEXT_PUBLIC_APP_URL)
     : undefined,
   title: {
-    default: "Paws Academy | Smart Question Bank & AI Model Tests",
-    template: "%s | Paws Academy",
+    default: "Prohor | Smart Question Bank & AI Model Tests",
+    template: "%s | Prohor",
   },
   description:
     "Master university admission and board exams with smart chapterwise question banks, instant AI tutoring, detailed solutions, and real-time model tests.",
   openGraph: {
-    title: "Paws Academy | Smart Question Bank & AI Model Tests",
+    title: "Prohor | Smart Question Bank & AI Model Tests",
     description:
       "Master university admission and board exams with smart chapterwise question banks, instant AI tutoring, detailed solutions, and real-time model tests.",
     url: process.env.NEXT_PUBLIC_APP_URL || "",
-    siteName: "Paws Academy",
+    siteName: "Prohor",
     images: [
       {
         url: "/images/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Paws Academy — Smart Question Bank & AI Model Tests",
+        alt: "Prohor — Smart Question Bank & AI Model Tests",
       },
     ],
     locale: "bn_BD",
@@ -62,17 +62,17 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Paws Academy | Smart Question Bank & AI Model Tests",
+    title: "Prohor | Smart Question Bank & AI Model Tests",
     description:
       "Master university admission and board exams with smart chapterwise question banks, instant AI tutoring, detailed solutions, and real-time model tests.",
     images: ["/images/og-image.jpg"],
   },
   icons: {
     icon: [
-      { url: "/icons/paws-logo.svg", type: "image/svg+xml" },
+      { url: "/logo.png", type: "image/png" },
       { url: "/favicon.ico", sizes: "any" },
     ],
-    apple: "/icons/paws-logo.svg",
+    apple: "/logo.png",
   },
   other: {
     "rights-statement":

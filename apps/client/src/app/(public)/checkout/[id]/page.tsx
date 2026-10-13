@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { OrderCheckoutView } from "@/components/checkout/order-checkout-view";
 
 export const metadata: Metadata = {
-  title: "অর্ডার চেকআউট ও পেমেন্ট | Paws Academy",
+  title: "অর্ডার চেকআউট ও পেমেন্ট | Prohor",
   description: "পজ একাডেমি প্রিমিয়াম সাবস্ক্রিপশন ইনভয়েস ও সুরক্ষিত পেমেন্ট সম্পন্ন করুন।",
 };
 

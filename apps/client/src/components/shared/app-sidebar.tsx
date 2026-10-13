@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PawsLogo } from "@/components/icons";
+import { Logo } from "@/components/shared/logo";
 import { SidebarFooter } from "@/components/shared/sidebar-footer";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -42,10 +42,10 @@ export function AppSidebar({
       <div className="flex flex-col items-center gap-4 w-full">
         <Link
           href="/"
-          className="flex items-center justify-center size-10 transition-transform hover:scale-110"
+          className="flex items-center justify-center w-full px-1 py-1 transition-transform hover:scale-105 active:scale-95"
           aria-label="Home"
         >
-          <PawsLogo className="size-9 text-foreground" />
+          <Logo width={48} height={20} className="w-10 h-auto max-h-7" priority />
         </Link>
 
         <div className="w-8 h-px bg-border/60" />

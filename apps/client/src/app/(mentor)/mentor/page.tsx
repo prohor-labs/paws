@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Mentor Dashboard | PAWS Academy",
+  title: "Mentor Dashboard | Prohor",
   description: "Mentor controls and student evaluations overview",
 };
 
