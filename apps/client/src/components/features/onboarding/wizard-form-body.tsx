@@ -1,6 +1,9 @@
 "use client";
 
-import { ONBOARDING_STEPS } from "@/lib/consts/onboarding";
+import {
+  type EducationalStandard,
+  ONBOARDING_STEPS,
+} from "@/lib/consts/onboarding";
 import { StepLevel } from "./step-level";
 import { StepProfile } from "./step-profile";
 import { StepSchedule } from "./step-schedule";
@@ -11,14 +14,14 @@ interface WizardFormBodyProps {
   fullName: string;
   email: string;
   avatarUrl: string;
-  selectedLevel: string;
-  selectedSubjects: string[];
+  selectedLevel: EducationalStandard;
+  selectedStream: string;
   selectedSchedule: string;
   enableDailyReminder: boolean;
   onFullNameChange: (name: string) => void;
   onAvatarUrlChange: (url: string) => void;
-  onSelectLevel: (level: string) => void;
-  onSetSubjects: (subjects: string[]) => void;
+  onSelectLevel: (level: EducationalStandard) => void;
+  onSelectStream: (streamId: string) => void;
   onSelectSchedule: (schedule: string) => void;
   onToggleDailyReminder: (enabled: boolean) => void;
 }
@@ -29,13 +32,13 @@ export function WizardFormBody({
   email,
   avatarUrl,
   selectedLevel,
-  selectedSubjects,
+  selectedStream,
   selectedSchedule,
   enableDailyReminder,
   onFullNameChange,
   onAvatarUrlChange,
   onSelectLevel,
-  onSetSubjects,
+  onSelectStream,
   onSelectSchedule,
   onToggleDailyReminder,
 }: WizardFormBodyProps) {
@@ -66,7 +69,11 @@ export function WizardFormBody({
         ) : null}
 
         {currentStep === 3 ? (
-          <StepSubjects selectedSubjects={selectedSubjects} onSetSubjects={onSetSubjects} />
+          <StepSubjects
+            selectedLevel={selectedLevel}
+            selectedStream={selectedStream}
+            onSelectStream={onSelectStream}
+          />
         ) : null}
 
         {currentStep === 4 ? (

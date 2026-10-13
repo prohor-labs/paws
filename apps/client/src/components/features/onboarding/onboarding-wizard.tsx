@@ -6,7 +6,11 @@ import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { PlusFrame } from "@/components/auth";
 import { getAuthClient, type UpdateUserInput, updateUser, useSession } from "@/lib/auth";
-import { ONBOARDING_STEPS, TRACK_PRESETS } from "@/lib/consts/onboarding";
+import {
+  type EducationalStandard,
+  ONBOARDING_STEPS,
+  STREAM_OPTIONS_BY_STANDARD,
+} from "@/lib/consts/onboarding";
 import { StepReady } from "./step-ready";
 import { WizardFooter } from "./wizard-footer";
 import { WizardFormBody } from "./wizard-form-body";
@@ -19,13 +23,8 @@ export function OnboardingWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [fullName, setFullName] = useState(user?.name || "");
   const [avatarUrl, setAvatarUrl] = useState(user?.image || "");
-  const [selectedLevel, setSelectedLevel] = useState("admission");
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([
-    "higher-math",
-    "physics",
-    "chemistry",
-    "ict",
-  ]);
+  const [selectedLevel, setSelectedLevel] = useState<EducationalStandard>("hsc");
+  const [selectedStream, setSelectedStream] = useState("science");
   const [selectedSchedule, setSelectedSchedule] = useState("1h");
   const [enableDailyReminder, setEnableDailyReminder] = useState(true);
 
@@ -46,6 +45,14 @@ export function OnboardingWizard() {
   const progressPercent = isLastStep
     ? 100
     : Math.min(Math.max((currentStep / totalSteps) * 100, 0), 100);
+
+  const handleSelectLevel = (level: EducationalStandard) => {
+    setSelectedLevel(level);
+    const availableStreams = STREAM_OPTIONS_BY_STANDARD[level];
+    if (availableStreams && availableStreams.length > 0) {
+      setSelectedStream(availableStreams[0].id);
+    }
+  };
 
   const handleNext = (e?: FormEvent) => {
     if (e) e.preventDefault();
@@ -92,13 +99,8 @@ export function OnboardingWizard() {
   };
 
   const handleFinish = () => {
-    const selectedSubjectSet = new Set(selectedSubjects);
-    const activeTrack =
-      TRACK_PRESETS.find(
-        (preset) =>
-          preset.subjects.length === selectedSubjects.length &&
-          preset.subjects.every((s) => selectedSubjectSet.has(s)),
-      ) || TRACK_PRESETS[0];
+    const streams = STREAM_OPTIONS_BY_STANDARD[selectedLevel] ?? STREAM_OPTIONS_BY_STANDARD.hsc;
+    const currentStreamConfig = streams.find((s) => s.id === selectedStream) || streams[0];
 
     updateProfile.mutate(
       {
@@ -106,7 +108,7 @@ export function OnboardingWizard() {
         image: avatarUrl || user?.image || undefined,
         level: selectedLevel,
         educationalStandard: selectedLevel,
-        track: activeTrack.id,
+        track: currentStreamConfig.id,
         dailyReminderEnabled: enableDailyReminder,
         onboardingCompleted: true,
       },
@@ -127,7 +129,6 @@ export function OnboardingWizard() {
 
   const isContinueDisabled =
     (currentStep === 1 && !fullName.trim()) ||
-    (currentStep === 3 && selectedSubjects.length === 0) ||
     isSubmitting;
 
   return (
@@ -143,7 +144,7 @@ export function OnboardingWizard() {
 
           <div className="text-xs font-medium text-muted-foreground">
             {isLastStep ? (
-              <span className="text-foreground font-semibold">প্রস্তুত</span>
+              <span>চূড়ান্ত ধাপ</span>
             ) : (
               <span>
                 ধাপ {currentStep} / {totalSteps}
@@ -154,30 +155,30 @@ export function OnboardingWizard() {
 
         {isLastStep ? (
           <StepReady
-            fullName={fullName}
+            fullName={fullName || user?.name || ""}
             email={user?.email || ""}
-            avatarUrl={avatarUrl}
+            avatarUrl={avatarUrl || user?.image || ""}
             selectedLevel={selectedLevel}
-            selectedSubjects={selectedSubjects}
+            selectedStream={selectedStream}
             selectedSchedule={selectedSchedule}
             onGoToDashboard={handleFinish}
             isLoading={isSubmitting}
           />
         ) : (
-          <form onSubmit={handleNext} className="flex flex-col gap-6">
+          <form onSubmit={handleNext}>
             <WizardFormBody
               currentStep={currentStep}
               fullName={fullName}
               email={user?.email || ""}
               avatarUrl={avatarUrl}
               selectedLevel={selectedLevel}
-              selectedSubjects={selectedSubjects}
+              selectedStream={selectedStream}
               selectedSchedule={selectedSchedule}
               enableDailyReminder={enableDailyReminder}
               onFullNameChange={setFullName}
               onAvatarUrlChange={setAvatarUrl}
-              onSelectLevel={setSelectedLevel}
-              onSetSubjects={setSelectedSubjects}
+              onSelectLevel={handleSelectLevel}
+              onSelectStream={setSelectedStream}
               onSelectSchedule={setSelectedSchedule}
               onToggleDailyReminder={setEnableDailyReminder}
             />
@@ -192,10 +193,6 @@ export function OnboardingWizard() {
           </form>
         )}
       </PlusFrame>
-
-      <p className="text-center text-xs text-muted-foreground">
-        এই পছন্দগুলো পরবর্তীতে যেকোনো সময় সেটিংস থেকে পরিবর্তন করতে পারবেন।
-      </p>
     </div>
   );
 }

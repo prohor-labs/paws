@@ -232,19 +232,28 @@ interface CustomExamStep1Props {
   subjects: readonly CustomExamSubject[];
   selectedSubjectIds: string[];
   onToggleSubject: (subject: CustomExamSubject) => void;
+  initialCategory?: string;
+  initialStream?: string;
   onNext: () => void;
 }
 
 export function CustomExamStep1({
   subjects,
   selectedSubjectIds,
+  initialCategory = "admission",
+  initialStream = "science",
   onToggleSubject,
   onNext,
 }: CustomExamStep1Props) {
   const selectedSet = React.useMemo(() => new Set(selectedSubjectIds), [selectedSubjectIds]);
   const [query, setQuery] = React.useState("");
-  const [activeCategory, setActiveCategory] = React.useState<string>("admission");
-  const [activeStream, setActiveStream] = React.useState<string>("science");
+  const [activeCategory, setActiveCategory] = React.useState<string>(initialCategory);
+  const [activeStream, setActiveStream] = React.useState<string>(initialStream);
+
+  React.useEffect(() => {
+    if (initialCategory) setActiveCategory(initialCategory);
+    if (initialStream) setActiveStream(initialStream);
+  }, [initialCategory, initialStream]);
 
   const categories = React.useMemo(() => {
     return [

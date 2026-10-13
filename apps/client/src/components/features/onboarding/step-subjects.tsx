@@ -1,34 +1,33 @@
 "use client";
 
 import { Check, Sparkle } from "@/components/icons";
-import { TRACK_PRESETS } from "@/lib/consts/onboarding";
+import { type EducationalStandard, STREAM_OPTIONS_BY_STANDARD } from "@/lib/consts/onboarding";
 import { cn } from "@/lib/utils";
 
 interface StepSubjectsProps {
-  selectedSubjects: string[];
-  onSetSubjects: (subjects: string[]) => void;
+  selectedLevel: EducationalStandard;
+  selectedStream: string;
+  onSelectStream: (streamId: string) => void;
 }
 
-export function StepSubjects({ selectedSubjects, onSetSubjects }: StepSubjectsProps) {
-  const selectedSubjectSet = new Set(selectedSubjects);
-  const activePreset =
-    TRACK_PRESETS.find(
-      (preset) =>
-        preset.subjects.length === selectedSubjects.length &&
-        preset.subjects.every((s) => selectedSubjectSet.has(s)),
-    ) || TRACK_PRESETS[0];
+export function StepSubjects({
+  selectedLevel,
+  selectedStream,
+  onSelectStream,
+}: StepSubjectsProps) {
+  const streamOptions = STREAM_OPTIONS_BY_STANDARD[selectedLevel] ?? STREAM_OPTIONS_BY_STANDARD.hsc;
 
   return (
     <div className="flex flex-col gap-3.5">
       <div className="flex flex-col gap-3">
-        {TRACK_PRESETS.map((preset) => {
-          const isSelected = activePreset?.id === preset.id;
+        {streamOptions.map((stream) => {
+          const isSelected = selectedStream === stream.id;
 
           return (
             <button
-              key={preset.id}
+              key={stream.id}
               type="button"
-              onClick={() => onSetSubjects([...preset.subjects])}
+              onClick={() => onSelectStream(stream.id)}
               className={cn(
                 "flex w-full items-start justify-between rounded-2xl border p-4 text-left transition-colors outline-none",
                 isSelected
@@ -37,12 +36,12 @@ export function StepSubjects({ selectedSubjects, onSetSubjects }: StepSubjectsPr
               )}
             >
               <div className="flex flex-col gap-1.5 min-w-0 pr-3">
-                <span className="text-sm font-bold text-foreground">{preset.label}</span>
+                <span className="text-sm font-bold text-foreground">{stream.label}</span>
                 <span className="text-xs text-muted-foreground leading-relaxed">
-                  {preset.subtitle}
+                  {stream.subtitle}
                 </span>
                 <div className="pt-1 text-xs font-medium text-foreground/80">
-                  {preset.subjectsSummary}
+                  {stream.subjectsSummary}
                 </div>
               </div>
 
@@ -63,7 +62,7 @@ export function StepSubjects({ selectedSubjects, onSetSubjects }: StepSubjectsPr
 
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
         <Sparkle size={13} className="text-primary shrink-0" />
-        <span>নির্বাচিত ট্র্যাক অনুযায়ী আপনার জন্য প্রশ্নব্যাংক ও পরীক্ষা তৈরি করা হবে।</span>
+        <span>নির্বাচিত বিভাগ অনুযায়ী আপনার প্রশ্নব্যাংক এবং কাস্টম পরীক্ষা স্বয়ংক্রিয়ভাবে ফিল্টার হবে।</span>
       </div>
     </div>
   );

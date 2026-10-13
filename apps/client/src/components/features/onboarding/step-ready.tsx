@@ -4,14 +4,19 @@ import { Sparkle, User as UserIcon } from "@/components/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { LEVEL_OPTIONS, SCHEDULE_OPTIONS, TRACK_PRESETS } from "@/lib/consts/onboarding";
+import {
+  type EducationalStandard,
+  SCHEDULE_OPTIONS,
+  STANDARD_OPTIONS,
+  STREAM_OPTIONS_BY_STANDARD,
+} from "@/lib/consts/onboarding";
 
 interface StepReadyProps {
   fullName: string;
   email: string;
   avatarUrl: string;
-  selectedLevel: string;
-  selectedSubjects: string[];
+  selectedLevel: EducationalStandard;
+  selectedStream: string;
   selectedSchedule: string;
   onGoToDashboard: () => void;
   isLoading?: boolean;
@@ -22,20 +27,15 @@ export function StepReady({
   email,
   avatarUrl,
   selectedLevel,
-  selectedSubjects,
+  selectedStream,
   selectedSchedule,
   onGoToDashboard,
   isLoading,
 }: StepReadyProps) {
-  const levelOption = LEVEL_OPTIONS.find((l) => l.id === selectedLevel);
+  const standardOption = STANDARD_OPTIONS.find((l) => l.id === selectedLevel);
+  const streamOptions = STREAM_OPTIONS_BY_STANDARD[selectedLevel] ?? STREAM_OPTIONS_BY_STANDARD.hsc;
+  const activeStream = streamOptions.find((s) => s.id === selectedStream) || streamOptions[0];
   const scheduleOption = SCHEDULE_OPTIONS.find((s) => s.id === selectedSchedule);
-  const selectedSubjectSet = new Set(selectedSubjects);
-  const activeTrack =
-    TRACK_PRESETS.find(
-      (preset) =>
-        preset.subjects.length === selectedSubjects.length &&
-        preset.subjects.every((s) => selectedSubjectSet.has(s)),
-    ) || TRACK_PRESETS[0];
 
   return (
     <div className="flex flex-col gap-6 py-1">
@@ -75,7 +75,7 @@ export function StepReady({
               শিক্ষাগত স্তর
             </span>
             <p className="text-sm font-semibold text-foreground">
-              {levelOption?.label || selectedLevel}
+              {standardOption?.label || selectedLevel}
             </p>
           </div>
 
@@ -91,11 +91,11 @@ export function StepReady({
 
         <div className="mt-4 pt-4 border-t border-border/60 space-y-1.5">
           <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-            নির্বাচিত ট্র্যাক
+            নির্বাচিত বিভাগ / ট্র্যাক
           </span>
-          <p className="text-sm font-bold text-foreground">{activeTrack.label}</p>
+          <p className="text-sm font-bold text-foreground">{activeStream?.label}</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            {activeTrack.subjectsSummary}
+            {activeStream?.subjectsSummary}
           </p>
         </div>
       </div>

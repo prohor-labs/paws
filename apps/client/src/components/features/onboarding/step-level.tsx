@@ -2,15 +2,15 @@
 
 import type { ComponentType } from "react";
 import { Award, BookOpen, Check, DocumentText, GraduationCap } from "@/components/icons";
-import { LEVEL_OPTIONS } from "@/lib/consts/onboarding";
+import { type EducationalStandard, STANDARD_OPTIONS } from "@/lib/consts/onboarding";
 import { cn } from "@/lib/utils";
 
 interface StepLevelProps {
-  selectedLevel: string;
-  onSelectLevel: (levelId: string) => void;
+  selectedLevel: EducationalStandard;
+  onSelectLevel: (level: EducationalStandard) => void;
 }
 
-const LEVEL_ICONS: Record<string, ComponentType<{ size?: number; className?: string }>> = {
+const STANDARD_ICONS: Record<string, ComponentType<{ size?: number; className?: string }>> = {
   GraduationCap,
   BookOpen,
   DocumentText,
@@ -20,8 +20,8 @@ const LEVEL_ICONS: Record<string, ComponentType<{ size?: number; className?: str
 export function StepLevel({ selectedLevel, onSelectLevel }: StepLevelProps) {
   return (
     <div className="flex flex-col gap-3">
-      {LEVEL_OPTIONS.map((option) => {
-        const Icon = LEVEL_ICONS[option.iconName] || BookOpen;
+      {STANDARD_OPTIONS.map((option) => {
+        const Icon = STANDARD_ICONS[option.iconName] || BookOpen;
         const isSelected = selectedLevel === option.id;
 
         return (

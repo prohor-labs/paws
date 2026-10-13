@@ -11,6 +11,7 @@ import type {
 } from "@/components/exam";
 import { PageLoading } from "@/components/shared";
 import { useCreateCustomExam, useQBTree } from "@/hooks/use-question-bank";
+import { useSession } from "@/lib/auth";
 import { type CustomExamSubject, deriveSubjectIconKey } from "@/lib/consts/custom-exam";
 import { chapterLevelLabel } from "@/lib/consts/qb";
 import { toBengaliNumber } from "@/lib/utils";
@@ -37,6 +38,23 @@ const CustomExamStep4 = dynamic(() => import("@/components/exam").then((m) => m.
 
 export default function CustomExamPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const user = session?.user as (NonNullable<typeof session>["user"] & { educationalStandard?: string | null; track?: string | null }) | undefined;
+
+  const initialCategory = React.useMemo(() => {
+    const std = user?.educationalStandard;
+    if (std === "job") return "job";
+    if (std === "hsc") return "hsc";
+    if (std === "ssc") return "ssc";
+    return "admission";
+  }, [user?.educationalStandard]);
+
+  const initialStream = React.useMemo(() => {
+    const trk = user?.track;
+    if (trk === "commerce" || trk === "humanities" || trk === "science") return trk;
+    return "science";
+  }, [user?.track]);
+
   const { data: tree, isLoading: treeLoading } = useQBTree();
   const createExamMutation = useCreateCustomExam();
 
@@ -266,6 +284,8 @@ export default function CustomExamPage() {
           <CustomExamStep1
             subjects={allSubjects}
             selectedSubjectIds={selectedSubjectIds}
+            initialCategory={initialCategory}
+            initialStream={initialStream}
             onToggleSubject={handleToggleSubject}
             onNext={() => {
               if (selectedSubjectIds.length > 0) {

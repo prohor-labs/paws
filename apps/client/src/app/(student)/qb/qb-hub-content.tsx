@@ -4,16 +4,43 @@ import * as React from "react";
 import { BookSaved } from "@/components/icons";
 import { EmptyState, GridCard, PageLoading, TabsWithSearch } from "@/components/shared";
 import { useQBTree } from "@/hooks/use-question-bank";
+import { useSession } from "@/lib/auth";
 import { QB_TARGET_GROUP_LABELS, QB_TARGET_GROUPS } from "@/lib/consts/custom-exam";
 import { subjectLevelLabel } from "@/lib/consts/qb";
 
 export function QbHubContent() {
+  const { data: session } = useSession();
+  const user = session?.user as
+    | (NonNullable<typeof session>["user"] & {
+        educationalStandard?: string | null;
+        track?: string | null;
+      })
+    | undefined;
+
+  const defaultGroup = React.useMemo(() => {
+    const std = user?.educationalStandard;
+    if (std === "job") return "job";
+    if (std === "admission") return "admission";
+    if (std === "hsc" || std === "ssc") return "academic";
+    return "all";
+  }, [user?.educationalStandard]);
+
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [activeGroup, setActiveGroup] = React.useState<string>("all");
+  const [activeGroup, setActiveGroup] = React.useState<string>(defaultGroup);
+
+  React.useEffect(() => {
+    if (defaultGroup !== "all") {
+      setActiveGroup(defaultGroup);
+    }
+  }, [defaultGroup]);
+
   const { data, isLoading } = useQBTree();
 
   const targets = React.useMemo(() => data?.targets ?? [], [data]);
   const subjects = React.useMemo(() => data?.subjects ?? [], [data]);
+
+  const userTrack = user?.track;
+  const userStandard = user?.educationalStandard;
 
   const tabs = React.useMemo(() => {
     const groupTabs = QB_TARGET_GROUPS.filter((group) =>
@@ -30,9 +57,42 @@ export function QbHubContent() {
     const q = searchQuery.toLowerCase().trim();
 
     return targets
-      .filter((target) => activeGroup === "all" || (target.group ?? "academic") === activeGroup)
+      .filter((target) => {
+        if (q) return true;
+        if (activeGroup === "all") return true;
+        return (target.group ?? "academic") === activeGroup;
+      })
       .map((target) => {
-        const containers = target.containers ?? [];
+        let containers = target.containers ?? [];
+
+        if (!q && userStandard && userTrack) {
+          if (target.slug === "hsc") {
+            const prioritized = containers.filter((c) => c.slug.includes(userTrack));
+            const others = containers.filter((c) => !c.slug.includes(userTrack));
+            containers = [...prioritized, ...others];
+          } else if (target.slug === "ssc") {
+            const prioritized = containers.filter((c) => c.slug.includes(userTrack));
+            const others = containers.filter((c) => !c.slug.includes(userTrack));
+            containers = [...prioritized, ...others];
+          } else if (target.slug === "job") {
+            if (userTrack === "bcs") {
+              containers = [
+                ...containers.filter((c) => c.slug === "bcs" || c.slug === "ministry-non-cadre"),
+                ...containers.filter((c) => c.slug !== "bcs" && c.slug !== "ministry-non-cadre"),
+              ];
+            } else if (userTrack === "bank") {
+              containers = [
+                ...containers.filter((c) => c.slug === "bank-jobs"),
+                ...containers.filter((c) => c.slug !== "bank-jobs"),
+              ];
+            } else if (userTrack === "teacher") {
+              containers = [
+                ...containers.filter((c) => c.slug === "primary-teacher" || c.slug === "ntrca"),
+                ...containers.filter((c) => c.slug !== "primary-teacher" && c.slug !== "ntrca"),
+              ];
+            }
+          }
+        }
 
         if (q) {
           const matchingItems: Array<{
@@ -116,7 +176,7 @@ export function QbHubContent() {
         };
       })
       .filter((section) => section.cards.length > 0);
-  }, [targets, subjects, activeGroup, searchQuery]);
+  }, [targets, subjects, activeGroup, searchQuery, userStandard, userTrack]);
 
   if (isLoading) {
     return <PageLoading />;
