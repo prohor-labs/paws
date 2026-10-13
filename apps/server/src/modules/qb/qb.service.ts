@@ -2046,12 +2046,15 @@ export class QbService {
           }
         }
 
+        const hasOptions = Array.isArray(question.options) && question.options.length > 0;
+        const resolvedQType = question.qType === 'written' || !hasOptions ? 'written' : 'mcq';
+
         await this.db
           .insert(qbQuestions)
           .values({
             id: questionId,
             topicId: resolvedTopicId,
-            qType: question.qType,
+            qType: resolvedQType,
             questionText: cleanedQuestionText,
             contextText: cleanedContextText,
             explanation: cleanedExplanation,
@@ -2062,6 +2065,7 @@ export class QbService {
             target: [qbQuestions.id],
             set: {
               topicId: resolvedTopicId,
+              qType: resolvedQType,
               questionText: cleanedQuestionText,
               contextText: cleanedContextText,
               explanation: cleanedExplanation,

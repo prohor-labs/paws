@@ -455,6 +455,7 @@ function useQuestionOptionSelection(
   controlledOnSelectOption?: (optionId: string) => void,
   interactiveMode: QuestionCardProps["interactiveMode"] = "practice",
   showAnswer = false,
+  isWrittenQuestion = false,
 ) {
   const [internalSelectedOptionId, setInternalSelectedOptionId] = React.useState<string | null>(
     null,
@@ -469,7 +470,7 @@ function useQuestionOptionSelection(
   const isRevealed =
     interactiveMode === "live_exam"
       ? false
-      : showAnswer || internalRevealed || Boolean(selectedOptionId);
+      : showAnswer || internalRevealed || Boolean(selectedOptionId) || isWrittenQuestion;
 
   const handleSelectOption = (optionId: string) => {
     if (interactiveMode === "live_exam") {
@@ -558,7 +559,7 @@ function QuestionAnswers({
         <QuestionExplanation
           questionId={question.id}
           explanation={question.explanation ?? ""}
-          title="ব্যাখ্যা"
+          title={isWritten ? "সমাধান" : "ব্যাখ্যা"}
           isOpenDefault={false}
         />
       )}
@@ -603,11 +604,14 @@ export function QuestionCard({
 
   const stemText = question.questionText || question.contextText || "";
 
+  const isWrittenQuestion = question.qType === "written";
+
   const { selectedOptionId, isRevealed, handleSelectOption } = useQuestionOptionSelection(
     controlledSelectedOptionId,
     controlledOnSelectOption,
     interactiveMode,
     showAnswer,
+    isWrittenQuestion,
   );
 
   const [isBookmarked, setIsBookmarked] = React.useState<boolean>(false);
