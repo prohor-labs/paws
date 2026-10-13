@@ -575,21 +575,50 @@ export class QbService {
       }
     }
 
-    const sources = await this.db
-      .select({
-        id: qbSources.id,
-        sourceGroup: qbSources.sourceGroup,
-        type: qbSources.type,
-        name: qbSources.name,
-        slug: qbSources.slug,
-        institution: qbSources.institution,
-        unit: qbSources.unit,
-        year: qbSources.year,
-        questionCount: qbSources.questionCount,
-      })
-      .from(qbSources)
-      .where(eq(qbSources.containerItemId, item.id))
-      .orderBy(desc(qbSources.year), asc(qbSources.name));
+    const [sources, aggregatedSubjects] = await Promise.all([
+      this.db
+        .select({
+          id: qbSources.id,
+          sourceGroup: qbSources.sourceGroup,
+          type: qbSources.type,
+          name: qbSources.name,
+          slug: qbSources.slug,
+          institution: qbSources.institution,
+          unit: qbSources.unit,
+          year: qbSources.year,
+          questionCount: qbSources.questionCount,
+        })
+        .from(qbSources)
+        .where(eq(qbSources.containerItemId, item.id))
+        .orderBy(desc(qbSources.year), asc(qbSources.name)),
+      this.db
+        .select({
+          id: qbSubjects.id,
+          targetId: qbSubjects.targetId,
+          name: qbSubjects.name,
+          slug: qbSubjects.slug,
+          code: qbSubjects.code,
+          orderIndex: qbSubjects.orderIndex,
+          chapterCount: sql<number>`COUNT(DISTINCT ${qbChapters.id})`,
+          questionCount: count(qbQuestions.id),
+        })
+        .from(qbQuestions)
+        .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestions.id))
+        .innerJoin(qbSources, eq(qbSources.id, qbQuestionSources.sourceId))
+        .innerJoin(qbTopics, eq(qbTopics.id, qbQuestions.topicId))
+        .innerJoin(qbChapters, eq(qbChapters.id, qbTopics.chapterId))
+        .innerJoin(qbSubjects, eq(qbSubjects.id, qbChapters.subjectId))
+        .where(and(eq(qbSources.containerItemId, item.id), eq(qbQuestions.status, 'published')))
+        .groupBy(
+          qbSubjects.id,
+          qbSubjects.targetId,
+          qbSubjects.name,
+          qbSubjects.slug,
+          qbSubjects.code,
+          qbSubjects.orderIndex,
+        )
+        .orderBy(asc(qbSubjects.orderIndex), asc(qbSubjects.name)),
+    ]);
 
     return {
       success: true,
@@ -636,6 +665,16 @@ export class QbService {
               orderIndex: subject.orderIndex,
             }
           : null,
+        subjects: aggregatedSubjects.map((s) => ({
+          id: s.id,
+          targetId: s.targetId,
+          name: s.name,
+          slug: s.slug,
+          code: s.code,
+          orderIndex: s.orderIndex,
+          chapterCount: Number(s.chapterCount),
+          questionCount: Number(s.questionCount),
+        })),
         chapters: chapters.map((chapter) => ({
           id: chapter.id,
           subjectId: chapter.subjectId,
@@ -810,6 +849,8 @@ export class QbService {
     let chapter: ChapterRow | undefined;
     let isSourceChapter = false;
     let sourceChapter: SourceRow | undefined;
+    let isSubjectChapter = false;
+    let subjectChapter: SubjectRow | undefined;
 
     if (isAll) {
       chapter = {
@@ -881,6 +922,28 @@ export class QbService {
           };
         }
       }
+      if (!chapter) {
+        const matchedSubjectRow = await this.db.query.qbSubjects.findFirst({
+          where: isUUID(chapterSlug)
+            ? or(eq(qbSubjects.slug, chapterSlug), eq(qbSubjects.id, chapterSlug))
+            : eq(qbSubjects.slug, chapterSlug),
+        });
+
+        if (matchedSubjectRow) {
+          isSubjectChapter = true;
+          subjectChapter = matchedSubjectRow;
+          chapter = {
+            id: matchedSubjectRow.id,
+            subjectId: matchedSubjectRow.id,
+            containerItemId: containerItem?.id ?? null,
+            name: matchedSubjectRow.name,
+            slug: matchedSubjectRow.slug,
+            orderIndex: matchedSubjectRow.orderIndex,
+            topicCount: 0,
+            questionCount: matchedSubjectRow.questionCount,
+          };
+        }
+      }
     }
 
     if (!chapter) {
@@ -889,6 +952,13 @@ export class QbService {
 
     const subChapterIds = isSourceChapter
       ? []
+      : isSubjectChapter && subjectChapter
+      ? (
+          await this.db
+            .select({ id: qbChapters.id })
+            .from(qbChapters)
+            .where(eq(qbChapters.subjectId, subjectChapter.id))
+        ).map((row) => row.id)
       : isAll
       ? subject
         ? (

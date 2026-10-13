@@ -157,6 +157,7 @@ export interface QBItemDetailData {
   container: QBContainer;
   item: QBContainerItem;
   subject?: QBSubject | null;
+  subjects?: QBSubject[];
   chapters: QBChapter[];
   sources?: QBSource[];
   examSheets?: QBExamSheet[];

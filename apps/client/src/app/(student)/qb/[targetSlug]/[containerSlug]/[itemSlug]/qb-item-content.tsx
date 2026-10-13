@@ -36,15 +36,19 @@ export function QbItemContent() {
     target?.group === "job" ||
     ["varsity-admission", "engineering-admission", "medical-admission", "job"].includes(targetSlug);
 
-  const [activeTab, setActiveTab] = React.useState<"years" | "chapters">("chapters");
+  const subjects = data?.subjects ?? [];
+
+  const [activeTab, setActiveTab] = React.useState<"years" | "subjects" | "chapters">("chapters");
 
   React.useEffect(() => {
     if (sources.length > 0 && isAdmissionOrJob) {
       setActiveTab("years");
+    } else if (subjects.length > 0 && isAdmissionOrJob) {
+      setActiveTab("subjects");
     } else {
       setActiveTab("chapters");
     }
-  }, [sources.length, isAdmissionOrJob]);
+  }, [sources.length, subjects.length, isAdmissionOrJob]);
 
   const filteredChapters = React.useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -53,6 +57,14 @@ export function QbItemContent() {
       (ch) => ch.name.toLowerCase().includes(q) || ch.slug.toLowerCase().includes(q),
     );
   }, [chapters, query]);
+
+  const filteredSubjects = React.useMemo(() => {
+    const q = query.toLowerCase().trim();
+    if (!q) return subjects;
+    return subjects.filter(
+      (s) => s.name.toLowerCase().includes(q) || s.slug.toLowerCase().includes(q),
+    );
+  }, [subjects, query]);
 
   const filteredSources = React.useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -101,7 +113,11 @@ export function QbItemContent() {
     );
   }
 
-  const showTabs = sources.length > 0 && chapters.length > 0;
+  const showTabs =
+    (sources.length > 0 ? 1 : 0) +
+    (subjects.length > 0 ? 1 : 0) +
+    (chapters.length > 0 ? 1 : 0) >
+    1;
 
   return (
     <div className="w-full flex flex-col gap-5 max-w-5xl mx-auto pb-16">
@@ -133,6 +149,8 @@ export function QbItemContent() {
               <p className="text-xs text-muted-foreground mt-0.5">
                 {activeTab === "years"
                   ? `${toBengaliNumber(sources.length)} টি প্রশ্নপত্র • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`
+                  : activeTab === "subjects"
+                  ? `${toBengaliNumber(subjects.length)} টি বিষয় • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`
                   : `${toBengaliNumber(chapters.length)} টি অধ্যায় • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`}
               </p>
             </div>
@@ -144,7 +162,13 @@ export function QbItemContent() {
               aria-label="খুঁজো"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={activeTab === "years" ? "সাল বা প্রশ্নপত্র খুঁজুন..." : "অধ্যায় খুঁজুন..."}
+              placeholder={
+                activeTab === "years"
+                  ? "সাল বা প্রশ্নপত্র খুঁজুন..."
+                  : activeTab === "subjects"
+                  ? "বিষয় খুঁজুন..."
+                  : "অধ্যায় খুঁজুন..."
+              }
               className="w-full sm:w-56 rounded-full border border-border bg-background px-4 py-1.5 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary h-9"
             />
             <Button
@@ -162,28 +186,45 @@ export function QbItemContent() {
 
         {showTabs && (
           <div className="flex items-center gap-1.5 border-b border-border/60 pt-2">
-            <button
-              type="button"
-              onClick={() => setActiveTab("years")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-t-lg transition-colors border-b-2 cursor-pointer ${
-                activeTab === "years"
-                  ? "border-primary text-primary bg-primary/5"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
-              }`}
-            >
-              সালভিত্তিক প্রশ্নপত্র ({toBengaliNumber(sources.length)})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("chapters")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-t-lg transition-colors border-b-2 cursor-pointer ${
-                activeTab === "chapters"
-                  ? "border-primary text-primary bg-primary/5"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
-              }`}
-            >
-              অধ্যায়সমূহ ({toBengaliNumber(chapters.length)})
-            </button>
+            {sources.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveTab("years")}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-t-lg transition-colors border-b-2 cursor-pointer ${
+                  activeTab === "years"
+                    ? "border-primary text-primary bg-primary/5"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                }`}
+              >
+                সালভিত্তিক প্রশ্নপত্র ({toBengaliNumber(sources.length)})
+              </button>
+            )}
+            {subjects.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveTab("subjects")}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-t-lg transition-colors border-b-2 cursor-pointer ${
+                  activeTab === "subjects"
+                    ? "border-primary text-primary bg-primary/5"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                }`}
+              >
+                বিষয়ভিত্তিক ({toBengaliNumber(subjects.length)})
+              </button>
+            )}
+            {chapters.length > 0 && !isAdmissionOrJob && (
+              <button
+                type="button"
+                onClick={() => setActiveTab("chapters")}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-t-lg transition-colors border-b-2 cursor-pointer ${
+                  activeTab === "chapters"
+                    ? "border-primary text-primary bg-primary/5"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                }`}
+              >
+                অধ্যায়সমূহ ({toBengaliNumber(chapters.length)})
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -225,6 +266,28 @@ export function QbItemContent() {
                   </div>
                 </div>
               </Link>
+            ))}
+          </div>
+        )
+      ) : activeTab === "subjects" ? (
+        filteredSubjects.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title="কোনো বিষয় পাওয়া যায়নি"
+            description="এই প্রশ্নব্যাংকে এখনো কোনো বিষয় পাওয়া যায়নি।"
+          />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {filteredSubjects.map((subj) => (
+              <GridCard
+                key={subj.id}
+                href={`/qb/${targetSlug}/${containerSlug}/${itemSlug}/${subj.slug}`}
+                title={subj.name}
+                subtitle={item.name}
+                category={target.name}
+                badge={subj.questionCount ? `${toBengaliNumber(subj.questionCount)} টি প্রশ্ন` : undefined}
+                eventLabel={`Subject_${subj.name}`}
+              />
             ))}
           </div>
         )
