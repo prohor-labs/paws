@@ -540,7 +540,7 @@ function QuestionAnswers({
           />
         )}
 
-      {isRevealed && parts.length === 0 && question.explanation && (
+      {isRevealed && parts.length === 0 && (
         <div className="mt-3">
           {!showExplanation ? (
             <Button
@@ -555,7 +555,7 @@ function QuestionAnswers({
           ) : (
             <QuestionExplanation
               questionId={question.id}
-              explanation={question.explanation}
+              explanation={question.explanation ?? ""}
               title="সমাধান / ব্যাখ্যা"
             />
           )}
