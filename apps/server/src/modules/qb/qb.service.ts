@@ -20,7 +20,8 @@ import {
 } from '../../common/database/schema/index.js';
 import { ApiError } from '../../common/errors/api-error.js';
 import { cleanAndFormatMathText } from '../../common/utils/math.js';
-import type { BulkImportDto, ChapterQueryDto } from './qb.dto.js';
+import type { AuthUser } from '../../core/auth/auth.types.js';
+import type { BulkImportDto, ChapterQueryDto, TreeQueryDto } from './qb.dto.js';
 import { mapQuestion, type MappableQuestion } from './qb.mapper.js';
 import { recalculateAllCounts } from './qb-count.js';
 
@@ -1712,7 +1713,9 @@ export class QbService {
     return { success: true, data: mapQuestion(asMappable(question), { includeAnswers: true }) };
   }
 
-  async getTree() {
+  async getTree(query?: TreeQueryDto, user?: AuthUser | null) {
+    const userStandard = query?.standard || user?.educationalStandard || null;
+    const userTrack = query?.stream || user?.track || null;
     const [targetsList, containersList, containerItemsList, subjectsList, chaptersList, topicsList] =
       await Promise.all([
         this.db.select().from(qbTargets).orderBy(asc(qbTargets.orderIndex)),
@@ -1876,11 +1879,97 @@ export class QbService {
       .map(mapSubject)
       .sort((a, b) => b.questionCount - a.questionCount);
 
+    let filteredTargets = treeTargets;
+    if (userStandard) {
+      if (userStandard === 'hsc') {
+        filteredTargets = filteredTargets.filter((t) => t.slug === 'hsc');
+      } else if (userStandard === 'ssc') {
+        filteredTargets = filteredTargets.filter((t) => t.slug === 'ssc');
+      } else if (userStandard === 'job') {
+        filteredTargets = filteredTargets.filter((t) => t.slug === 'job');
+      } else if (userStandard === 'admission') {
+        if (userTrack === 'engineering') {
+          filteredTargets = filteredTargets.filter((t) => t.slug === 'engineering-admission');
+        } else if (userTrack === 'medical') {
+          filteredTargets = filteredTargets.filter((t) => t.slug === 'medical-admission');
+        } else if (userTrack === 'varsity') {
+          filteredTargets = filteredTargets.filter((t) => t.slug === 'varsity-admission');
+        } else {
+          filteredTargets = filteredTargets.filter((t) => t.group === 'admission');
+        }
+      }
+    }
+
+    if (userStandard && userTrack) {
+      filteredTargets = filteredTargets.map((target) => {
+        let containers = target.containers;
+        if (target.slug === 'hsc' || target.slug === 'ssc') {
+          const matched = containers.filter((c) => c.slug.includes(userTrack));
+          const others = containers.filter((c) => !c.slug.includes(userTrack));
+          containers = [...matched, ...others];
+        } else if (target.slug === 'job') {
+          if (userTrack === 'bcs') {
+            containers = [
+              ...containers.filter((c) => c.slug === 'bcs' || c.slug === 'ministry-non-cadre'),
+              ...containers.filter((c) => c.slug !== 'bcs' && c.slug !== 'ministry-non-cadre'),
+            ];
+          } else if (userTrack === 'bank') {
+            containers = [
+              ...containers.filter((c) => c.slug === 'bank-jobs'),
+              ...containers.filter((c) => c.slug !== 'bank-jobs'),
+            ];
+          } else if (userTrack === 'teacher') {
+            containers = [
+              ...containers.filter((c) => c.slug === 'primary-teacher' || c.slug === 'ntrca'),
+              ...containers.filter((c) => c.slug !== 'primary-teacher' && c.slug !== 'ntrca'),
+            ];
+          }
+        }
+        return {
+          ...target,
+          containers,
+        };
+      });
+    }
+
+    let filteredSubjects = allFormattedSubjects;
+    if (userStandard) {
+      if (userStandard === 'hsc') {
+        filteredSubjects = filteredSubjects.filter((s) => s.educationLevel === 'hsc' || s.targetSlug === 'hsc');
+      } else if (userStandard === 'ssc') {
+        filteredSubjects = filteredSubjects.filter((s) => s.educationLevel === 'ssc' || s.targetSlug === 'ssc');
+      } else if (userStandard === 'job') {
+        filteredSubjects = filteredSubjects.filter((s) => s.educationLevel === 'job' || s.targetSlug === 'job');
+      } else if (userStandard === 'admission') {
+        if (userTrack === 'engineering') {
+          filteredSubjects = filteredSubjects.filter(
+            (s) => s.targetSlug === 'engineering-admission' || s.stream === 'engineering' || s.stream === 'science',
+          );
+        } else if (userTrack === 'medical') {
+          filteredSubjects = filteredSubjects.filter(
+            (s) => s.targetSlug === 'medical-admission' || s.stream === 'medical' || s.stream === 'science',
+          );
+        } else if (userTrack === 'varsity') {
+          filteredSubjects = filteredSubjects.filter(
+            (s) => s.targetSlug === 'varsity-admission' || s.educationLevel === 'admission',
+          );
+        } else {
+          filteredSubjects = filteredSubjects.filter(
+            (s) => s.educationLevel === 'admission' || s.targetSlug?.includes('admission'),
+          );
+        }
+      }
+    }
+
+    if (userStandard && userTrack && userStandard !== 'job' && userStandard !== 'admission') {
+      filteredSubjects = filteredSubjects.filter((s) => s.stream === userTrack || s.stream === 'general');
+    }
+
     return {
       success: true,
       data: {
-        targets: treeTargets,
-        subjects: allFormattedSubjects,
+        targets: filteredTargets,
+        subjects: filteredSubjects,
       },
     };
   }

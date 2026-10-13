@@ -273,34 +273,12 @@ export function CustomExamStep1({
   }, []);
 
   const filteredSubjects = React.useMemo(() => {
-    let list = subjects;
-    if (activeCategory === "hsc") {
-      list = list.filter((s) => s.educationLevel === "hsc" || s.targetSlug === "hsc");
-    } else if (activeCategory === "ssc") {
-      list = list.filter((s) => s.educationLevel === "ssc" || s.targetSlug === "ssc");
-    } else if (activeCategory === "admission") {
-      list = list.filter(
-        (s) =>
-          s.educationLevel === "admission" ||
-          s.group === "admission" ||
-          s.targetSlug?.includes("admission"),
-      );
-    } else if (activeCategory === "job") {
-      list = list.filter(
-        (s) => s.educationLevel === "job" || s.group === "job" || s.targetSlug === "job",
-      );
-    }
-
-    if (activeCategory !== "job" && activeStream !== "all") {
-      list = list.filter((s) => s.stream === activeStream || s.stream === "general");
-    }
-
     const q = query.toLowerCase().trim();
-    if (!q) return list;
-    return list.filter(
+    if (!q) return subjects;
+    return subjects.filter(
       (sub) => sub.name.toLowerCase().includes(q) || sub.targetName?.toLowerCase().includes(q),
     );
-  }, [subjects, activeCategory, activeStream, query]);
+  }, [subjects, query]);
 
   return (
     <div className="flex flex-col gap-5">

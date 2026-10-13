@@ -83,5 +83,12 @@ export const bulkImportSchema = z.object({
   ),
 });
 
+export const treeQuerySchema = z.object({
+  standard: z.string().optional(),
+  stream: z.string().optional(),
+  target: z.string().optional(),
+});
+
 export type ChapterQueryDto = z.infer<typeof chapterQuerySchema>;
 export type BulkImportDto = z.infer<typeof bulkImportSchema>;
+export type TreeQueryDto = z.infer<typeof treeQuerySchema>;

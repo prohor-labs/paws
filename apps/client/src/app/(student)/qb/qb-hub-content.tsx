@@ -22,55 +22,11 @@ export function QbHubContent() {
   const targets = React.useMemo(() => data?.targets ?? [], [data]);
   const subjects = React.useMemo(() => data?.subjects ?? [], [data]);
 
-  const userTrack = user?.track;
-  const userStandard = user?.educationalStandard;
-
   const sections = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
 
-    return targets
-      .filter((target) => {
-        if (q) return true;
-        if (userStandard) {
-          if (userStandard === "hsc") return target.slug === "hsc";
-          if (userStandard === "ssc") return target.slug === "ssc";
-          if (userStandard === "job") return target.slug === "job";
-          if (userStandard === "admission") {
-            if (userTrack === "engineering") return target.slug === "engineering-admission";
-            if (userTrack === "medical") return target.slug === "medical-admission";
-            if (userTrack === "varsity") return target.slug === "varsity-admission";
-            return target.group === "admission";
-          }
-        }
-        return true;
-      })
-      .map((target) => {
-        let containers = target.containers ?? [];
-
-        if (!q && userStandard && userTrack) {
-          if (target.slug === "hsc" || target.slug === "ssc") {
-            const prioritized = containers.filter((c) => c.slug.includes(userTrack));
-            const others = containers.filter((c) => !c.slug.includes(userTrack));
-            containers = [...prioritized, ...others];
-          } else if (target.slug === "job") {
-            if (userTrack === "bcs") {
-              containers = [
-                ...containers.filter((c) => c.slug === "bcs" || c.slug === "ministry-non-cadre"),
-                ...containers.filter((c) => c.slug !== "bcs" && c.slug !== "ministry-non-cadre"),
-              ];
-            } else if (userTrack === "bank") {
-              containers = [
-                ...containers.filter((c) => c.slug === "bank-jobs"),
-                ...containers.filter((c) => c.slug !== "bank-jobs"),
-              ];
-            } else if (userTrack === "teacher") {
-              containers = [
-                ...containers.filter((c) => c.slug === "primary-teacher" || c.slug === "ntrca"),
-                ...containers.filter((c) => c.slug !== "primary-teacher" && c.slug !== "ntrca"),
-              ];
-            }
-          }
-        }
+    return targets.map((target) => {
+      const containers = target.containers ?? [];
 
         if (q) {
           const matchingItems: Array<{
@@ -154,7 +110,7 @@ export function QbHubContent() {
         };
       })
       .filter((section) => section.cards.length > 0);
-  }, [targets, subjects, searchQuery, userStandard, userTrack]);
+  }, [targets, subjects, searchQuery]);
 
   if (isLoading) {
     return <PageLoading />;

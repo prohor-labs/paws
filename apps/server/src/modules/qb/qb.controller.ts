@@ -1,6 +1,15 @@
 import { Body, Controller, Get, Header, Param, Post, Query } from '@nestjs/common';
+import { CurrentUser } from '../../core/auth/decorators/current-user.decorator.js';
+import type { AuthUser } from '../../core/auth/auth.types.js';
 import { zodPipe } from '../../core/pipes/zod-validation.pipe.js';
-import { type BulkImportDto, bulkImportSchema, type ChapterQueryDto, chapterQuerySchema } from './qb.dto.js';
+import {
+  type BulkImportDto,
+  bulkImportSchema,
+  type ChapterQueryDto,
+  chapterQuerySchema,
+  type TreeQueryDto,
+  treeQuerySchema,
+} from './qb.dto.js';
 import { QbService } from './qb.service.js';
 
 const CACHE_CONTROL_PUBLIC = 'no-cache, no-store, max-age=0, must-revalidate';
@@ -23,8 +32,11 @@ export class QbController {
 
   @Get('tree')
   @Header('Cache-Control', CACHE_CONTROL_PUBLIC)
-  tree() {
-    return this.qbService.getTree();
+  tree(
+    @Query(zodPipe(treeQuerySchema)) query?: TreeQueryDto,
+    @CurrentUser() user?: AuthUser | null,
+  ) {
+    return this.qbService.getTree(query, user);
   }
 
   @Get('targets/:slug')
