@@ -8,17 +8,9 @@ export const STATIC_TRUSTED_ORIGINS: readonly string[] = [
   ...env.trustedOrigins,
   env.webUrl,
   env.betterAuthUrl,
-  'https://api.prohor.dev',
   'https://paws-api.prohor.dev',
   'https://study.prohor.dev',
-  'https://app.prohor.dev',
-  'https://paws.academy',
   'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:3003',
-  'https://localhost:3003',
-  'http://79.143.185.101:3003',
-  'https://79.143.185.101:3003',
 ];
 
 export function isTrustedOrigin(origin: string | undefined): boolean {
