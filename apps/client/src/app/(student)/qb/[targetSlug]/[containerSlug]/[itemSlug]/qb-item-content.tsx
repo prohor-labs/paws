@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
-import { ArrowLeft, BookOpen, PenLine } from "@/components/icons";
+import { ArrowLeft, BookOpen, Clock, DocumentText, PenLine } from "@/components/icons";
 import { EmptyState, GridCard, PageBreadcrumbs, PageLoading } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { useCreateCustomExam, useQBItemDetail } from "@/hooks/use-question-bank";
@@ -196,17 +196,35 @@ export function QbItemContent() {
             description="এই বিষয়ে এখনো কোনো সালভিত্তিক প্রশ্নপত্র যোগ করা হয়নি।"
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid gap-2.5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {filteredSources.map((s) => (
-              <GridCard
+              <Link
                 key={s.id}
                 href={`/qb/${targetSlug}/${containerSlug}/${itemSlug}/${s.slug}`}
-                title={s.year ? `${toBengaliNumber(s.year)} প্রশ্নব্যাংক` : s.name}
-                subtitle={s.name !== (s.year ? `${toBengaliNumber(s.year)} প্রশ্নব্যাংক` : s.name) ? s.name : item.name}
-                category={target.name}
-                badge={s.questionCount ? `${toBengaliNumber(s.questionCount)} টি প্রশ্ন` : undefined}
-                eventLabel={`Source_${s.slug}`}
-              />
+                className="flex flex-col justify-between rounded-xl border border-border/80 bg-card p-4 text-left transition-[border-color,box-shadow,transform] hover:border-primary/50 hover:shadow-xs active:translate-y-px group cursor-pointer"
+              >
+                <div className="w-full">
+                  <h3 className="font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                    {s.year ? `${toBengaliNumber(s.year)} প্রশ্নব্যাংক` : s.name}
+                  </h3>
+                  {s.name !== (s.year ? `${toBengaliNumber(s.year)} প্রশ্নব্যাংক` : s.name) && (
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                      {s.name}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3 pt-3 mt-2 text-xs font-medium text-muted-foreground">
+                  <div className="flex items-center gap-1.5 pr-3 border-r border-border/60">
+                    <Clock className="size-4 text-destructive shrink-0" />
+                    <span>{toBengaliNumber(s.year ?? "")}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <DocumentText className="size-4 text-primary shrink-0" />
+                    <span>{toBengaliNumber(s.questionCount ?? 0)} টি প্রশ্ন</span>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         )
