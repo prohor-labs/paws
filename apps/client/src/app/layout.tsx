@@ -140,7 +140,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
       </head>
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="min-h-full flex flex-col font-sans select-none">
         <script
           type="text/plain"
           id="scraper-policy"
@@ -165,7 +165,7 @@ export default function RootLayout({
           </div>
         </noscript>
         <DisableDevtool />
-        {/* <Script id="prevent-copy-script" strategy="afterInteractive">
+        <Script id="prevent-copy-script" strategy="afterInteractive">
           {`
             document.addEventListener('contextmenu', function(e) { e.preventDefault(); }, false);
             document.addEventListener('copy', function(e) { e.preventDefault(); }, false);
@@ -177,7 +177,7 @@ export default function RootLayout({
               }
             }, false);
           `}
-        </Script> */}
+        </Script>
         <QueryProvider>
           <ThemeProvider
             attribute="class"
