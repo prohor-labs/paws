@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Users, Activity, Sparkles, BookOpen } from "lucide-react";
+import { Users, Activity, BookOpen } from "@/components/icons";
 import { DottedMap } from "@/components/ui/dotted-map";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
