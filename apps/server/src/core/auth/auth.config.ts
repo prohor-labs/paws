@@ -69,9 +69,9 @@ export function createAuth(db: Database) {
       },
       defaultCookieAttributes: {
         sameSite: 'lax',
-        secure: env.isProduction,
+        secure: true,
       },
-      useSecureCookies: env.isProduction,
+      useSecureCookies: true,
     },
     emailAndPassword: {
       enabled: true,

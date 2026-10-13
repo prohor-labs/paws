@@ -1,3 +1,9 @@
+if (typeof process.loadEnvFile === 'function') {
+  try {
+    process.loadEnvFile();
+  } catch {}
+}
+
 const isProduction = process.env.NODE_ENV === 'production';
 
 function readNumber(value: string | undefined, fallback: number): number {
