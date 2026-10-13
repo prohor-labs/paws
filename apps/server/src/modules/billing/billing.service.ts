@@ -403,10 +403,6 @@ ${formattedOptions}
         await this.consumeAiCredits(userId, 1, 'Question Explanation AI Generation', { questionId });
 
         const fullExplanation = currentExp && isTagOnly ? `${generated}\n\n${currentExp}` : generated;
-        await this.db
-          .update(qbQuestions)
-          .set({ explanation: fullExplanation, updatedAt: new Date() })
-          .where(eq(qbQuestions.id, questionId));
 
         return { explanation: cleanAndFormatMathText(fullExplanation), aiGenerated: true };
       }
