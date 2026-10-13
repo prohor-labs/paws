@@ -362,46 +362,7 @@ ${formattedOptions}
 
       let generated: string | undefined;
 
-      if (env.geminiApiKey) {
-        const candidateModels = [
-          'models/gemini-3.5-flash',
-          'models/gemini-3.1-flash-lite',
-          'models/gemini-3.6-flash',
-          'models/gemini-3.8-flash',
-        ];
-
-        for (const model of candidateModels) {
-          try {
-            const geminiRes = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${env.geminiApiKey}`,
-              {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  contents: [{ parts: [{ text: prompt }] }],
-                }),
-              },
-            );
-
-            if (!geminiRes.ok) {
-              continue;
-            }
-
-            const geminiData = (await geminiRes.json()) as {
-              candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-            };
-            const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-            if (text) {
-              generated = text;
-              break;
-            }
-          } catch {
-            continue;
-          }
-        }
-      }
-
-      if (!generated && env.groqApiKey) {
+      if (env.groqApiKey) {
         const groqModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
         for (const gModel of groqModels) {
           try {
