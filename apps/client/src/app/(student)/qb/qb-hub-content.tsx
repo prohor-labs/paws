@@ -1,11 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { BookSaved } from "@/components/icons";
-import { EmptyState, GridCard, PageLoading, TabsWithSearch } from "@/components/shared";
+import { BookSaved, Search } from "@/components/icons";
+import { EmptyState, GridCard, PageLoading } from "@/components/shared";
 import { useQBTree } from "@/hooks/use-question-bank";
 import { useSession } from "@/lib/auth";
-import { QB_TARGET_GROUP_LABELS, QB_TARGET_GROUPS } from "@/lib/consts/custom-exam";
 import { subjectLevelLabel } from "@/lib/consts/qb";
 
 export function QbHubContent() {
@@ -17,23 +16,7 @@ export function QbHubContent() {
       })
     | undefined;
 
-  const defaultGroup = React.useMemo(() => {
-    const std = user?.educationalStandard;
-    if (std === "job") return "job";
-    if (std === "admission") return "admission";
-    if (std === "hsc" || std === "ssc") return "academic";
-    return "all";
-  }, [user?.educationalStandard]);
-
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [activeGroup, setActiveGroup] = React.useState<string>(defaultGroup);
-
-  React.useEffect(() => {
-    if (defaultGroup !== "all") {
-      setActiveGroup(defaultGroup);
-    }
-  }, [defaultGroup]);
-
   const { data, isLoading } = useQBTree();
 
   const targets = React.useMemo(() => data?.targets ?? [], [data]);
@@ -42,35 +25,30 @@ export function QbHubContent() {
   const userTrack = user?.track;
   const userStandard = user?.educationalStandard;
 
-  const tabs = React.useMemo(() => {
-    const groupTabs = QB_TARGET_GROUPS.filter((group) =>
-      targets.some((target) => (target.group ?? "academic") === group),
-    ).map((group) => ({
-      id: group,
-      label: QB_TARGET_GROUP_LABELS[group],
-      count: targets.filter((target) => (target.group ?? "academic") === group).length,
-    }));
-    return [{ id: "all", label: "সকল", count: targets.length }, ...groupTabs];
-  }, [targets]);
-
   const sections = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
 
     return targets
       .filter((target) => {
         if (q) return true;
-        if (activeGroup === "all") return true;
-        return (target.group ?? "academic") === activeGroup;
+        if (userStandard) {
+          if (userStandard === "hsc") return target.slug === "hsc";
+          if (userStandard === "ssc") return target.slug === "ssc";
+          if (userStandard === "job") return target.slug === "job";
+          if (userStandard === "admission") {
+            if (userTrack === "engineering") return target.slug === "engineering-admission";
+            if (userTrack === "medical") return target.slug === "medical-admission";
+            if (userTrack === "varsity") return target.slug === "varsity-admission";
+            return target.group === "admission";
+          }
+        }
+        return true;
       })
       .map((target) => {
         let containers = target.containers ?? [];
 
         if (!q && userStandard && userTrack) {
-          if (target.slug === "hsc") {
-            const prioritized = containers.filter((c) => c.slug.includes(userTrack));
-            const others = containers.filter((c) => !c.slug.includes(userTrack));
-            containers = [...prioritized, ...others];
-          } else if (target.slug === "ssc") {
+          if (target.slug === "hsc" || target.slug === "ssc") {
             const prioritized = containers.filter((c) => c.slug.includes(userTrack));
             const others = containers.filter((c) => !c.slug.includes(userTrack));
             containers = [...prioritized, ...others];
@@ -176,7 +154,7 @@ export function QbHubContent() {
         };
       })
       .filter((section) => section.cards.length > 0);
-  }, [targets, subjects, activeGroup, searchQuery, userStandard, userTrack]);
+  }, [targets, subjects, searchQuery, userStandard, userTrack]);
 
   if (isLoading) {
     return <PageLoading />;
@@ -184,14 +162,35 @@ export function QbHubContent() {
 
   return (
     <div className="relative w-full pb-10">
-      <TabsWithSearch
-        tabs={tabs}
-        activeTab={activeGroup}
-        onTabChange={setActiveGroup}
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="প্রশ্নব্যাংক বা বিষয় খুঁজো..."
-      />
+      <div className="sticky top-0 z-20 -mx-4 -mt-3 sm:-mt-5 border-b border-border/50 px-4 py-3 bg-background/95 backdrop-blur-md md:mx-0 md:px-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+              প্রশ্নব্যাংক আর্কাইভ
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              আপনার প্রস্তুতি ট্র্যাক অনুযায়ী নির্বাচিত প্রশ্নব্যাংক
+            </p>
+          </div>
+
+          <div className="w-full sm:w-72">
+            <div className="relative text-muted-foreground focus-within:text-foreground">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-4 w-4" />
+              </div>
+              <input
+                id="search"
+                name="search"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="প্রশ্নব্যাংক বা বিষয় খুঁজো..."
+                className="w-full rounded-full border border-border bg-background py-2 pl-9 pr-4 text-xs sm:text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary min-h-[38px]"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="mt-6 w-full">
         {sections.length > 0 ? (
@@ -227,7 +226,7 @@ export function QbHubContent() {
           <EmptyState
             icon={BookSaved}
             title="কোন প্রশ্নব্যাংক পাওয়া যায়নি"
-            description="ভিন্ন কি-ওয়ার্ড দিয়ে অনুসন্ধান করুন অথবা ফিল্টার পরিবর্তন করুন"
+            description="ভিন্ন কি-ওয়ার্ড দিয়ে অনুসন্ধান করুন"
           />
         )}
       </div>

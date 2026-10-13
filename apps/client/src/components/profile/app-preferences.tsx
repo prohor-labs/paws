@@ -173,6 +173,8 @@ export function AppPreferences() {
         open={isEditProfileOpen}
         onOpenChange={setIsEditProfileOpen}
         currentName={session?.user?.name || ""}
+        currentStandard={(session?.user as { educationalStandard?: string | null })?.educationalStandard}
+        currentTrack={(session?.user as { track?: string | null })?.track}
       />
     </div>
   );

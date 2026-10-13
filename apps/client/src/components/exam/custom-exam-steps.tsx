@@ -327,46 +327,7 @@ export function CustomExamStep1({
           </div>
         </div>
 
-        <div className="flex items-center sm:justify-center gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => {
-                setActiveCategory(cat.id);
-                setActiveStream("science");
-              }}
-              className={cn(
-                "px-3.5 py-1.5 rounded-full text-xs font-medium shrink-0 transition-colors cursor-pointer",
-                activeCategory === cat.id
-                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                  : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
 
-        {activeCategory !== "job" && (
-          <div className="flex items-center sm:justify-center gap-1.5 overflow-x-auto pb-2 mb-3 scrollbar-none">
-            {streamTabs.map((st) => (
-              <button
-                key={st.id}
-                type="button"
-                onClick={() => setActiveStream(st.id)}
-                className={cn(
-                  "px-3 py-1 rounded-lg text-[11px] font-medium shrink-0 transition-colors cursor-pointer border",
-                  activeStream === st.id
-                    ? "bg-primary/10 border-primary text-primary font-bold shadow-2xs"
-                    : "border-border/60 bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                {st.label}
-              </button>
-            ))}
-          </div>
-        )}
 
         {filteredSubjects.length === 0 ? (
           <p className="text-xs text-muted-foreground py-8 text-center">কোনো বিষয় খুঁজে পাওয়া যায়নি।</p>
