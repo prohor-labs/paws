@@ -165,7 +165,7 @@ export function SignInCard() {
         <AuthLogo />
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Prohor-এ স্বাগতম
+            স্বাগতম
           </h1>
           <p className="text-sm text-muted-foreground">
             {mode === "signup"
