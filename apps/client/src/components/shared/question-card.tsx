@@ -591,7 +591,6 @@ export function QuestionCard({
         uniqueParts.push(p);
       }
     }
-    // If the only part is identical to questionText, don't duplicate it
     if (
       uniqueParts.length === 1 &&
       uniqueParts[0]?.partText?.trim() === question.questionText?.trim()
