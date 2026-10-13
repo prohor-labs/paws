@@ -57,4 +57,5 @@ export const env = {
       process.env.AWS_FORCE_PATH_STYLE === 'true' ||
       Boolean(process.env.AWS_ENDPOINT || process.env.AWS_ENDPOINT_URL),
   },
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
 } as const;

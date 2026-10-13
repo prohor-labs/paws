@@ -73,6 +73,8 @@ export const qbSubjects = pgTable(
     id: uuid().default(sql`uuidv7()`).primaryKey().notNull(),
     targetId: uuid("target_id"),
     level: qbEducationLevel("level").default("hsc").notNull(),
+    educationLevel: text("education_level").default("hsc").notNull(),
+    stream: text("stream").default("general").notNull(),
     name: text().notNull(),
     slug: text().notNull(),
     code: text(),

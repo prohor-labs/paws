@@ -14,11 +14,20 @@ import {
   qbQuestionSources
 } from "../src/common/database/schema/qb.js";
 import { eq, and, sql } from "drizzle-orm";
+import { recalculateAllCounts } from "../src/modules/qb/qb-count.js";
 
 const BASE_URL = "https://studyclubd.com/view-question1/";
 const AJAX_URL = "https://studyclubd.com/qb-archive/includes/ajax.php";
 const UNIV_CODE = "UNI_J32I8G";
 const UNIT_CODE = "UNI_f20da169";
+
+const CORE_SUBJECTS = [
+  { code: "SUB_22eb0d02", name: "ইংরেজি গ্রামার ও ভোকাবুলারি", slug: "ইংরেজি-গ্রামার-ও-ভোকাবুলারি-sub_22eb0d02" },
+  { code: "SUB_7a31a559", name: "সাধারন জ্ঞান বাংলাদেশ", slug: "সাধারন-জ্ঞান-বাংলাদেশ-sub_7a31a559" },
+  { code: "SUB_19679478", name: "সাধারন জ্ঞান আন্তর্জাতিক", slug: "সাধারন-জ্ঞান-আন্তর্জাতিক-sub_19679478" },
+  { code: "SUB_8a1edb7b", name: "বাংলা ব্যাকরন", slug: "বাংলা-ব্যাকরন-sub_8a1edb7b" },
+  { code: "SUB_af941852", name: "বাংলা সাহিত্য", slug: "বাংলা-সাহিত্য-sub_af941852" }
+];
 
 interface ScrapedOption {
   label: string;
@@ -34,14 +43,18 @@ interface ScrapedQuestion {
   options: ScrapedOption[];
 }
 
-interface ScrapingTask {
+interface TopicTask {
   subjectCode: string;
   subjectName: string;
   chapterCode: string;
   chapterName: string;
   topicCode: string;
   topicName: string;
-  dbTopicId: string | null;
+  dbTopicId: string;
+}
+
+function normalizeKey(str: string): string {
+  return str.replace(/\s+/g, "").toLowerCase().trim();
 }
 
 function parseAndDeduplicateMetaTags(metaStr: string) {
@@ -123,7 +136,7 @@ async function fetchQuestions(params: {
       if (r === retries - 1) {
         return { questions: [], hasMore: false };
       }
-      await new Promise(res => setTimeout(res, 300 * (r + 1)));
+      await new Promise(res => setTimeout(res, 250 * (r + 1)));
     }
   }
 
@@ -131,19 +144,18 @@ async function fetchQuestions(params: {
 }
 
 async function main() {
-  console.log("Initializing database connection...");
   const dbUrl = process.env.DATABASE_URL || "postgresql://paws:df8f13a4@127.0.0.1:5432/paws";
-  const client = postgres(dbUrl, { max: 20 });
+  const client = postgres(dbUrl, { max: 25 });
   const db = drizzle(client);
 
   const [target] = await db.insert(qbTargets).values({
     group: "admission",
-    name: "Dhaka University",
-    slug: "dhaka-university",
+    name: "Varsity Admission",
+    slug: "varsity-admission",
     orderIndex: 1
   }).onConflictDoUpdate({
     target: qbTargets.slug,
-    set: { name: "Dhaka University" }
+    set: { name: "Varsity Admission" }
   }).returning();
 
   const [container] = await db.insert(qbContainers).values({
@@ -168,17 +180,65 @@ async function main() {
     set: { name: "B Unit (কলা, আইন ও সামাজিক বিজ্ঞান অনুষদ)" }
   }).returning();
 
-  console.log("Loading taxonomy lookup...");
-  const dbSubjects = await db.select().from(qbSubjects);
-  const dbChapters = await db.select().from(qbChapters);
-  const dbTopics = await db.select().from(qbTopics);
+  const oldBUnitQ = await client`
+    SELECT distinct q.id
+    FROM qb_questions q
+    JOIN qb_question_sources qs ON qs.question_id = q.id
+    JOIN qb_sources s ON s.id = qs.source_id
+    WHERE s.container_item_id = ${containerItem.id};
+  `;
+
+  if (oldBUnitQ.length > 0) {
+    const oldIds = oldBUnitQ.map(r => r.id);
+    await client`DELETE FROM qb_question_sources WHERE question_id = ANY(${oldIds})`;
+    await client`DELETE FROM qb_question_options WHERE question_id = ANY(${oldIds})`;
+    await client`DELETE FROM qb_questions WHERE id = ANY(${oldIds})`;
+  }
+
+  await client`DELETE FROM qb_sources WHERE container_item_id = ${containerItem.id}`;
 
   const subjectMap = new Map<string, string>();
-  dbSubjects.forEach(s => {
-    if (s.code) subjectMap.set(s.code, s.id);
-    subjectMap.set(s.name, s.id);
-    subjectMap.set(s.slug, s.id);
-  });
+  const defaultTopicMap = new Map<string, string>();
+
+  for (const cs of CORE_SUBJECTS) {
+    let [dbSub] = await db.select().from(qbSubjects).where(eq(qbSubjects.code, cs.code));
+    if (!dbSub) {
+      [dbSub] = await db.select().from(qbSubjects).where(eq(qbSubjects.slug, cs.slug));
+    }
+    if (!dbSub) {
+      [dbSub] = await db.insert(qbSubjects).values({
+        name: cs.name,
+        slug: cs.slug,
+        code: cs.code,
+        targetId: target.id,
+        level: "admission"
+      }).returning();
+    }
+    subjectMap.set(cs.code, dbSub.id);
+
+    let [defaultChapter] = await db.select().from(qbChapters).where(eq(qbChapters.subjectId, dbSub.id));
+    if (!defaultChapter) {
+      [defaultChapter] = await db.insert(qbChapters).values({
+        subjectId: dbSub.id,
+        name: "সাধারণ অধ্যায়",
+        slug: "general",
+        containerItemId: containerItem.id
+      }).returning();
+    }
+
+    let [defaultTopic] = await db.select().from(qbTopics).where(eq(qbTopics.chapterId, defaultChapter.id));
+    if (!defaultTopic) {
+      [defaultTopic] = await db.insert(qbTopics).values({
+        chapterId: defaultChapter.id,
+        name: "সাধারণ টপিক",
+        slug: "general-topic"
+      }).returning();
+    }
+    defaultTopicMap.set(cs.code, defaultTopic.id);
+  }
+
+  const dbChapters = await db.select().from(qbChapters);
+  const dbTopics = await db.select().from(qbTopics);
 
   const chapterMap = new Map<string, string>();
   dbChapters.forEach(c => {
@@ -193,65 +253,20 @@ async function main() {
     topicMap.set(t.slug, t.id);
   });
 
-  console.log("Discovering DU B Unit hierarchy concurrently...");
-  const yearRes = await fetch(`${AJAX_URL}?ajax=1&step=year&family=University&university=${UNIV_CODE}&unit=${UNIT_CODE}`, {
-    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
-  });
-  const yearData = await yearRes.json();
-  const $y = cheerio.load(yearData.html || "");
+  console.log("Discovering all topics across 5 core subjects concurrently...");
+  const topicTasks: TopicTask[] = [];
 
-  const subjList: { code: string; name: string }[] = [];
-  $y("#tab-content-subject .bg-white").each((_, el) => {
-    const card = $y(el);
-    const header = card.find(".flex.justify-between").first();
-    const onclick = header.attr("onclick") || "";
-    const matchSub = onclick.match(/SUB_[a-zA-Z0-9]+/);
-    if (matchSub) {
-      subjList.push({
-        code: matchSub[0],
-        name: header.find("span.font-bold").first().text().trim()
-      });
-    }
-  });
-
-  console.log(`Discovered ${subjList.length} subjects. Concurrently fetching chapters and topics...`);
-
-  for (const s of subjList) {
-    const subjSlug = s.code.toLowerCase().replace(/_/g, "-");
-    let subDbId = subjectMap.get(s.code) || subjectMap.get(s.name) || subjectMap.get(subjSlug);
-    if (!subDbId) {
-      const [newSub] = await db.insert(qbSubjects).values({
-        name: s.name,
-        slug: subjSlug,
-        code: s.code,
-        targetId: target.id,
-        level: "admission"
-      }).onConflictDoUpdate({
-        target: qbSubjects.slug,
-        set: { name: s.name }
-      }).returning({ id: qbSubjects.id });
-      subDbId = newSub.id;
-      subjectMap.set(s.code, subDbId);
-      subjectMap.set(s.name, subDbId);
-      subjectMap.set(subjSlug, subDbId);
-    }
-  }
-
-  const tasks: ScrapingTask[] = [];
-
-  await Promise.all(subjList.map(async (subj) => {
-    const subCode = subj.code;
-    const rawSubjName = subj.name;
-    const subDbId = subjectMap.get(subCode)!;
-
-    const chapRes = await fetch(`${AJAX_URL}?ajax=1&step=chapters&university=${UNIV_CODE}&unit=${UNIT_CODE}&subject=${subCode}`, {
+  await Promise.all(CORE_SUBJECTS.map(async (cs) => {
+    const subDbId = subjectMap.get(cs.code)!;
+    const chapRes = await fetch(`${AJAX_URL}?ajax=1&step=chapters&university=${UNIV_CODE}&unit=${UNIT_CODE}&subject=${cs.code}`, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
     });
     const chapData = await chapRes.json();
     const $c = cheerio.load(chapData.html || "");
-    const chapCards = $c(".border.border-gray-100").toArray();
 
+    const chapCards = $c(".border.border-gray-100").toArray();
     const chapList: { code: string; name: string }[] = [];
+
     for (const cEl of chapCards) {
       const cHeader = $c(cEl).find(".flex.justify-between").first();
       const cOnclick = cHeader.attr("onclick") || "";
@@ -285,7 +300,7 @@ async function main() {
         chapterMap.set(`${subDbId}:${chapSlug}`, chapDbId);
       }
 
-      const topRes = await fetch(`${AJAX_URL}?ajax=1&step=topics&university=${UNIV_CODE}&unit=${UNIT_CODE}&subject=${subCode}&chapter=${chapCode}`, {
+      const topRes = await fetch(`${AJAX_URL}?ajax=1&step=topics&university=${UNIV_CODE}&unit=${UNIT_CODE}&subject=${cs.code}&chapter=${chapCode}`, {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
       });
       const topData = await topRes.json();
@@ -317,9 +332,9 @@ async function main() {
             topicMap.set(topSlug, topDbId);
           }
 
-          tasks.push({
-            subjectCode: subCode,
-            subjectName: rawSubjName,
+          topicTasks.push({
+            subjectCode: cs.code,
+            subjectName: cs.name,
             chapterCode: chapCode,
             chapterName: rawChapName,
             topicCode: topCode,
@@ -331,37 +346,41 @@ async function main() {
     }));
   }));
 
-  console.log(`Discovered ${tasks.length} specific topic queues. Scraping questions with 10 workers...`);
+  console.log(`Discovered ${topicTasks.length} specific topic queues. Starting Pass 1 (Topic-level extraction)...`);
 
+  const seenQuestions = new Set<string>();
+  const sourceCache = new Map<string, string>();
   let totalImportedQuestions = 0;
   let totalImportedOptions = 0;
   let totalSourcesLinked = 0;
-  let completedTasks = 0;
 
-  const sourceCache = new Map<string, string>();
-  const workerCount = 10;
-  let taskIndex = 0;
+  const workerCount = 12;
+  let topicTaskIndex = 0;
 
-  async function worker() {
-    while (taskIndex < tasks.length) {
-      const currentTask = tasks[taskIndex++];
+  async function topicWorker() {
+    while (topicTaskIndex < topicTasks.length) {
+      const task = topicTasks[topicTaskIndex++];
       let page = 1;
       let hasMore = true;
 
       while (hasMore) {
         const result = await fetchQuestions({
-          subject: currentTask.subjectCode,
-          chapter: currentTask.chapterCode,
-          topic: currentTask.topicCode,
+          subject: task.subjectCode,
+          chapter: task.chapterCode,
+          topic: task.topicCode,
           page
         });
 
         if (result.questions.length === 0) break;
 
         for (const q of result.questions) {
+          const qKey = normalizeKey(q.questionText);
+          if (seenQuestions.has(qKey)) continue;
+          seenQuestions.add(qKey);
+
           try {
             const [qRow] = await db.insert(qbQuestions).values({
-              topicId: currentTask.dbTopicId,
+              topicId: task.dbTopicId,
               qType: "mcq",
               questionText: q.questionText,
               status: "published",
@@ -382,9 +401,10 @@ async function main() {
             }
 
             const metaList = parseAndDeduplicateMetaTags(q.meta);
-            for (const meta of metaList) {
+            const effectiveMetaList = metaList.length > 0 ? metaList : [{ institution: "DU", unit: "Unit-B", year: undefined }];
+
+            for (const meta of effectiveMetaList) {
               const sSlug = `${meta.institution}-${meta.unit || "unit-b"}-${meta.year || "all"}`.toLowerCase().replace(/[^\w-]/g, "-");
-              
               let sourceId = sourceCache.get(sSlug);
               if (!sourceId) {
                 const [srcRow] = await db.insert(qbSources).values({
@@ -402,7 +422,6 @@ async function main() {
                   target: qbSources.slug,
                   set: { name: `${meta.institution} ${meta.unit || ""} ${meta.year || ""}`.trim() }
                 }).returning({ id: qbSources.id });
-
                 sourceId = srcRow.id;
                 sourceCache.set(sSlug, sourceId);
               }
@@ -421,53 +440,104 @@ async function main() {
         hasMore = result.hasMore;
         page++;
       }
-
-      completedTasks++;
-      if (completedTasks % 20 === 0 || completedTasks === tasks.length) {
-        console.log(`[PROGRESS] [${completedTasks}/${tasks.length} Topics] Questions: ${totalImportedQuestions} | Options: ${totalImportedOptions} | Sources: ${totalSourcesLinked}`);
-      }
     }
   }
 
-  const workers = Array.from({ length: workerCount }, () => worker());
-  await Promise.all(workers);
+  const topicWorkers = Array.from({ length: workerCount }, () => topicWorker());
+  await Promise.all(topicWorkers);
 
-  const containerItemCountRes = await db.select({
-    count: sql<number>`count(distinct ${qbQuestionSources.questionId})`
-  }).from(qbQuestionSources)
-    .innerJoin(qbSources, eq(qbQuestionSources.sourceId, qbSources.id))
-    .where(eq(qbSources.containerItemId, containerItem.id));
-  
-  const bUnitQuestionCount = Number(containerItemCountRes[0]?.count || totalImportedQuestions);
+  console.log(`Pass 1 completed. Questions with specific topics: ${totalImportedQuestions}`);
+  console.log(`Starting Pass 2 (Subject-level sweep to capture all untagged questions)...`);
 
-  await db.update(qbContainerItems).set({
-    questionCount: bUnitQuestionCount
-  }).where(eq(qbContainerItems.id, containerItem.id));
+  for (const cs of CORE_SUBJECTS) {
+    const fallbackTopicId = defaultTopicMap.get(cs.code)!;
+    let page = 1;
+    let hasMore = true;
+    let subjectSweepCount = 0;
 
-  const totalContainerCountRes = await db.select({
-    count: sql<number>`count(distinct ${qbQuestionSources.questionId})`
-  }).from(qbQuestionSources)
-    .innerJoin(qbSources, eq(qbQuestionSources.sourceId, qbSources.id))
-    .where(eq(qbSources.containerId, container.id));
+    while (hasMore) {
+      const result = await fetchQuestions({
+        subject: cs.code,
+        page
+      });
 
-  const totalContainerQuestions = Number(totalContainerCountRes[0]?.count || 0);
+      if (result.questions.length === 0) break;
 
-  const allItemsCountRes = await db.select({
-    count: sql<number>`count(*)`
-  }).from(qbContainerItems)
-    .where(eq(qbContainerItems.containerId, container.id));
+      for (const q of result.questions) {
+        const qKey = normalizeKey(q.questionText);
+        if (seenQuestions.has(qKey)) continue;
+        seenQuestions.add(qKey);
 
-  await db.update(qbContainers).set({
-    questionCount: totalContainerQuestions,
-    itemCount: Number(allItemsCountRes[0]?.count || 2)
-  }).where(eq(qbContainers.id, container.id));
+        try {
+          const [qRow] = await db.insert(qbQuestions).values({
+            topicId: fallbackTopicId,
+            qType: "mcq",
+            questionText: q.questionText,
+            status: "published",
+            orderIndex: parseInt(q.number) || 0
+          }).returning({ id: qbQuestions.id });
 
-  await db.update(qbTargets).set({
-    questionCount: totalContainerQuestions
-  }).where(eq(qbTargets.id, target.id));
+          totalImportedQuestions++;
+          subjectSweepCount++;
 
-  console.log(`\nImport completed: ${totalImportedQuestions} questions, ${totalImportedOptions} options, ${totalSourcesLinked} sources.`);
+          for (let i = 0; i < q.options.length; i++) {
+            const opt = q.options[i];
+            await db.insert(qbQuestionOptions).values({
+              questionId: qRow.id,
+              optionText: opt.text || opt.label || "N/A",
+              isCorrect: opt.isCorrect,
+              orderIndex: i
+            });
+            totalImportedOptions++;
+          }
 
+          const metaList = parseAndDeduplicateMetaTags(q.meta);
+          const effectiveMetaList = metaList.length > 0 ? metaList : [{ institution: "DU", unit: "Unit-B", year: undefined }];
+
+          for (const meta of effectiveMetaList) {
+            const sSlug = `${meta.institution}-${meta.unit || "unit-b"}-${meta.year || "all"}`.toLowerCase().replace(/[^\w-]/g, "-");
+            let sourceId = sourceCache.get(sSlug);
+            if (!sourceId) {
+              const [srcRow] = await db.insert(qbSources).values({
+                containerId: container.id,
+                containerItemId: containerItem.id,
+                sourceGroup: "admission",
+                type: "university",
+                name: `${meta.institution} ${meta.unit || ""} ${meta.year || ""}`.trim(),
+                slug: sSlug,
+                institution: meta.institution,
+                unit: meta.unit,
+                year: meta.year,
+                questionCount: 0
+              }).onConflictDoUpdate({
+                target: qbSources.slug,
+                set: { name: `${meta.institution} ${meta.unit || ""} ${meta.year || ""}`.trim() }
+              }).returning({ id: qbSources.id });
+              sourceId = srcRow.id;
+              sourceCache.set(sSlug, sourceId);
+            }
+
+            await db.insert(qbQuestionSources).values({
+              questionId: qRow.id,
+              sourceId: sourceId
+            }).onConflictDoNothing();
+
+            totalSourcesLinked++;
+          }
+        } catch (err) {
+        }
+      }
+
+      hasMore = result.hasMore;
+      page++;
+    }
+
+    console.log(`Pass 2 swept ${cs.name}: Added ${subjectSweepCount} untagged questions.`);
+  }
+
+  await recalculateAllCounts(db);
+
+  console.log(`\n🎉 DU B Unit Complete: Total ${totalImportedQuestions} questions, ${totalImportedOptions} options, ${totalSourcesLinked} source links.`);
   await client.end();
 }
 

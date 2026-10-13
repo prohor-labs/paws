@@ -14,10 +14,26 @@ import {
   qbQuestionSources
 } from "../src/common/database/schema/qb.js";
 import { eq, and, sql } from "drizzle-orm";
+import { recalculateAllCounts } from "../src/modules/qb/qb-count.js";
 
 const BASE_URL = "https://studyclubd.com/view-question1/";
-const UNIV_CODE = "UNI_J32I8G"; // Dhaka University
-const UNIT_CODE = "UNI_6321c505"; // A Unit
+const AJAX_URL = "https://studyclubd.com/qb-archive/includes/ajax.php";
+const UNIV_CODE = "UNI_J32I8G";
+const UNIT_CODE = "UNI_6321c505";
+
+const A_UNIT_SUBJECTS = [
+  { code: "SUB_599bd423", name: "পদার্থবিজ্ঞান ১ম পত্র", slug: "পদার্থবিজ্ঞান-প্রথম-পত্র-sub_599bd423" },
+  { code: "SUB_2a8512fd", name: "পদার্থবিজ্ঞান ২য় পত্র", slug: "পদার্থবিজ্ঞান-দ্বিতীয়-পত্র-sub_2a8512fd" },
+  { code: "SUB_2a4adee4", name: "রসায়ন ১ম পত্র", slug: "রসায়ন-প্রথম-পত্র-sub_2a4adee4" },
+  { code: "SUB_57c463da", name: "রসায়ন ২য় পত্র", slug: "রসায়ন-দ্বিতীয়-পত্র-sub_57c463da" },
+  { code: "SUB_7f8e22c1", name: "উচ্চতর গণিত ১ম পত্র", slug: "উচ্চতর-গণিত-প্রথম-পত্র-sub_7f8e22c1" },
+  { code: "SUB_13b6cb76", name: "উচ্চতর গণিত ২য় পত্র", slug: "উচ্চতর-গণিত-দ্বিতীয়-পত্র-sub_13b6cb76" },
+  { code: "SUB_3d982a22", name: "জীববিজ্ঞান ১ম পত্র", slug: "জীববিজ্ঞান-প্রথম-পত্র-sub_3d982a22" },
+  { code: "SUB_b7d3a5b7", name: "জীববিজ্ঞান ২য় পত্র", slug: "জীববিজ্ঞান-দ্বিতীয়-পত্র-sub_b7d3a5b7" },
+  { code: "SUB_22eb0d02", name: "ইংরেজি গ্রামার ও ভোকাবুলারি", slug: "ইংরেজি-গ্রামার-ও-ভোকাবুলারি-sub_22eb0d02" },
+  { code: "SUB_8a1edb7b", name: "বাংলা ব্যাকরন", slug: "বাংলা-ব্যাকরন-sub_8a1edb7b" },
+  { code: "SUB_af941852", name: "বাংলা সাহিত্য", slug: "বাংলা-সাহিত্য-sub_af941852" }
+];
 
 interface ScrapedOption {
   label: string;
@@ -31,6 +47,20 @@ interface ScrapedQuestion {
   questionText: string;
   meta: string;
   options: ScrapedOption[];
+}
+
+interface TopicTask {
+  subjectCode: string;
+  subjectName: string;
+  chapterCode: string;
+  chapterName: string;
+  topicCode: string;
+  topicName: string;
+  dbTopicId: string;
+}
+
+function normalizeKey(str: string): string {
+  return str.replace(/\s+/g, "").toLowerCase().trim();
 }
 
 function parseAndDeduplicateMetaTags(metaStr: string) {
@@ -110,10 +140,9 @@ async function fetchQuestions(params: {
       };
     } catch (e) {
       if (r === retries - 1) {
-        console.error(`Error fetching page ${params.page} for topic ${params.topic}:`, e);
         return { questions: [], hasMore: false };
       }
-      await new Promise(res => setTimeout(res, 300 * (r + 1)));
+      await new Promise(res => setTimeout(res, 250 * (r + 1)));
     }
   }
 
@@ -121,28 +150,20 @@ async function fetchQuestions(params: {
 }
 
 async function main() {
-  console.log("=====================================================================");
-  console.log("🚀 DU (Dhaka University) -> A Unit Question Bank Importer");
-  console.log("=====================================================================\n");
-
   const dbUrl = process.env.DATABASE_URL || "postgresql://paws:df8f13a4@127.0.0.1:5432/paws";
-  const client = postgres(dbUrl, { max: 15 });
+  const client = postgres(dbUrl, { max: 25 });
   const db = drizzle(client);
 
-  // 1. Ensure Target: Dhaka University
-  console.log("1️⃣ Setting up Target: 'Dhaka University'...");
   const [target] = await db.insert(qbTargets).values({
     group: "admission",
-    name: "Dhaka University",
-    slug: "dhaka-university",
+    name: "Varsity Admission",
+    slug: "varsity-admission",
     orderIndex: 1
   }).onConflictDoUpdate({
     target: qbTargets.slug,
-    set: { name: "Dhaka University" }
+    set: { name: "Varsity Admission" }
   }).returning();
 
-  // 2. Ensure Container: Dhaka University Question Bank
-  console.log("2️⃣ Setting up Container: 'Dhaka University Question Bank'...");
   const [container] = await db.insert(qbContainers).values({
     targetId: target.id,
     name: "Dhaka University Question Bank",
@@ -154,8 +175,6 @@ async function main() {
     set: { name: "Dhaka University Question Bank" }
   }).returning();
 
-  // 3. Ensure Container Item: A Unit (বিজ্ঞান অনুষদ)
-  console.log("3️⃣ Setting up Container Item: 'A Unit (বিজ্ঞান অনুষদ)'...");
   const [containerItem] = await db.insert(qbContainerItems).values({
     containerId: container.id,
     name: "A Unit (বিজ্ঞান অনুষদ)",
@@ -167,136 +186,207 @@ async function main() {
     set: { name: "A Unit (বিজ্ঞান অনুষদ)" }
   }).returning();
 
-  // 4. Load Scraper Lookup Index to find our DB Subject, Chapter, and Topic UUIDs
-  console.log("4️⃣ Loading taxonomy lookup index...");
-  const lookupIndex = await Bun.file("/root/Hulk/data/studyclub/scraper_lookup_index.json").json();
-  const rawSubjData = await Bun.file("/root/Hulk/data/studyclub/all_subjects_chapters_topics.json").json();
+  const oldAUnitQ = await client`
+    SELECT distinct q.id
+    FROM qb_questions q
+    JOIN qb_question_sources qs ON qs.question_id = q.id
+    JOIN qb_sources s ON s.id = qs.source_id
+    WHERE s.container_item_id = ${containerItem.id};
+  `;
 
-  // Query all DB topics, chapters, subjects into memory for high-speed resolution
-  const dbSubjects = await db.select().from(qbSubjects);
+  if (oldAUnitQ.length > 0) {
+    const oldIds = oldAUnitQ.map(r => r.id);
+    await client`DELETE FROM qb_question_sources WHERE question_id = ANY(${oldIds})`;
+    await client`DELETE FROM qb_question_options WHERE question_id = ANY(${oldIds})`;
+    await client`DELETE FROM qb_questions WHERE id = ANY(${oldIds})`;
+  }
+
+  await client`DELETE FROM qb_sources WHERE container_item_id = ${containerItem.id}`;
+
+  const subjectMap = new Map<string, string>();
+  const defaultTopicMap = new Map<string, string>();
+
+  for (const cs of A_UNIT_SUBJECTS) {
+    let [dbSub] = await db.select().from(qbSubjects).where(eq(qbSubjects.code, cs.code));
+    if (!dbSub) {
+      [dbSub] = await db.select().from(qbSubjects).where(eq(qbSubjects.slug, cs.slug));
+    }
+    if (!dbSub) {
+      [dbSub] = await db.insert(qbSubjects).values({
+        name: cs.name,
+        slug: cs.slug,
+        code: cs.code,
+        targetId: target.id,
+        level: "admission"
+      }).returning();
+    }
+    subjectMap.set(cs.code, dbSub.id);
+
+    let [defaultChapter] = await db.select().from(qbChapters).where(eq(qbChapters.subjectId, dbSub.id));
+    if (!defaultChapter) {
+      [defaultChapter] = await db.insert(qbChapters).values({
+        subjectId: dbSub.id,
+        name: "সাধারণ অধ্যায়",
+        slug: "general",
+        containerItemId: containerItem.id
+      }).returning();
+    }
+
+    let [defaultTopic] = await db.select().from(qbTopics).where(eq(qbTopics.chapterId, defaultChapter.id));
+    if (!defaultTopic) {
+      [defaultTopic] = await db.insert(qbTopics).values({
+        chapterId: defaultChapter.id,
+        name: "সাধারণ টপিক",
+        slug: "general-topic"
+      }).returning();
+    }
+    defaultTopicMap.set(cs.code, defaultTopic.id);
+  }
+
   const dbChapters = await db.select().from(qbChapters);
   const dbTopics = await db.select().from(qbTopics);
 
-  const subjectCodeToDbMap = new Map<string, string>(); // code -> id
-  dbSubjects.forEach(s => { if (s.code) subjectCodeToDbMap.set(s.code, s.id); });
-
-  // 5. Discover all units and topics under DU A Unit
-  console.log("5️⃣ Discovering all Subject/Chapter/Topic tasks for DU A Unit...\n");
-  const yearRes = await fetch(`https://studyclubd.com/qb-archive/includes/ajax.php?ajax=1&step=year&university=${UNIV_CODE}&unit=${UNIT_CODE}`, {
-    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+  const chapterMap = new Map<string, string>();
+  dbChapters.forEach(c => {
+    chapterMap.set(`${c.subjectId}:${c.name}`, c.id);
+    chapterMap.set(`${c.subjectId}:${c.slug}`, c.id);
   });
-  const yearData = await yearRes.json();
-  const $y = cheerio.load(yearData.html || "");
 
-  interface ScrapingTask {
-    subjectId: string;
-    subjectName: string;
-    chapterId: string;
-    chapterName: string;
-    topicId: string;
-    topicName: string;
-    dbTopicId: string | null;
-  }
+  const topicMap = new Map<string, string>();
+  dbTopics.forEach(t => {
+    topicMap.set(`${t.chapterId}:${t.name}`, t.id);
+    topicMap.set(`${t.chapterId}:${t.slug}`, t.id);
+    topicMap.set(t.slug, t.id);
+  });
 
-  const tasks: ScrapingTask[] = [];
+  console.log("Discovering all topics across DU A Unit subjects concurrently...");
+  const topicTasks: TopicTask[] = [];
 
-  const subjElements = $y("#tab-content-subject .bg-white").toArray();
-
-  for (const sEl of subjElements) {
-    const card = $y(sEl);
-    const header = card.find(".flex.justify-between").first();
-    const onclick = header.attr("onclick") || "";
-    const matchSub = onclick.match(/SUB_[a-zA-Z0-9]+/);
-    if (!matchSub) continue;
-
-    const subCode = matchSub[0];
-    const rawSubjName = header.find("span.font-bold").first().text().trim();
-
-    // Fetch chapters for this subject
-    const chapRes = await fetch(`https://studyclubd.com/qb-archive/includes/ajax.php?ajax=1&step=chapters&university=${UNIV_CODE}&unit=${UNIT_CODE}&subject=${subCode}`, {
+  await Promise.all(A_UNIT_SUBJECTS.map(async (cs) => {
+    const subDbId = subjectMap.get(cs.code)!;
+    const chapRes = await fetch(`${AJAX_URL}?ajax=1&step=chapters&university=${UNIV_CODE}&unit=${UNIT_CODE}&subject=${cs.code}`, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
     });
     const chapData = await chapRes.json();
     const $c = cheerio.load(chapData.html || "");
 
-    const chapElements = $c(".border.border-gray-100").toArray();
+    const chapCards = $c(".border.border-gray-100").toArray();
+    const chapList: { code: string; name: string }[] = [];
 
-    for (const cEl of chapElements) {
+    for (const cEl of chapCards) {
       const cHeader = $c(cEl).find(".flex.justify-between").first();
       const cOnclick = cHeader.attr("onclick") || "";
       const matchChap = cOnclick.match(/CHA_[a-zA-Z0-9]+/);
-      if (!matchChap) continue;
+      if (matchChap) {
+        chapList.push({
+          code: matchChap[0],
+          name: cHeader.find("span.font-semibold").text().trim()
+        });
+      }
+    }
 
-      const chapCode = matchChap[0];
-      const rawChapName = cHeader.find("span.font-semibold").text().trim();
+    await Promise.all(chapList.map(async (chap) => {
+      const chapCode = chap.code;
+      const rawChapName = chap.name;
+      const chapSlug = chapCode.toLowerCase().replace(/_/g, "-");
 
-      // Fetch topics for this chapter
-      const topRes = await fetch(`https://studyclubd.com/qb-archive/includes/ajax.php?ajax=1&step=topics&university=${UNIV_CODE}&unit=${UNIT_CODE}&subject=${subCode}&chapter=${chapCode}`, {
+      let chapDbId = chapterMap.get(`${subDbId}:${rawChapName}`) || chapterMap.get(`${subDbId}:${chapSlug}`);
+      if (!chapDbId) {
+        const [newChap] = await db.insert(qbChapters).values({
+          subjectId: subDbId,
+          name: rawChapName,
+          slug: chapSlug,
+          containerItemId: containerItem.id
+        }).onConflictDoUpdate({
+          target: [qbChapters.subjectId, qbChapters.slug],
+          set: { name: rawChapName }
+        }).returning({ id: qbChapters.id });
+        chapDbId = newChap.id;
+        chapterMap.set(`${subDbId}:${rawChapName}`, chapDbId);
+        chapterMap.set(`${subDbId}:${chapSlug}`, chapDbId);
+      }
+
+      const topRes = await fetch(`${AJAX_URL}?ajax=1&step=topics&university=${UNIV_CODE}&unit=${UNIT_CODE}&subject=${cs.code}&chapter=${chapCode}`, {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
       });
       const topData = await topRes.json();
       const $t = cheerio.load(topData.html || "");
 
-      $t(".flex.justify-between").each((_, tEl) => {
+      const topicCards = $t(".flex.justify-between").toArray();
+      for (const tEl of topicCards) {
         const btn = $t(tEl).find("button");
         const tOnclick = btn.attr("onclick") || "";
         const matchTop = tOnclick.match(/TOP_[a-zA-Z0-9]+/);
         if (matchTop) {
           const topCode = matchTop[0];
-          const topName = $t(tEl).find("span.truncate").text().trim();
+          const topName = $t(tEl).find("span.truncate").text().trim() || topCode;
+          const topSlug = topCode.toLowerCase().replace(/_/g, "-");
 
-          // Match DB topic ID
-          const dbTop = dbTopics.find(t => t.slug.includes(topCode.toLowerCase()));
+          let topDbId = topicMap.get(`${chapDbId}:${topName}`) || topicMap.get(`${chapDbId}:${topSlug}`) || topicMap.get(topSlug);
+          if (!topDbId) {
+            const [newTop] = await db.insert(qbTopics).values({
+              chapterId: chapDbId,
+              name: topName,
+              slug: topSlug
+            }).onConflictDoUpdate({
+              target: [qbTopics.chapterId, qbTopics.slug],
+              set: { name: topName }
+            }).returning({ id: qbTopics.id });
+            topDbId = newTop.id;
+            topicMap.set(`${chapDbId}:${topName}`, topDbId);
+            topicMap.set(`${chapDbId}:${topSlug}`, topDbId);
+            topicMap.set(topSlug, topDbId);
+          }
 
-          tasks.push({
-            subjectId: subCode,
-            subjectName: rawSubjName,
-            chapterId: chapCode,
+          topicTasks.push({
+            subjectCode: cs.code,
+            subjectName: cs.name,
+            chapterCode: chapCode,
             chapterName: rawChapName,
-            topicId: topCode,
+            topicCode: topCode,
             topicName: topName,
-            dbTopicId: dbTop ? dbTop.id : null
+            dbTopicId: topDbId
           });
         }
-      });
-    }
-  }
+      }
+    }));
+  }));
 
-  console.log(`🎯 Discovered ${tasks.length} specific topic queues for DU A Unit.`);
-  console.log(`⚡ Starting concurrent question scraper and DB importer...\n`);
+  console.log(`Discovered ${topicTasks.length} specific topic queues. Starting Pass 1 (Topic-level extraction)...`);
 
+  const seenQuestions = new Set<string>();
+  const sourceCache = new Map<string, string>();
   let totalImportedQuestions = 0;
   let totalImportedOptions = 0;
   let totalSourcesLinked = 0;
-  let completedTasks = 0;
 
-  // Source cache to minimize DB calls
-  const sourceCache = new Map<string, string>(); // slug -> id
+  const workerCount = 12;
+  let topicTaskIndex = 0;
 
-  const workerCount = 6;
-  let taskIndex = 0;
-
-  async function worker() {
-    while (taskIndex < tasks.length) {
-      const currentTask = tasks[taskIndex++];
+  async function topicWorker() {
+    while (topicTaskIndex < topicTasks.length) {
+      const task = topicTasks[topicTaskIndex++];
       let page = 1;
       let hasMore = true;
 
       while (hasMore) {
         const result = await fetchQuestions({
-          subject: currentTask.subjectId,
-          chapter: currentTask.chapterId,
-          topic: currentTask.topicId,
+          subject: task.subjectCode,
+          chapter: task.chapterCode,
+          topic: task.topicCode,
           page
         });
 
         if (result.questions.length === 0) break;
 
         for (const q of result.questions) {
+          const qKey = normalizeKey(q.questionText);
+          if (seenQuestions.has(qKey)) continue;
+          seenQuestions.add(qKey);
+
           try {
-            // Insert Question
             const [qRow] = await db.insert(qbQuestions).values({
-              topicId: currentTask.dbTopicId,
+              topicId: task.dbTopicId,
               qType: "mcq",
               questionText: q.questionText,
               status: "published",
@@ -305,7 +395,6 @@ async function main() {
 
             totalImportedQuestions++;
 
-            // Insert Options
             for (let i = 0; i < q.options.length; i++) {
               const opt = q.options[i];
               await db.insert(qbQuestionOptions).values({
@@ -317,11 +406,11 @@ async function main() {
               totalImportedOptions++;
             }
 
-            // Handle Meta Tags & Sources
             const metaList = parseAndDeduplicateMetaTags(q.meta);
-            for (const meta of metaList) {
+            const effectiveMetaList = metaList.length > 0 ? metaList : [{ institution: "DU", unit: "Unit-A", year: undefined }];
+
+            for (const meta of effectiveMetaList) {
               const sSlug = `${meta.institution}-${meta.unit || "unit-a"}-${meta.year || "all"}`.toLowerCase().replace(/[^\w-]/g, "-");
-              
               let sourceId = sourceCache.get(sSlug);
               if (!sourceId) {
                 const [srcRow] = await db.insert(qbSources).values({
@@ -339,12 +428,10 @@ async function main() {
                   target: qbSources.slug,
                   set: { name: `${meta.institution} ${meta.unit || ""} ${meta.year || ""}`.trim() }
                 }).returning({ id: qbSources.id });
-
                 sourceId = srcRow.id;
                 sourceCache.set(sSlug, sourceId);
               }
 
-              // Link question to source
               await db.insert(qbQuestionSources).values({
                 questionId: qRow.id,
                 sourceId: sourceId
@@ -353,48 +440,110 @@ async function main() {
               totalSourcesLinked++;
             }
           } catch (err) {
-            // Skip unique or parsing glitches
           }
         }
 
         hasMore = result.hasMore;
         page++;
       }
-
-      completedTasks++;
-      process.stdout.write(
-        `\r[PROGRESS] [${completedTasks}/${tasks.length} Topics] Imported Questions: ${totalImportedQuestions} | Options: ${totalImportedOptions} | Sources Linked: ${totalSourcesLinked} `
-      );
     }
   }
 
-  const workers = Array.from({ length: workerCount }, () => worker());
-  await Promise.all(workers);
+  const topicWorkers = Array.from({ length: workerCount }, () => topicWorker());
+  await Promise.all(topicWorkers);
 
-  // Update counts on Container, Container Item, and Target
-  await db.update(qbContainers).set({
-    questionCount: totalImportedQuestions,
-    itemCount: 1
-  }).where(eq(qbContainers.id, container.id));
+  console.log(`Pass 1 completed. Questions with specific topics: ${totalImportedQuestions}`);
+  console.log(`Starting Pass 2 (Subject-level sweep to capture all untagged questions)...`);
 
-  await db.update(qbContainerItems).set({
-    questionCount: totalImportedQuestions
-  }).where(eq(qbContainerItems.id, containerItem.id));
+  for (const cs of A_UNIT_SUBJECTS) {
+    const fallbackTopicId = defaultTopicMap.get(cs.code)!;
+    let page = 1;
+    let hasMore = true;
+    let subjectSweepCount = 0;
 
-  await db.update(qbTargets).set({
-    questionCount: totalImportedQuestions
-  }).where(eq(qbTargets.id, target.id));
+    while (hasMore) {
+      const result = await fetchQuestions({
+        subject: cs.code,
+        page
+      });
 
-  console.log("\n\n=====================================================================");
-  console.log("🎉 DU A Unit Question Import Completed Successfully!");
-  console.log(`✅ Total Questions Saved: ${totalImportedQuestions}`);
-  console.log(`✅ Total Options Saved:   ${totalImportedOptions}`);
-  console.log(`✅ Total Sources Linked:  ${totalSourcesLinked}`);
-  console.log(`📁 Target:        'Dhaka University' (ID: ${target.id})`);
-  console.log(`📁 Container:     'Dhaka University Question Bank' (ID: ${container.id})`);
-  console.log(`📁 ContainerItem: 'A Unit (বিজ্ঞান অনুষদ)' (ID: ${containerItem.id})`);
-  console.log("=====================================================================\n");
+      if (result.questions.length === 0) break;
 
+      for (const q of result.questions) {
+        const qKey = normalizeKey(q.questionText);
+        if (seenQuestions.has(qKey)) continue;
+        seenQuestions.add(qKey);
+
+        try {
+          const [qRow] = await db.insert(qbQuestions).values({
+            topicId: fallbackTopicId,
+            qType: "mcq",
+            questionText: q.questionText,
+            status: "published",
+            orderIndex: parseInt(q.number) || 0
+          }).returning({ id: qbQuestions.id });
+
+          totalImportedQuestions++;
+          subjectSweepCount++;
+
+          for (let i = 0; i < q.options.length; i++) {
+            const opt = q.options[i];
+            await db.insert(qbQuestionOptions).values({
+              questionId: qRow.id,
+              optionText: opt.text || opt.label || "N/A",
+              isCorrect: opt.isCorrect,
+              orderIndex: i
+            });
+            totalImportedOptions++;
+          }
+
+          const metaList = parseAndDeduplicateMetaTags(q.meta);
+          const effectiveMetaList = metaList.length > 0 ? metaList : [{ institution: "DU", unit: "Unit-A", year: undefined }];
+
+          for (const meta of effectiveMetaList) {
+            const sSlug = `${meta.institution}-${meta.unit || "unit-a"}-${meta.year || "all"}`.toLowerCase().replace(/[^\w-]/g, "-");
+            let sourceId = sourceCache.get(sSlug);
+            if (!sourceId) {
+              const [srcRow] = await db.insert(qbSources).values({
+                containerId: container.id,
+                containerItemId: containerItem.id,
+                sourceGroup: "admission",
+                type: "university",
+                name: `${meta.institution} ${meta.unit || ""} ${meta.year || ""}`.trim(),
+                slug: sSlug,
+                institution: meta.institution,
+                unit: meta.unit,
+                year: meta.year,
+                questionCount: 0
+              }).onConflictDoUpdate({
+                target: qbSources.slug,
+                set: { name: `${meta.institution} ${meta.unit || ""} ${meta.year || ""}`.trim() }
+              }).returning({ id: qbSources.id });
+              sourceId = srcRow.id;
+              sourceCache.set(sSlug, sourceId);
+            }
+
+            await db.insert(qbQuestionSources).values({
+              questionId: qRow.id,
+              sourceId: sourceId
+            }).onConflictDoNothing();
+
+            totalSourcesLinked++;
+          }
+        } catch (err) {
+        }
+      }
+
+      hasMore = result.hasMore;
+      page++;
+    }
+
+    console.log(`Pass 2 swept ${cs.name}: Added ${subjectSweepCount} untagged questions.`);
+  }
+
+  await recalculateAllCounts(db);
+
+  console.log(`\n🎉 DU A Unit Complete: Total ${totalImportedQuestions} questions, ${totalImportedOptions} options, ${totalSourcesLinked} source links.`);
   await client.end();
 }
 

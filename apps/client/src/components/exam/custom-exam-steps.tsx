@@ -243,14 +243,55 @@ export function CustomExamStep1({
 }: CustomExamStep1Props) {
   const selectedSet = React.useMemo(() => new Set(selectedSubjectIds), [selectedSubjectIds]);
   const [query, setQuery] = React.useState("");
+  const [activeCategory, setActiveCategory] = React.useState<string>("admission");
+  const [activeStream, setActiveStream] = React.useState<string>("science");
+
+  const categories = React.useMemo(() => {
+    return [
+      { id: "admission", label: "বিশ্ববিদ্যালয় ভর্তি" },
+      { id: "hsc", label: "এইচএসসি (HSC)" },
+      { id: "ssc", label: "এসএসসি (SSC)" },
+      { id: "job", label: "চাকরি প্রস্তুতি" },
+    ];
+  }, []);
+
+  const streamTabs = React.useMemo(() => {
+    return [
+      { id: "science", label: "বিজ্ঞান" },
+      { id: "commerce", label: "ব্যবসায় শিক্ষা" },
+      { id: "humanities", label: "মানবিক" },
+    ];
+  }, []);
 
   const filteredSubjects = React.useMemo(() => {
+    let list = subjects;
+    if (activeCategory === "hsc") {
+      list = list.filter((s) => s.educationLevel === "hsc" || s.targetSlug === "hsc");
+    } else if (activeCategory === "ssc") {
+      list = list.filter((s) => s.educationLevel === "ssc" || s.targetSlug === "ssc");
+    } else if (activeCategory === "admission") {
+      list = list.filter(
+        (s) =>
+          s.educationLevel === "admission" ||
+          s.group === "admission" ||
+          s.targetSlug?.includes("admission"),
+      );
+    } else if (activeCategory === "job") {
+      list = list.filter(
+        (s) => s.educationLevel === "job" || s.group === "job" || s.targetSlug === "job",
+      );
+    }
+
+    if (activeCategory !== "job" && activeStream !== "all") {
+      list = list.filter((s) => s.stream === activeStream || s.stream === "general");
+    }
+
     const q = query.toLowerCase().trim();
-    if (!q) return subjects;
-    return subjects.filter(
+    if (!q) return list;
+    return list.filter(
       (sub) => sub.name.toLowerCase().includes(q) || sub.targetName?.toLowerCase().includes(q),
     );
-  }, [subjects, query]);
+  }, [subjects, activeCategory, activeStream, query]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -276,6 +317,47 @@ export function CustomExamStep1({
             </Badge>
           </div>
         </div>
+
+        <div className="flex items-center sm:justify-center gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => {
+                setActiveCategory(cat.id);
+                setActiveStream("science");
+              }}
+              className={cn(
+                "px-3.5 py-1.5 rounded-full text-xs font-medium shrink-0 transition-colors cursor-pointer",
+                activeCategory === cat.id
+                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                  : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {activeCategory !== "job" && (
+          <div className="flex items-center sm:justify-center gap-1.5 overflow-x-auto pb-2 mb-3 scrollbar-none">
+            {streamTabs.map((st) => (
+              <button
+                key={st.id}
+                type="button"
+                onClick={() => setActiveStream(st.id)}
+                className={cn(
+                  "px-3 py-1 rounded-lg text-[11px] font-medium shrink-0 transition-colors cursor-pointer border",
+                  activeStream === st.id
+                    ? "bg-primary/10 border-primary text-primary font-bold shadow-2xs"
+                    : "border-border/60 bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                {st.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {filteredSubjects.length === 0 ? (
           <p className="text-xs text-muted-foreground py-8 text-center">কোনো বিষয় খুঁজে পাওয়া যায়নি।</p>

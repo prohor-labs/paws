@@ -184,6 +184,7 @@ export interface RevealExplanationResponse {
   success: boolean;
   questionId: string;
   explanation: string | null;
+  aiGenerated?: boolean;
   isPro: boolean;
   remaining: number;
   limit: number;

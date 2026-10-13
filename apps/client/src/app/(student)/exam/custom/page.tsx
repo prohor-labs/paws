@@ -59,15 +59,40 @@ export default function CustomExamPage() {
   const [isNegativeMarking, setIsNegativeMarking] = React.useState<boolean>(true);
 
   const allSubjects = React.useMemo<CustomExamSubject[]>(() => {
-    const primaryTarget = tree?.targets?.[0];
-    return (tree?.subjects ?? []).map((subject) => ({
-      id: subject.id,
-      name: subject.name,
-      iconKey: deriveSubjectIconKey(subject.name),
-      questionCount: subject.questionCount,
-      group: primaryTarget?.group ?? "academic",
-      targetName: primaryTarget?.name,
-    }));
+    const targetMap = new Map((tree?.targets ?? []).map((t) => [t.id, t]));
+    const targetSlugMap = new Map((tree?.targets ?? []).map((t) => [t.slug, t]));
+
+    return (tree?.subjects ?? [])
+      .map((subject) => {
+        const target =
+          (subject.targetId ? targetMap.get(subject.targetId) : undefined) ??
+          (subject.targetSlug ? targetSlugMap.get(subject.targetSlug) : undefined);
+
+        let group: "academic" | "admission" | "job" = target?.group ?? "academic";
+        if (!target?.group) {
+          if (subject.targetSlug === "job" || subject.slug.startsWith("job-")) {
+            group = "job";
+          } else if (
+            subject.targetSlug?.includes("admission") ||
+            subject.slug.includes("-sub_")
+          ) {
+            group = "admission";
+          }
+        }
+
+        return {
+          id: subject.id,
+          name: subject.name,
+          iconKey: deriveSubjectIconKey(subject.name),
+          questionCount: subject.questionCount,
+          group,
+          targetName: target?.name,
+          targetSlug: target?.slug ?? subject.targetSlug ?? undefined,
+          educationLevel: subject.educationLevel ?? undefined,
+          stream: subject.stream ?? undefined,
+        };
+      })
+      .sort((a, b) => b.questionCount - a.questionCount);
   }, [tree]);
 
   const subjectsById = React.useMemo(() => {

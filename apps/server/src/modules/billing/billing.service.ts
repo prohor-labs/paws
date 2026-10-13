@@ -3,10 +3,12 @@ import { and, eq, sql } from 'drizzle-orm';
 import { ApiError } from '../../common/errors/api-error.js';
 import { dayjs, DHAKA_TIMEZONE } from '../../common/utils/date.js';
 import { DrizzleService } from '../../common/database/drizzle.service.js';
+import { env } from '../../common/env.js';
 import {
   billingOrders,
   coupons,
   creditTransactions,
+  qbQuestionOptions,
   qbQuestions,
   subscriptions,
   userBatchAccess,
@@ -26,30 +28,30 @@ const BACKEND_PACKAGES: PackageConfig[] = [
   {
     id: '1-month',
     duration: '১ মাস',
-    price: 249,
-    originalPrice: 299,
+    price: 49,
+    originalPrice: 99,
     months: 1,
   },
   {
     id: '3-months',
     duration: '৩ মাস',
-    price: 499,
-    originalPrice: 599,
+    price: 129,
+    originalPrice: 199,
     months: 3,
   },
   {
     id: '6-months',
     duration: '৬ মাস',
-    price: 799,
-    originalPrice: 959,
+    price: 239,
+    originalPrice: 349,
     months: 6,
   },
   {
     id: '9-months',
     duration: '৯ মাস',
     subtitle: 'অ্যাডমিশন শেষ পর্যন্ত',
-    price: 949,
-    originalPrice: 1139,
+    price: 329,
+    originalPrice: 499,
     months: 9,
     isPopular: true,
   },
@@ -60,7 +62,7 @@ const BACKEND_ADDONS: AddonConfig[] = [
     id: 'addon-ai-1000',
     name: 'অতিরিক্ত ১,০০০ AI ক্রেডিট',
     description: 'মেয়াদহীন AI ডাউট ও স্টেপ-বাই-স্টেপ সমাধান ক্রেডিট',
-    price: 199,
+    price: 49,
     aiCredits: 1000,
   },
 ];
@@ -82,7 +84,7 @@ const BACKEND_COUPONS: CouponConfig[] = [
     code: 'SPECIAL50',
     type: 'fixed',
     value: 50,
-    minSpend: 200,
+    minSpend: 100,
     active: true,
   },
 ];
@@ -302,16 +304,89 @@ export class BillingService {
     };
   }
 
-  async getQuestionExplanation(questionId: string): Promise<string | null> {
+  async getQuestionExplanation(questionId: string, userId?: string): Promise<{ explanation: string | null; aiGenerated?: boolean }> {
     const question = await this.db.query.qbQuestions.findFirst({
       where: eq(qbQuestions.id, questionId),
       columns: {
         id: true,
+        questionText: true,
         explanation: true,
       },
     });
 
-    return question?.explanation ? cleanAndFormatMathText(question.explanation) : null;
+    if (!question) {
+      return { explanation: null };
+    }
+
+    const currentExp = question.explanation?.trim();
+    const isTagOnly = !currentExp || (currentExp.startsWith('[') && currentExp.endsWith(']'));
+
+    if (!userId) {
+      return { explanation: currentExp ? cleanAndFormatMathText(currentExp) : null, aiGenerated: false };
+    }
+
+    await this.consumeAiCredits(userId, 1, 'Question Explanation Access', { questionId });
+
+    if (!isTagOnly && currentExp) {
+      return { explanation: cleanAndFormatMathText(currentExp), aiGenerated: false };
+    }
+
+    try {
+      const options = await this.db
+        .select()
+        .from(qbQuestionOptions)
+        .where(eq(qbQuestionOptions.questionId, questionId))
+        .orderBy(qbQuestionOptions.orderIndex);
+
+      const optionLabels = ['ক', 'খ', 'গ', 'ঘ', 'ঙ'];
+      const formattedOptions = options
+        .map((opt, idx) => `${optionLabels[idx] || idx + 1}) ${opt.optionText}`)
+        .join('\n');
+      const correctOpt = options.find((opt) => opt.isCorrect);
+      const correctText = correctOpt ? correctOpt.optionText : 'দেওয়া নেই';
+
+      const prompt = `তুমি একজন অভিজ্ঞ শিক্ষক। নিচের বহুনির্বাচনী (MCQ) প্রশ্নের সঠিক উত্তরের একটি নির্ভুল, সহজবোধ্য ও শিক্ষণীয় ব্যাখ্যা তৈরি করো।
+
+প্রশ্ন: ${question.questionText}
+বিকল্পসমূহ:
+${formattedOptions}
+
+সঠিক উত্তর: ${correctText}
+
+নির্দেশনা:
+- ৩-৪ বাক্যে মূল বৈজ্ঞানিক/ব্যাকরণগত/তাত্ত্বিক কারণ স্পষ্টভাবে বিশ্লেষণ করো।
+- সরাসরি মূল ব্যাখ্যা দাও। অতিরিক্ত ভূমিকা বা অপ্রাসঙ্গিক কথা বাদ দাও।`;
+
+      const geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${env.geminiApiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        },
+      );
+
+      const geminiData = (await geminiRes.json()) as {
+        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      };
+      const generated = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+      if (generated) {
+        const fullExplanation = currentExp && isTagOnly ? `${generated}\n\n${currentExp}` : generated;
+        await this.db
+          .update(qbQuestions)
+          .set({ explanation: fullExplanation, updatedAt: new Date() })
+          .where(eq(qbQuestions.id, questionId));
+
+        return { explanation: cleanAndFormatMathText(fullExplanation), aiGenerated: true };
+      }
+    } catch {
+      await this.grantAiCredits(userId, 1, 'Refund: Explanation generation failed');
+    }
+
+    return { explanation: currentExp ? cleanAndFormatMathText(currentExp) : null, aiGenerated: false };
   }
 
   async getUserCredits(userId: string) {

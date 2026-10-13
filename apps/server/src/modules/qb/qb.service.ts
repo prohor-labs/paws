@@ -1564,7 +1564,14 @@ export class QbService {
       chaptersBySubject.set(chapter.subjectId, list);
     }
 
+    const targetById = new Map<string, (typeof targetsList)[number]>();
+    for (const t of targetsList) {
+      targetById.set(t.id, t);
+    }
+    const varsityTarget = targetsList.find((t) => t.slug === 'varsity-admission');
+
     const mapSubject = (subject: (typeof subjectsList)[number]) => {
+      const target = (subject.targetId ? targetById.get(subject.targetId) : undefined) ?? varsityTarget;
       const chapters = (chaptersBySubject.get(subject.id) ?? []).map((chapter) => {
         const topics = (topicsByChapter.get(chapter.id) ?? []).map((topic) => ({
           id: topic.id,
@@ -1582,12 +1589,39 @@ export class QbService {
       });
       return {
         id: subject.id,
+        targetId: target?.id ?? null,
+        targetSlug: target?.slug ?? null,
+        targetName: target?.name ?? null,
+        educationLevel: subject.educationLevel,
+        stream: subject.stream,
         name: subject.name,
         slug: subject.slug,
         questionCount: subject.questionCount,
         chapters,
       };
     };
+
+    const canonicalSubjectsQuery = await this.db.execute(sql`
+      SELECT s.id
+      FROM qb_subjects s
+      JOIN qb_targets t ON t.id = s.target_id
+      WHERE (
+        t.slug = 'varsity-admission'
+        OR s.id IN (
+          SELECT ci.subject_id 
+          FROM qb_container_items ci 
+          JOIN qb_containers c ON c.id = ci.container_id
+          WHERE c.slug IN ('hsc-science', 'hsc-commerce', 'hsc-humanities', 'ssc-science', 'ssc-commerce', 'ssc-humanities', 'job-subjects')
+            AND ci.subject_id IS NOT NULL
+        )
+      )
+      AND s.question_count > 0
+    `);
+    const canonicalSubjectIdSet = new Set(
+      (canonicalSubjectsQuery as unknown as Array<{ id: string }>).map((r) => r.id),
+    );
+
+    const validSubjectsList = subjectsList.filter((s) => canonicalSubjectIdSet.has(s.id));
 
     const treeTargets = targetsList.map((target) => {
       const containers = (containersByTarget.get(target.id) ?? []).map((container) => {
@@ -1607,10 +1641,14 @@ export class QbService {
         };
       });
 
-      const targetSubjects = subjectsByTarget.get(target.id);
-      const effectiveSubjects =
-        targetSubjects && targetSubjects.length > 0 ? targetSubjects : subjectsList;
-      const subjects = effectiveSubjects.map(mapSubject);
+      const targetSubjects = (subjectsByTarget.get(target.id) ?? []).filter((s) => canonicalSubjectIdSet.has(s.id));
+      const targetNameMap = new Map<string, (typeof subjectsList)[number]>();
+      for (const subj of targetSubjects) {
+        if (!targetNameMap.has(subj.name)) {
+          targetNameMap.set(subj.name, subj);
+        }
+      }
+      const subjects = Array.from(targetNameMap.values()).map(mapSubject);
 
       return {
         id: target.id,
@@ -1622,7 +1660,23 @@ export class QbService {
       };
     });
 
-    const allFormattedSubjects = subjectsList.map(mapSubject);
+    const targetSlugById = new Map<string, string>();
+    for (const t of targetsList) {
+      targetSlugById.set(t.id, t.slug);
+    }
+
+    const dedupSubjectMap = new Map<string, (typeof subjectsList)[number]>();
+    for (const s of validSubjectsList) {
+      const targetSlug = (s.targetId ? targetSlugById.get(s.targetId) : undefined) ?? 'varsity-admission';
+      const key = `${targetSlug}:${s.name}`;
+      if (!dedupSubjectMap.has(key)) {
+        dedupSubjectMap.set(key, s);
+      }
+    }
+
+    const allFormattedSubjects = Array.from(dedupSubjectMap.values())
+      .map(mapSubject)
+      .sort((a, b) => b.questionCount - a.questionCount);
 
     return {
       success: true,

@@ -235,6 +235,11 @@ export interface QBTreeChapter {
 
 export interface QBTreeSubject {
   id: string;
+  targetId?: string | null;
+  targetSlug?: string | null;
+  targetName?: string | null;
+  educationLevel?: "admission" | "hsc" | "ssc" | "job" | string | null;
+  stream?: "science" | "commerce" | "humanities" | "general" | string | null;
   name: string;
   slug: string;
   questionCount: number;

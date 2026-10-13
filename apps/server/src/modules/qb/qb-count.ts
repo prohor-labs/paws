@@ -84,21 +84,13 @@ export async function recalculateAllCounts(db: Database): Promise<void> {
     UPDATE public.qb_container_items ci
     SET
       question_count = CASE
-        WHEN ci.subject_id IS NOT NULL AND ci.slug = 'all' THEN
-          COALESCE((
-            SELECT COUNT(DISTINCT q.id)
-            FROM public.qb_questions q
-            JOIN public.qb_topics top ON top.id = q.topic_id
-            JOIN public.qb_chapters ch ON ch.id = top.chapter_id
-            WHERE ch.subject_id = ci.subject_id AND q.status = 'published'
-          ), 0)
         WHEN ci.subject_id IS NOT NULL THEN
           COALESCE((
             SELECT COUNT(DISTINCT q.id)
             FROM public.qb_questions q
             JOIN public.qb_topics top ON top.id = q.topic_id
             JOIN public.qb_chapters ch ON ch.id = top.chapter_id
-            WHERE ch.subject_id = ci.subject_id AND (ch.slug = ci.slug OR ch.name = ci.name) AND q.status = 'published'
+            WHERE ch.subject_id = ci.subject_id AND q.status = 'published'
           ), 0)
         ELSE
           COALESCE((
@@ -124,14 +116,11 @@ export async function recalculateAllCounts(db: Database): Promise<void> {
     UPDATE public.qb_containers c
     SET
       question_count = CASE
-        WHEN c.target_id IN (SELECT id FROM public.qb_targets WHERE slug IN ('hsc-academic', 'ssc-academic')) THEN
+        WHEN c.target_id IN (SELECT id FROM public.qb_targets WHERE slug IN ('hsc', 'hsc-academic', 'ssc-academic')) THEN
           COALESCE((
-            SELECT COUNT(DISTINCT q.id)
-            FROM public.qb_questions q
-            JOIN public.qb_topics top ON top.id = q.topic_id
-            JOIN public.qb_chapters ch ON ch.id = top.chapter_id
-            JOIN public.qb_subjects s ON s.id = ch.subject_id
-            WHERE s.target_id = c.target_id AND (s.slug = c.slug OR s.name = c.name) AND q.status = 'published'
+            SELECT SUM(ci.question_count)
+            FROM public.qb_container_items ci
+            WHERE ci.container_id = c.id
           ), 0)
         ELSE
           COALESCE((

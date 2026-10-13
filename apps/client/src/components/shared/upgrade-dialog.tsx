@@ -32,7 +32,7 @@ export const launchPlan: UpgradePlan = {
   id: "launch",
   name: "পাওজ প্রো",
   badge: "সবচেয়ে জনপ্রিয়",
-  price: "৳৪৯৯",
+  price: "৳৪৯",
   period: "/মাস",
   description: "সব প্রিমিয়াম এক্সাম ব্যাচ, আনলিমিটেড ব্যাখ্যা ও AI সুবিধার পূর্ণ অ্যাক্সেস।",
   features: [

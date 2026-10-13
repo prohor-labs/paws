@@ -225,12 +225,16 @@ export class BillingController {
       );
     }
 
-    const explanation = await this.billing.getQuestionExplanation(questionId);
+    const { explanation, aiGenerated } = await this.billing.getQuestionExplanation(
+      questionId,
+      user.id,
+    );
 
     return {
       success: true,
       questionId,
       explanation,
+      aiGenerated: aiGenerated ?? false,
       isPro: check.isPro,
       remaining: check.remaining,
       limit: check.limit,

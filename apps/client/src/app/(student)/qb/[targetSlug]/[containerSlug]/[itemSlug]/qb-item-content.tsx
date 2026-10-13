@@ -4,11 +4,9 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 import { ArrowLeft, BookOpen, PenLine } from "@/components/icons";
-import { ExamActionDialog, type ExamSet, ExamWiseView, type QuestionTypeFilter, TopicWiseView } from "@/components/qb";
 import { EmptyState, GridCard, PageBreadcrumbs, PageLoading } from "@/components/shared";
 import { Button } from "@/components/ui/button";
-import { useCreateCustomExam, useQBChapterDetail, useQBItemDetail } from "@/hooks/use-question-bank";
-import { EMPTY_CHAPTERS, EMPTY_QUESTIONS, EMPTY_TOPICS } from "@/lib/consts/empty";
+import { useCreateCustomExam, useQBItemDetail } from "@/hooks/use-question-bank";
 import { toBengaliNumber } from "@/lib/utils";
 
 export function QbItemContent() {
@@ -24,75 +22,28 @@ export function QbItemContent() {
 
   const { data, isLoading, error } = useQBItemDetail(targetSlug, containerSlug, itemSlug);
   const createExamMutation = useCreateCustomExam();
-
   const [query, setQuery] = React.useState("");
-  const [selectedExam, setSelectedExam] = React.useState<ExamSet | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-
-  const [currentPage, setCurrentPage] = React.useState<number>(1);
-  const [selectedSubjectSlug, setSelectedSubjectSlug] = React.useState<string>("all");
-  const [selectedChapterSlug, setSelectedChapterSlug] = React.useState<string>("all");
-  const [selectedTopicId, setSelectedTopicId] = React.useState<string>("all");
-  const [qTypeFilter, setQTypeFilter] = React.useState<QuestionTypeFilter>("all");
-  const [answers, setAnswers] = React.useState<Record<string, string>>({});
 
   const target = data?.target;
   const container = data?.container;
   const item = data?.item;
   const subject = data?.subject;
-  const examSheets = data?.examSheets ?? [];
+  const chapters = data?.chapters ?? [];
 
-  const chapterQueryParams = React.useMemo(
-    () => ({
-      page: currentPage,
-      limit: 100,
-      targetSlug,
-      containerSlug,
-      itemSlug,
-      subjectSlug: selectedSubjectSlug !== "all" ? selectedSubjectSlug : undefined,
-      chapterSlug: selectedChapterSlug !== "all" ? selectedChapterSlug : undefined,
-      topicId: selectedTopicId !== "all" ? selectedTopicId : undefined,
-      qType: qTypeFilter !== "all" ? qTypeFilter : undefined,
-    }),
-    [currentPage, targetSlug, containerSlug, itemSlug, selectedSubjectSlug, selectedChapterSlug, selectedTopicId, qTypeFilter],
-  );
-
-  const { data: chapterData, isLoading: isChapterLoading } = useQBChapterDetail(
-    itemSlug,
-    "all",
-    chapterQueryParams,
-  );
-
-  const questions = chapterData?.questions ?? EMPTY_QUESTIONS;
-  const topics = chapterData?.topics ?? EMPTY_TOPICS;
-  const totalQuestions = chapterData?.pagination?.total ?? item?.questionCount ?? questions.length;
-  const totalPages = chapterData?.pagination?.totalPages ?? 1;
-
-  const examSets = React.useMemo<ExamSet[]>(() => {
-    return examSheets
-      .map((es) => ({
-        id: es.id,
-        slug: es.slug,
-        title: es.title,
-        orderIndex: es.orderIndex,
-        type: es.examType,
-        durationMinutes: es.durationMinutes,
-        questionCount: es.questionCount,
-        questions: [],
-      }))
-      .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
-  }, [examSheets]);
-
-  const filteredExamSets = React.useMemo(() => {
+  const filteredChapters = React.useMemo(() => {
     const q = query.toLowerCase().trim();
-    if (!q) return examSets;
-    return examSets.filter((exam) => exam.title.toLowerCase().includes(q));
-  }, [examSets, query]);
+    if (!q) return chapters;
+    return chapters.filter(
+      (ch) => ch.name.toLowerCase().includes(q) || ch.slug.toLowerCase().includes(q),
+    );
+  }, [chapters, query]);
+
+  const totalQuestions = item?.questionCount ?? chapters.reduce((acc, c) => acc + (c.questionCount ?? 0), 0);
 
   const handleStartPractice = async () => {
     try {
       const res = await createExamMutation.mutateAsync({
-        title: `${item?.name ?? subject?.name} প্র্যাকটিস`,
+        title: `${item?.name ?? subject?.name ?? "সম্পূর্ণ বিষয়"} প্র্যাকটিস`,
         examType: "mcq",
         questionCount: Math.min(100, totalQuestions || 25),
         durationMinutes: 20,
@@ -105,37 +56,7 @@ export function QbItemContent() {
     }
   };
 
-  const handleExamCardClick = (exam: ExamSet) => {
-    setSelectedExam(exam);
-    setIsDialogOpen(true);
-  };
-
-  const handleConfirmStartExam = async (exam: ExamSet) => {
-    try {
-      const res = await createExamMutation.mutateAsync({
-        title: exam.title,
-        examType: exam.type,
-        questionCount: exam.questionCount,
-        durationMinutes: exam.durationMinutes,
-        examSheetIds: [exam.id],
-      });
-      if (res?.id) {
-        setIsDialogOpen(false);
-        router.push(`/exam/${res.id}/take?mode=taking`);
-      }
-    } catch {
-      router.push("/exam/custom");
-    }
-  };
-
-  const handleConfirmReadExam = (exam: ExamSet) => {
-    setIsDialogOpen(false);
-    router.push(
-      `/qb/${target?.slug || targetSlug}/${container?.slug || containerSlug}/${item?.slug || itemSlug}/questions?examSheet=${exam.slug || exam.id}`,
-    );
-  };
-
-  if (isLoading || isChapterLoading) return <PageLoading />;
+  if (isLoading) return <PageLoading />;
 
   if (error || !target || !container || !item) {
     return (
@@ -177,12 +98,20 @@ export function QbItemContent() {
                 {item.name}
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {`মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`}
+                {`${toBengaliNumber(chapters.length)} টি অধ্যায় / সেকশন • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`}
               </p>
             </div>
           </div>
 
           <div className="flex items-center justify-end gap-2 flex-wrap">
+            <input
+              type="text"
+              aria-label="খুঁজো"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="অধ্যায় খুঁজুন..."
+              className="w-full sm:w-56 rounded-full border border-border bg-background px-4 py-1.5 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary h-9"
+            />
             <Button
               type="button"
               size="sm"
@@ -191,57 +120,33 @@ export function QbItemContent() {
               className="rounded-xl px-4 h-9 text-xs font-bold bg-green-600 hover:bg-green-700 text-white shadow-xs gap-2 cursor-pointer"
             >
               <PenLine className="size-4 shrink-0" />
-              <span>প্র্যাকটিস</span>
+              <span>সম্পূর্ণ প্র্যাকটিস</span>
             </Button>
           </div>
         </div>
       </div>
 
-      <TopicWiseView
-        questions={questions}
-        topics={topics}
-        subjects={chapterData?.subjects}
-        chapters={chapterData?.chapters}
-        answers={answers}
-        onSelectAnswer={(qId, optId) => setAnswers((prev) => ({ ...prev, [qId]: optId }))}
-        page={currentPage}
-        totalPages={totalPages}
-        totalCount={totalQuestions}
-        onPageChange={setCurrentPage}
-        selectedSubjectSlug={selectedSubjectSlug}
-        onSelectSubject={(subjSlug) => {
-          setSelectedSubjectSlug(subjSlug);
-          setSelectedChapterSlug("all");
-          setSelectedTopicId("all");
-          setCurrentPage(1);
-        }}
-        selectedChapterSlug={selectedChapterSlug}
-        onSelectChapter={(chapSlug) => {
-          setSelectedChapterSlug(chapSlug);
-          setSelectedTopicId("all");
-          setCurrentPage(1);
-        }}
-        selectedTopicId={selectedTopicId}
-        onSelectTopic={(topId) => {
-          setSelectedTopicId(topId);
-          setCurrentPage(1);
-        }}
-        qTypeFilter={qTypeFilter}
-        onSelectQType={(type) => {
-          setQTypeFilter(type);
-          setCurrentPage(1);
-        }}
-        hideTopics={false}
-      />
-
-      <ExamActionDialog
-        exam={selectedExam}
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onStartExam={handleConfirmStartExam}
-        onReadExam={handleConfirmReadExam}
-        isStarting={createExamMutation.isPending}
-      />
+      {filteredChapters.length === 0 ? (
+        <EmptyState
+          icon={BookOpen}
+          title="কোনো অধ্যায় বা সেকশন পাওয়া যায়নি"
+          description="এই বিষয়ে এখনো কোনো প্রশ্নপত্র বা অধ্যায় যোগ করা হয়নি।"
+        />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          {filteredChapters.map((ch) => (
+            <GridCard
+              key={ch.id}
+              href={`/qb/${targetSlug}/${containerSlug}/${itemSlug}/${ch.slug}`}
+              title={ch.name}
+              subtitle={item.name}
+              category={target.name}
+              badge={ch.questionCount ? `${toBengaliNumber(ch.questionCount)} টি প্রশ্ন` : undefined}
+              eventLabel={`Section_${ch.name}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

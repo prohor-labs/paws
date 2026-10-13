@@ -19,6 +19,9 @@ export interface CustomExamSubject {
   readonly questionCount?: number;
   readonly group?: QBTargetGroupKey;
   readonly targetName?: string;
+  readonly targetSlug?: string;
+  readonly educationLevel?: string;
+  readonly stream?: string;
 }
 
 const ICON_KEYWORDS: readonly {
