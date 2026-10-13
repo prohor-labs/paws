@@ -41,6 +41,57 @@ function CodeBlock({ language, value }: { language?: string; value: string }) {
   );
 }
 
+function formatMathText(str: string): string {
+  if (!str) return "";
+  let res = str;
+
+  const parts = res.split(/(\$[^\$]+\$)/g);
+  for (let i = 0; i < parts.length; i++) {
+    const chunk = parts[i];
+    if (chunk && chunk.startsWith("$") && chunk.endsWith("$")) continue;
+    if (!chunk) continue;
+
+    parts[i] = chunk.replace(
+      /([a-zA-Z0-9_\^\\+\-*\/=><\(\)]+(?:(?:\s*[\+\-\*\/=><]\s*)[a-zA-Z0-9_\^\\+\-*\/=><\(\)]+)*)/g,
+      (match) => {
+        const trimmed = match.trim();
+        if (trimmed.length <= 1) return match;
+        if (!/[=\^\/\\_]|\b(sin|cos|tan|sec|csc|cot|log|ln)\b/.test(trimmed)) {
+          return match;
+        }
+
+        let math = trimmed;
+        math = math.replace(
+          /\(?d\^?(\d+)?([a-zA-Z])\)?\s*\/\s*\(?d([a-zA-Z])\^?(\d+)?\)?/g,
+          (_, p1, v1, v2, p2) => {
+            const pow1 = p1 ? `^{${p1}}` : "";
+            const pow2 = p2 ? `^{${p2}}` : p1 ? `^{${p1}}` : "";
+            return `\\frac{d${pow1}${v1}}{d${v2}${pow2}}`;
+          },
+        );
+        math = math.replace(
+          /(?<=^|[^a-zA-Z\\])d([a-zA-Z])\s*\/\s*d([a-zA-Z])(?=$|[^a-zA-Z])/g,
+          "\\frac{d$1}{d$2}",
+        );
+        math = math.replace(/\^(-?\d+)/g, "^{$1}");
+        math = math.replace(
+          /([a-zA-Z0-9])(sin|cos|tan|sec|csc|cot|log|ln)\b/g,
+          "$1\\$2",
+        );
+        math = math.replace(
+          /(?<!\\)\b(sin|cos|tan|sec|csc|cot|log|ln)\b/g,
+          "\\$1",
+        );
+        math = math.replace(/([a-zA-Z0-9\)])\\frac/g, "$1 \\frac");
+
+        return `$${math}$`;
+      },
+    );
+  }
+
+  return parts.join("");
+}
+
 export const RichText = React.memo(function RichText({ content, className }: RichTextProps) {
   const rehypePlugins: ComponentProps<typeof ReactMarkdown>["rehypePlugins"] = React.useMemo(
     () => [
@@ -60,6 +111,10 @@ export const RichText = React.memo(function RichText({ content, className }: Ric
     () => [remarkGfm, [remarkMath, { singleDollarTextMath: true }]],
     [],
   );
+
+  const formattedContent = React.useMemo(() => {
+    return content ? formatMathText(content) : "";
+  }, [content]);
 
   if (!content) return null;
 
@@ -99,7 +154,7 @@ export const RichText = React.memo(function RichText({ content, className }: Ric
           },
         }}
       >
-        {content}
+        {formattedContent}
       </ReactMarkdown>
     </div>
   );
