@@ -13,6 +13,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import AILoader from "@/components/smoothui/ai-loader";
+import AIResponse from "@/components/smoothui/ai-response";
 import { useBillingStatus, useRevealExplanation } from "@/hooks/use-billing";
 import { cn, toBengaliNumber } from "@/lib/utils";
 import type { QBQuestion } from "@/types";
@@ -386,12 +388,20 @@ function QuestionExplanation({
               </Button>
             </div>
           </div>
+        ) : revealMutation.isPending && !revealedExplanation ? (
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/60 flex items-center justify-center min-h-[72px]">
+            <AILoader label="AI ব্যাখ্যা তৈরি হচ্ছে..." variant="dots" showElapsed />
+          </div>
         ) : (
           <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60">
-            <RichText
-              content={revealedExplanation || initialExplanation}
-              className="text-foreground text-xs sm:text-sm"
-            />
+            {revealedExplanation ? (
+              <AIResponse text={revealedExplanation} className="text-foreground text-xs sm:text-sm" />
+            ) : (
+              <RichText
+                content={initialExplanation}
+                className="text-foreground text-xs sm:text-sm"
+              />
+            )}
             {!isPro && (
               <div className="mt-3 pt-2.5 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span className="text-[11px]">দৈনিক আরও দ্রুত প্রস্তুতি ও আনলিমিটেড ব্যাখ্যার জন্য</span>

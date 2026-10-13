@@ -362,44 +362,10 @@ ${formattedOptions}
 
       let generated: string | undefined;
 
-      if (env.groqApiKey) {
-        const groqModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
-        for (const gModel of groqModels) {
-          try {
-            const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${env.groqApiKey}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                model: gModel,
-                messages: [{ role: 'user', content: prompt }],
-                temperature: 0.3,
-                max_completion_tokens: 1024,
-              }),
-            });
-
-            if (groqRes.ok) {
-              const groqData = (await groqRes.json()) as {
-                choices?: Array<{ message?: { content?: string } }>;
-              };
-              const text = groqData.choices?.[0]?.message?.content?.trim();
-              if (text) {
-                generated = text;
-                break;
-              }
-            }
-          } catch {
-            continue;
-          }
-        }
-      }
-
-      if (!generated && env.geminiApiKey) {
+      if (env.geminiApiKey) {
         const candidateModels = [
           'models/gemini-3.5-flash',
-          'models/gemini-3.5-flash-lite',
+          'models/gemini-3.1-flash-lite',
           'models/gemini-3.6-flash',
           'models/gemini-3.8-flash',
         ];
@@ -428,6 +394,40 @@ ${formattedOptions}
             if (text) {
               generated = text;
               break;
+            }
+          } catch {
+            continue;
+          }
+        }
+      }
+
+      if (!generated && env.groqApiKey) {
+        const groqModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+        for (const gModel of groqModels) {
+          try {
+            const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${env.groqApiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: gModel,
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.3,
+                max_completion_tokens: 1024,
+              }),
+            });
+
+            if (groqRes.ok) {
+              const groqData = (await groqRes.json()) as {
+                choices?: Array<{ message?: { content?: string } }>;
+              };
+              const text = groqData.choices?.[0]?.message?.content?.trim();
+              if (text) {
+                generated = text;
+                break;
+              }
             }
           } catch {
             continue;
