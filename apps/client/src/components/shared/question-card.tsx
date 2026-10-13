@@ -7,7 +7,6 @@ import { RichText } from "@/components/shared/rich-text";
 import { ShareSheet } from "@/components/shared/share-sheet";
 import { UpgradeDialog } from "@/components/shared/upgrade-dialog";
 import AILoader from "@/components/smoothui/ai-loader";
-import AIResponse from "@/components/smoothui/ai-response";
 import {
   Accordion,
   AccordionContent,
@@ -410,14 +409,14 @@ function QuestionExplanation({
             ) : (
               <div className="space-y-3">
                 {revealedExplanation ? (
-                  <AIResponse
-                    text={revealedExplanation}
-                    className="text-foreground text-sm leading-relaxed space-y-3"
+                  <RichText
+                    content={revealedExplanation}
+                    className="text-foreground text-sm leading-relaxed space-y-3 prose-p:my-2"
                   />
                 ) : (
                   <RichText
                     content={initialExplanation}
-                    className="text-foreground text-sm leading-relaxed space-y-3"
+                    className="text-foreground text-sm leading-relaxed space-y-3 prose-p:my-2"
                   />
                 )}
                 {!isPro && (
