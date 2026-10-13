@@ -9,7 +9,7 @@ import { subjectLevelLabel } from "@/lib/consts/qb";
 
 export function QbHubContent() {
   const { data: session } = useSession();
-  const user = session?.user as
+  const _user = session?.user as
     | (NonNullable<typeof session>["user"] & {
         educationalStandard?: string | null;
         track?: string | null;
@@ -25,8 +25,9 @@ export function QbHubContent() {
   const sections = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
 
-    return targets.map((target) => {
-      const containers = target.containers ?? [];
+    return targets
+      .map((target) => {
+        const containers = target.containers ?? [];
 
         if (q) {
           const matchingItems: Array<{

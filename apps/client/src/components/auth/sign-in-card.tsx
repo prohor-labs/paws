@@ -164,9 +164,7 @@ export function SignInCard() {
       <div className="flex flex-col items-center gap-4 text-center sm:gap-5">
         <AuthLogo />
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            স্বাগতম
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">স্বাগতম</h1>
           <p className="text-sm text-muted-foreground">
             {mode === "signup"
               ? "নতুন একাউন্ট তৈরি করতে তথ্য দিন"

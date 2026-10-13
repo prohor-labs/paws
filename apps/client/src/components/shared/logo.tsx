@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { cn } from "@/lib/utils";
 import type { ComponentPropsWithoutRef } from "react";
+import { cn } from "@/lib/utils";
 
 export interface LogoProps extends Omit<ComponentPropsWithoutRef<typeof Image>, "src" | "alt"> {
   alt?: string;
@@ -26,7 +26,7 @@ export function Logo({
       className={cn(
         "h-auto w-auto object-contain select-none",
         invertInLight && "invert dark:invert-0",
-        className
+        className,
       )}
       {...props}
     />

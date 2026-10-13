@@ -109,8 +109,6 @@ export function ProfileCard() {
               {user?.email || "student@pawfessor.academy"}
             </p>
 
-
-
             <div className="flex items-center gap-2 mt-3">
               <Tooltip>
                 <TooltipTrigger

@@ -1,8 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { motion, useReducedMotion } from "motion/react";
 import { Fragment, useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 /**
@@ -77,12 +77,7 @@ const tokenize = (text: string, citations: AIResponseCitation[]): Token[] =>
  * A timer-driven typewriter drifts out of step with the real stream and starts
  * lying about how fast the model is answering.
  */
-const AIResponse = ({
-  citations = [],
-  className,
-  isStreaming = false,
-  text,
-}: AIResponseProps) => {
+const AIResponse = ({ citations = [], className, isStreaming = false, text }: AIResponseProps) => {
   const shouldReduceMotion = useReducedMotion();
   const tokens = tokenize(text, citations);
 
@@ -96,12 +91,7 @@ const AIResponse = ({
   }, [tokens.length]);
 
   return (
-    <p
-      className={cn(
-        "text-pretty text-foreground text-sm leading-relaxed",
-        className
-      )}
-    >
+    <p className={cn("text-pretty text-foreground text-sm leading-relaxed", className)}>
       {tokens.map((token, index) => {
         const isNew = index >= firstNewIndex;
         // Keyed by position only. Keying by text too would remount the last word
@@ -150,18 +140,12 @@ const AIResponse = ({
           </motion.span>
         );
       })}
-      {isStreaming ? (
-        <AIResponseCaret shouldReduceMotion={shouldReduceMotion} />
-      ) : null}
+      {isStreaming ? <AIResponseCaret shouldReduceMotion={shouldReduceMotion} /> : null}
     </p>
   );
 };
 
-const AIResponseCaret = ({
-  shouldReduceMotion,
-}: {
-  shouldReduceMotion: boolean | null;
-}) => (
+const AIResponseCaret = ({ shouldReduceMotion }: { shouldReduceMotion: boolean | null }) => (
   // Inline rather than absolutely positioned, so it rides the last glyph for
   // free and never has to be told where the text ended.
   <motion.span
@@ -191,10 +175,7 @@ const AIResponseCitationPill = ({
     // adding one here doubles the gap.
     className:
       "mr-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-border bg-muted px-1 align-super font-medium text-[10px] text-muted-foreground no-underline",
-    initial:
-      isNew && !shouldReduceMotion
-        ? { opacity: 0, scale: 0.6 }
-        : (false as const),
+    initial: isNew && !shouldReduceMotion ? { opacity: 0, scale: 0.6 } : (false as const),
     title: citation.title,
     transition: shouldReduceMotion
       ? { duration: 0 }

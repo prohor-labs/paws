@@ -9,7 +9,11 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
     <div className="relative min-h-screen w-full flex flex-col bg-background text-foreground">
       <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link href="/" className="flex items-center gap-2 outline-none select-none" aria-label="Prohor">
+          <Link
+            href="/"
+            className="flex items-center gap-2 outline-none select-none"
+            aria-label="Prohor"
+          >
             <Logo width={110} height={36} className="h-7 sm:h-8 w-auto" priority />
           </Link>
 

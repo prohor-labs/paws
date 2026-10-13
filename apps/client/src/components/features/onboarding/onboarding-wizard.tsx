@@ -127,9 +127,7 @@ export function OnboardingWizard() {
     );
   };
 
-  const isContinueDisabled =
-    (currentStep === 1 && !fullName.trim()) ||
-    isSubmitting;
+  const isContinueDisabled = (currentStep === 1 && !fullName.trim()) || isSubmitting;
 
   return (
     <div className="flex w-full max-w-lg flex-col gap-3">

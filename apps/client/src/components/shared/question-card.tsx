@@ -6,6 +6,8 @@ import { Bookmark, BookOpen, ChevronDown, Lock, Share, Sparkle } from "@/compone
 import { RichText } from "@/components/shared/rich-text";
 import { ShareSheet } from "@/components/shared/share-sheet";
 import { UpgradeDialog } from "@/components/shared/upgrade-dialog";
+import AILoader from "@/components/smoothui/ai-loader";
+import AIResponse from "@/components/smoothui/ai-response";
 import {
   Accordion,
   AccordionContent,
@@ -13,8 +15,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import AILoader from "@/components/smoothui/ai-loader";
-import AIResponse from "@/components/smoothui/ai-response";
 import { useBillingStatus, useRevealExplanation } from "@/hooks/use-billing";
 import { cn, toBengaliNumber } from "@/lib/utils";
 import type { QBQuestion } from "@/types";
@@ -361,7 +361,9 @@ function QuestionExplanation({
               <span className="text-base font-semibold leading-none">{title}</span>
             </div>
             <p className="mt-1.5 text-xs font-medium text-[#6F7A76] dark:text-emerald-300/90">
-              {isPro ? "আনলিমিটেড এআই ব্যাখ্যা (প্রো প্ল্যান)" : `এআই ক্রেডিট বাকি: ${toBengaliNumber(aiCredits)}`}
+              {isPro
+                ? "আনলিমিটেড এআই ব্যাখ্যা (প্রো প্ল্যান)"
+                : `এআই ক্রেডিট বাকি: ${toBengaliNumber(aiCredits)}`}
             </p>
           </div>
           <ChevronDown
@@ -386,11 +388,10 @@ function QuestionExplanation({
                   <div className="flex size-9 items-center justify-center rounded-full bg-amber-500/10 text-amber-500 mb-2 border border-amber-500/20">
                     <Lock className="size-4.5" />
                   </div>
-                  <h4 className="text-sm font-bold text-foreground">
-                    পর্যাপ্ত AI ক্রেডিট নেই
-                  </h4>
+                  <h4 className="text-sm font-bold text-foreground">পর্যাপ্ত AI ক্রেডিট নেই</h4>
                   <p className="text-xs text-muted-foreground mt-1 mb-3 max-w-sm">
-                    নতুন AI জেনারেটেড ব্যাখ্যা ও স্টেপ-বাই-স্টেপ সমাধান পেতে ক্রেডিট টপ-আপ বা প্রো প্ল্যানে আপগ্রেড করুন।
+                    নতুন AI জেনারেটেড ব্যাখ্যা ও স্টেপ-বাই-স্টেপ সমাধান পেতে ক্রেডিট টপ-আপ বা প্রো প্ল্যানে আপগ্রেড
+                    করুন।
                   </p>
                   <Button
                     size="sm"

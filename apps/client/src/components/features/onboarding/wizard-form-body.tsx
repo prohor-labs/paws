@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  type EducationalStandard,
-  ONBOARDING_STEPS,
-} from "@/lib/consts/onboarding";
+import { type EducationalStandard, ONBOARDING_STEPS } from "@/lib/consts/onboarding";
 import { StepLevel } from "./step-level";
 import { StepProfile } from "./step-profile";
 import { StepSchedule } from "./step-schedule";

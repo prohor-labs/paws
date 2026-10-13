@@ -5,7 +5,11 @@ import { useEffect } from "react";
 
 export function DisableDevtool() {
   useEffect(() => {
-    if (process.env.NODE_ENV === "production" || window.location.hostname.includes("prohor.dev") || window.location.hostname.includes("vercel.app")) {
+    if (
+      process.env.NODE_ENV === "production" ||
+      window.location.hostname.includes("prohor.dev") ||
+      window.location.hostname.includes("vercel.app")
+    ) {
       disableDevtool();
     }
   }, []);

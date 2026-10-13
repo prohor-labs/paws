@@ -150,12 +150,7 @@ export function AppPreferences() {
       </MenuSection>
 
       <MenuSection>
-        <MenuItem
-          icon={InfoCircle}
-          label="Prohor সম্পর্কে"
-          href="/qb"
-          iconBg="bg-fuchsia-500"
-        />
+        <MenuItem icon={InfoCircle} label="Prohor সম্পর্কে" href="/qb" iconBg="bg-fuchsia-500" />
         <MenuItem icon={Lock} label="গোপনীয়তা নীতি ও শর্তাবলী" href="/qb" iconBg="bg-cyan-600" />
       </MenuSection>
 
@@ -173,7 +168,9 @@ export function AppPreferences() {
         open={isEditProfileOpen}
         onOpenChange={setIsEditProfileOpen}
         currentName={session?.user?.name || ""}
-        currentStandard={(session?.user as { educationalStandard?: string | null })?.educationalStandard}
+        currentStandard={
+          (session?.user as { educationalStandard?: string | null })?.educationalStandard
+        }
         currentTrack={(session?.user as { track?: string | null })?.track}
       />
     </div>

@@ -6,7 +6,6 @@ import { SessionGuard } from './core/auth/guards/session.guard.js';
 import { RolesGuard } from './core/auth/guards/roles.guard.js';
 import { AllExceptionsFilter } from './core/filters/all-exceptions.filter.js';
 import { AppPipelineMiddleware } from './core/middleware/app-pipeline.middleware.js';
-import { AuthRouteMiddleware } from './core/middleware/auth-route.middleware.js';
 import { BillingModule } from './modules/billing/billing.module.js';
 import { ExamModule } from './modules/exam/exam.module.js';
 import { HealthModule } from './modules/health/health.module.js';

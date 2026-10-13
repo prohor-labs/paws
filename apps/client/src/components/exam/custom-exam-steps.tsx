@@ -247,15 +247,15 @@ export function CustomExamStep1({
 }: CustomExamStep1Props) {
   const selectedSet = React.useMemo(() => new Set(selectedSubjectIds), [selectedSubjectIds]);
   const [query, setQuery] = React.useState("");
-  const [activeCategory, setActiveCategory] = React.useState<string>(initialCategory);
-  const [activeStream, setActiveStream] = React.useState<string>(initialStream);
+  const [_activeCategory, setActiveCategory] = React.useState<string>(initialCategory);
+  const [_activeStream, setActiveStream] = React.useState<string>(initialStream);
 
   React.useEffect(() => {
     if (initialCategory) setActiveCategory(initialCategory);
     if (initialStream) setActiveStream(initialStream);
   }, [initialCategory, initialStream]);
 
-  const categories = React.useMemo(() => {
+  const _categories = React.useMemo(() => {
     return [
       { id: "admission", label: "বিশ্ববিদ্যালয় ভর্তি" },
       { id: "hsc", label: "এইচএসসি (HSC)" },
@@ -264,7 +264,7 @@ export function CustomExamStep1({
     ];
   }, []);
 
-  const streamTabs = React.useMemo(() => {
+  const _streamTabs = React.useMemo(() => {
     return [
       { id: "science", label: "বিজ্ঞান" },
       { id: "commerce", label: "ব্যবসায় শিক্ষা" },
@@ -304,8 +304,6 @@ export function CustomExamStep1({
             </Badge>
           </div>
         </div>
-
-
 
         {filteredSubjects.length === 0 ? (
           <p className="text-xs text-muted-foreground py-8 text-center">কোনো বিষয় খুঁজে পাওয়া যায়নি।</p>

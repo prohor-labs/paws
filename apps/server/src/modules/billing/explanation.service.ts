@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { DrizzleService } from '../../common/database/drizzle.service.js';
-import { dailyExplanationUsage, subscriptions } from '../../common/database/schema/index.js';
-import { getDhakaDateString, getSecondsUntilDhakaMidnight } from '../../common/utils/date.js';
+import { subscriptions } from '../../common/database/schema/index.js';
+import { getSecondsUntilDhakaMidnight } from '../../common/utils/date.js';
 
 export const FREE_DAILY_EXPLANATION_LIMIT = 10;
 
@@ -23,7 +23,6 @@ export class ExplanationService {
   }
 
   async checkAndRecordView(userId: string): Promise<ExplanationAccessResult> {
-    const dhakaDate = getDhakaDateString();
     const secondsUntilReset = getSecondsUntilDhakaMidnight();
 
     const sub = await this.db.query.subscriptions.findFirst({
@@ -51,7 +50,6 @@ export class ExplanationService {
   }
 
   async getQuotaStatus(userId: string): Promise<ExplanationAccessResult> {
-    const dhakaDate = getDhakaDateString();
     const secondsUntilReset = getSecondsUntilDhakaMidnight();
 
     const sub = await this.db.query.subscriptions.findFirst({

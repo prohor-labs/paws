@@ -1,8 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { motion, useAnimationFrame, useReducedMotion } from "motion/react";
 import { useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 /**
  * One cycle length for every variant.
@@ -88,8 +88,7 @@ const Grid = ({ reduced }: { reduced: boolean }) => (
           reduced
             ? { duration: 0 }
             : {
-                delay:
-                  ((GRID_DELAYS[index] ?? 0) * AI_LOADER_CYCLE_SECONDS) / 8,
+                delay: ((GRID_DELAYS[index] ?? 0) * AI_LOADER_CYCLE_SECONDS) / 8,
                 duration: AI_LOADER_CYCLE_SECONDS,
                 ease: EASE_IN_OUT,
                 repeat: Number.POSITIVE_INFINITY,
@@ -111,17 +110,11 @@ const Elapsed = () => {
     // Only re-render on a tenth changing — a 60fps counter is unreadable and
     // re-renders the whole label for nothing.
     setSeconds((current) =>
-      next.toFixed(ELAPSED_DECIMALS) === current.toFixed(ELAPSED_DECIMALS)
-        ? current
-        : next
+      next.toFixed(ELAPSED_DECIMALS) === current.toFixed(ELAPSED_DECIMALS) ? current : next,
     );
   });
 
-  return (
-    <span className="tabular-nums opacity-60">
-      {seconds.toFixed(ELAPSED_DECIMALS)}s
-    </span>
-  );
+  return <span className="tabular-nums opacity-60">{seconds.toFixed(ELAPSED_DECIMALS)}s</span>;
 };
 
 /**
@@ -130,21 +123,13 @@ const Elapsed = () => {
  * All three variants share one cycle length, so a page can mix them without the
  * result looking out of sync. None of them fake determinate progress.
  */
-const AILoader = ({
-  className,
-  label,
-  showElapsed = false,
-  variant = "dots",
-}: AILoaderProps) => {
+const AILoader = ({ className, label, showElapsed = false, variant = "dots" }: AILoaderProps) => {
   const reduced = Boolean(useReducedMotion());
 
   return (
     <span
       aria-live="polite"
-      className={cn(
-        "inline-flex items-center gap-2 text-muted-foreground text-sm",
-        className
-      )}
+      className={cn("inline-flex items-center gap-2 text-muted-foreground text-sm", className)}
       role="status"
     >
       {label ? <span>{label}</span> : null}

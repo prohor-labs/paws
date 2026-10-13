@@ -43,20 +43,20 @@ function CodeBlock({ language, value }: { language?: string; value: string }) {
 
 function formatMathText(str: string): string {
   if (!str) return "";
-  let res = str;
+  const res = str;
 
-  const parts = res.split(/(\$[^\$]+\$)/g);
+  const parts = res.split(/(\$[^$]+\$)/g);
   for (let i = 0; i < parts.length; i++) {
     const chunk = parts[i];
-    if (chunk && chunk.startsWith("$") && chunk.endsWith("$")) continue;
+    if (chunk?.startsWith("$") && chunk.endsWith("$")) continue;
     if (!chunk) continue;
 
     parts[i] = chunk.replace(
-      /([a-zA-Z0-9_\^\\+\-*\/=><\(\)]+(?:(?:\s*[\+\-\*\/=><]\s*)[a-zA-Z0-9_\^\\+\-*\/=><\(\)]+)*)/g,
+      /([a-zA-Z0-9_^\\+\-*/=><()]+(?:(?:\s*[+\-*/=><]\s*)[a-zA-Z0-9_^\\+\-*/=><()]+)*)/g,
       (match) => {
         const trimmed = match.trim();
         if (trimmed.length <= 1) return match;
-        if (!/[=\^\/\\_]|\b(sin|cos|tan|sec|csc|cot|log|ln)\b/.test(trimmed)) {
+        if (!/[=^/\\_]|\b(sin|cos|tan|sec|csc|cot|log|ln)\b/.test(trimmed)) {
           return match;
         }
 
@@ -74,15 +74,9 @@ function formatMathText(str: string): string {
           "\\frac{d$1}{d$2}",
         );
         math = math.replace(/\^(-?\d+)/g, "^{$1}");
-        math = math.replace(
-          /([a-zA-Z0-9])(sin|cos|tan|sec|csc|cot|log|ln)\b/g,
-          "$1\\$2",
-        );
-        math = math.replace(
-          /(?<!\\)\b(sin|cos|tan|sec|csc|cot|log|ln)\b/g,
-          "\\$1",
-        );
-        math = math.replace(/([a-zA-Z0-9\)])\\frac/g, "$1 \\frac");
+        math = math.replace(/([a-zA-Z0-9])(sin|cos|tan|sec|csc|cot|log|ln)\b/g, "$1\\$2");
+        math = math.replace(/(?<!\\)\b(sin|cos|tan|sec|csc|cot|log|ln)\b/g, "\\$1");
+        math = math.replace(/([a-zA-Z0-9)])\\frac/g, "$1 \\frac");
 
         return `$${math}$`;
       },

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import {
@@ -272,10 +273,12 @@ export function UpgradeView() {
             <div className="flex items-center gap-3 px-1 py-1">
               <div className="flex -space-x-2 overflow-hidden">
                 {SOCIAL_STUDENTS.map((student, idx) => (
-                  <img
+                  <Image
                     key={student.name}
                     src={student.image}
                     alt={student.name}
+                    width={28}
+                    height={28}
                     className="size-7 rounded-full border-2 border-background object-cover shadow-xs"
                     style={{ zIndex: SOCIAL_STUDENTS.length - idx }}
                   />

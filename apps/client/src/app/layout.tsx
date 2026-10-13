@@ -141,12 +141,9 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
       </head>
       <body className="min-h-full flex flex-col font-sans select-none">
-        <script
-          type="text/plain"
-          id="scraper-policy"
-          data-security="anti-crawler"
-          dangerouslySetInnerHTML={{ __html: ANTI_AI_SCRAPER_NOTICE }}
-        />
+        <script type="text/plain" id="scraper-policy" data-security="anti-crawler">
+          {ANTI_AI_SCRAPER_NOTICE}
+        </script>
         <noscript>
           <div
             style={{

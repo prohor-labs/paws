@@ -39,7 +39,12 @@ const CustomExamStep4 = dynamic(() => import("@/components/exam").then((m) => m.
 export default function CustomExamPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const user = session?.user as (NonNullable<typeof session>["user"] & { educationalStandard?: string | null; track?: string | null }) | undefined;
+  const user = session?.user as
+    | (NonNullable<typeof session>["user"] & {
+        educationalStandard?: string | null;
+        track?: string | null;
+      })
+    | undefined;
 
   const initialCategory = React.useMemo(() => {
     const std = user?.educationalStandard;
@@ -90,10 +95,7 @@ export default function CustomExamPage() {
         if (!target?.group) {
           if (subject.targetSlug === "job" || subject.slug.startsWith("job-")) {
             group = "job";
-          } else if (
-            subject.targetSlug?.includes("admission") ||
-            subject.slug.includes("-sub_")
-          ) {
+          } else if (subject.targetSlug?.includes("admission") || subject.slug.includes("-sub_")) {
             group = "admission";
           }
         }

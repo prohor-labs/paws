@@ -10,11 +10,7 @@ interface StepSubjectsProps {
   onSelectStream: (streamId: string) => void;
 }
 
-export function StepSubjects({
-  selectedLevel,
-  selectedStream,
-  onSelectStream,
-}: StepSubjectsProps) {
+export function StepSubjects({ selectedLevel, selectedStream, onSelectStream }: StepSubjectsProps) {
   const streamOptions = STREAM_OPTIONS_BY_STANDARD[selectedLevel] ?? STREAM_OPTIONS_BY_STANDARD.hsc;
 
   return (

@@ -4,10 +4,14 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 import { ArrowLeft, BookOpen, PenLine } from "@/components/icons";
-import { ExamActionDialog, type ExamSet, type QuestionTypeFilter, TopicWiseView } from "@/components/qb";
+import { type QuestionTypeFilter, TopicWiseView } from "@/components/qb";
 import { EmptyState, PageBreadcrumbs, PageLoading } from "@/components/shared";
 import { Button } from "@/components/ui/button";
-import { useCreateCustomExam, useQBChapterDetail, useQBItemDetail } from "@/hooks/use-question-bank";
+import {
+  useCreateCustomExam,
+  useQBChapterDetail,
+  useQBItemDetail,
+} from "@/hooks/use-question-bank";
 import { EMPTY_QUESTIONS, EMPTY_TOPICS } from "@/lib/consts/empty";
 import { toBengaliNumber } from "@/lib/utils";
 
@@ -24,11 +28,11 @@ export function QbSectionContent() {
   const itemSlug = params?.itemSlug || "";
   const sectionSlug = params?.sectionSlug || "";
 
-  const { data: itemData, isLoading: isItemLoading, error: itemError } = useQBItemDetail(
-    targetSlug,
-    containerSlug,
-    itemSlug,
-  );
+  const {
+    data: itemData,
+    isLoading: isItemLoading,
+    error: itemError,
+  } = useQBItemDetail(targetSlug, containerSlug, itemSlug);
   const createExamMutation = useCreateCustomExam();
 
   const [currentPage, setCurrentPage] = React.useState<number>(1);

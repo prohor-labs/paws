@@ -114,9 +114,7 @@ export function QbItemContent() {
   }
 
   const showTabs =
-    (sources.length > 0 ? 1 : 0) +
-    (subjects.length > 0 ? 1 : 0) +
-    (chapters.length > 0 ? 1 : 0) >
+    (sources.length > 0 ? 1 : 0) + (subjects.length > 0 ? 1 : 0) + (chapters.length > 0 ? 1 : 0) >
     1;
 
   return (
@@ -150,8 +148,8 @@ export function QbItemContent() {
                 {activeTab === "years"
                   ? `${toBengaliNumber(sources.length)} টি প্রশ্নপত্র • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`
                   : activeTab === "subjects"
-                  ? `${toBengaliNumber(subjects.length)} টি বিষয় • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`
-                  : `${toBengaliNumber(chapters.length)} টি অধ্যায় • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`}
+                    ? `${toBengaliNumber(subjects.length)} টি বিষয় • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`
+                    : `${toBengaliNumber(chapters.length)} টি অধ্যায় • মোট ${toBengaliNumber(totalQuestions)} টি প্রশ্ন`}
               </p>
             </div>
           </div>
@@ -166,8 +164,8 @@ export function QbItemContent() {
                 activeTab === "years"
                   ? "সাল বা প্রশ্নপত্র খুঁজুন..."
                   : activeTab === "subjects"
-                  ? "বিষয় খুঁজুন..."
-                  : "অধ্যায় খুঁজুন..."
+                    ? "বিষয় খুঁজুন..."
+                    : "অধ্যায় খুঁজুন..."
               }
               className="w-full sm:w-56 rounded-full border border-border bg-background px-4 py-1.5 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary h-9"
             />
@@ -249,9 +247,7 @@ export function QbItemContent() {
                     {s.year ? `${toBengaliNumber(s.year)} প্রশ্নব্যাংক` : s.name}
                   </h3>
                   {s.name !== (s.year ? `${toBengaliNumber(s.year)} প্রশ্নব্যাংক` : s.name) && (
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                      {s.name}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{s.name}</p>
                   )}
                 </div>
 
@@ -285,7 +281,9 @@ export function QbItemContent() {
                 title={subj.name}
                 subtitle={item.name}
                 category={target.name}
-                badge={subj.questionCount ? `${toBengaliNumber(subj.questionCount)} টি প্রশ্ন` : undefined}
+                badge={
+                  subj.questionCount ? `${toBengaliNumber(subj.questionCount)} টি প্রশ্ন` : undefined
+                }
                 eventLabel={`Subject_${subj.name}`}
               />
             ))}
