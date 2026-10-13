@@ -494,23 +494,31 @@ export class QbService {
       }));
     }
 
+    const itemSourceCountResult = await this.db
+      .select({ total: count(qbQuestions.id) })
+      .from(qbQuestions)
+      .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestions.id))
+      .innerJoin(qbSources, eq(qbSources.id, qbQuestionSources.sourceId))
+      .where(and(eq(qbSources.containerItemId, item.id), eq(qbQuestions.status, 'published')));
+    const itemSourceQuestionCount = Number(itemSourceCountResult[0]?.total ?? 0);
+
     const examSheets = await this.db
       .select()
       .from(qbExamSheets)
       .where(eq(qbExamSheets.containerItemId, item.id))
       .orderBy(asc(qbExamSheets.orderIndex), asc(qbExamSheets.title));
 
-    if (!matchingChapter && chapters.length === 0 && examSheets.length > 0) {
-      const examSheetIds = examSheets.map((examSheet) => examSheet.id);
+    if (itemSourceQuestionCount > 0 && (!subject || chapters.length === 0 || chapters.length < 5)) {
       const questionChapters = await this.db
         .select({
           chapterId: qbTopics.chapterId,
-          qCount: count(qbExamSheetQuestions.questionId),
+          qCount: count(qbQuestions.id),
         })
-        .from(qbExamSheetQuestions)
-        .innerJoin(qbQuestions, eq(qbQuestions.id, qbExamSheetQuestions.questionId))
+        .from(qbQuestions)
         .innerJoin(qbTopics, eq(qbTopics.id, qbQuestions.topicId))
-        .where(inArray(qbExamSheetQuestions.examSheetId, examSheetIds))
+        .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestions.id))
+        .innerJoin(qbSources, eq(qbSources.id, qbQuestionSources.sourceId))
+        .where(and(eq(qbSources.containerItemId, item.id), eq(qbQuestions.status, 'published')))
         .groupBy(qbTopics.chapterId);
 
       const chapterMap = new Map(
@@ -532,17 +540,17 @@ export class QbService {
           questionCount: chapterMap.get(chapter.id) ?? chapter.questionCount,
         }));
       }
-    } else if (!matchingChapter && chapters.length === 0) {
+    } else if (!matchingChapter && chapters.length === 0 && examSheets.length > 0) {
+      const examSheetIds = examSheets.map((examSheet) => examSheet.id);
       const questionChapters = await this.db
         .select({
           chapterId: qbTopics.chapterId,
-          qCount: count(qbQuestions.id),
+          qCount: count(qbExamSheetQuestions.questionId),
         })
-        .from(qbQuestions)
+        .from(qbExamSheetQuestions)
+        .innerJoin(qbQuestions, eq(qbQuestions.id, qbExamSheetQuestions.questionId))
         .innerJoin(qbTopics, eq(qbTopics.id, qbQuestions.topicId))
-        .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestions.id))
-        .innerJoin(qbSources, eq(qbSources.id, qbQuestionSources.sourceId))
-        .where(and(eq(qbSources.containerItemId, item.id), eq(qbQuestions.status, 'published')))
+        .where(inArray(qbExamSheetQuestions.examSheetId, examSheetIds))
         .groupBy(qbTopics.chapterId);
 
       const chapterMap = new Map(
@@ -595,7 +603,11 @@ export class QbService {
           iconUrl: item.iconUrl,
           orderIndex: item.orderIndex,
           examSheetCount: item.examSheetCount,
-          questionCount: item.questionCount,
+          questionCount:
+            itemSourceQuestionCount > 0 &&
+            (!subject || chapters.length === 0 || item.questionCount < itemSourceQuestionCount)
+              ? itemSourceQuestionCount
+              : item.questionCount,
         },
         subject: subject
           ? {
@@ -797,6 +809,13 @@ export class QbService {
           ),
         });
       }
+      if (!chapter) {
+        chapter = await this.db.query.qbChapters.findFirst({
+          where: isUUID(chapterSlug)
+            ? or(eq(qbChapters.slug, chapterSlug), eq(qbChapters.id, chapterSlug))
+            : eq(qbChapters.slug, chapterSlug),
+        });
+      }
     }
 
     if (!chapter) {
@@ -875,7 +894,31 @@ export class QbService {
               .orderBy(asc(qbExamSheets.orderIndex), asc(qbExamSheets.title))
           : [],
       subChapterIds.length > 0
-        ? targetSourceType
+        ? containerItem
+          ? this.db
+              .select({
+                topicId: qbQuestions.topicId,
+                total: count(qbQuestions.id),
+              })
+              .from(qbQuestions)
+              .innerJoin(
+                qbTopics,
+                and(
+                  eq(qbTopics.id, qbQuestions.topicId),
+                  inArray(qbTopics.chapterId, subChapterIds),
+                ),
+              )
+              .innerJoin(qbQuestionSources, eq(qbQuestionSources.questionId, qbQuestions.id))
+              .innerJoin(
+                qbSources,
+                and(
+                  eq(qbSources.id, qbQuestionSources.sourceId),
+                  eq(qbSources.containerItemId, containerItem.id),
+                ),
+              )
+              .where(eq(qbQuestions.status, 'published'))
+              .groupBy(qbQuestions.topicId)
+          : targetSourceType
           ? this.db
               .select({
                 topicId: qbQuestions.topicId,
@@ -1169,7 +1212,23 @@ export class QbService {
         ),
       );
 
-      if (targetSourceType && !sourceId && !sourceType) {
+      if (containerItem && !sourceId && !sourceType) {
+        conditions.push(
+          inArray(
+            qbQuestions.id,
+            this.db
+              .select({ questionId: qbQuestionSources.questionId })
+              .from(qbQuestionSources)
+              .innerJoin(
+                qbSources,
+                and(
+                  eq(qbSources.id, qbQuestionSources.sourceId),
+                  eq(qbSources.containerItemId, containerItem.id),
+                ),
+              ),
+          ),
+        );
+      } else if (targetSourceType && !sourceId && !sourceType) {
         conditions.push(
           inArray(
             qbQuestions.id,
@@ -1453,7 +1512,7 @@ export class QbService {
           name: chapter.name,
           slug: chapter.slug,
           orderIndex: chapter.orderIndex,
-          questionCount: chapter.questionCount,
+          questionCount: containerItem ? total : chapter.questionCount,
         },
         subjects: examSheetSubjectsList,
         chapters: dynamicChaptersList,
