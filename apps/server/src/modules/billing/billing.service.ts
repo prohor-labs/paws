@@ -459,8 +459,16 @@ MATHJAX & LATEX FORMATTING RULES:
         await this.consumeAiCredits(userId, 1, 'Question Explanation AI Generation', { questionId });
 
         const fullExplanation = currentExp && isTagOnly ? `${generated}\n\n${currentExp}` : generated;
+        const formattedExplanation = cleanAndFormatMathText(fullExplanation);
 
-        return { explanation: cleanAndFormatMathText(fullExplanation), aiGenerated: true };
+        try {
+          await this.db
+            .update(qbQuestions)
+            .set({ explanation: formattedExplanation, updatedAt: new Date() })
+            .where(eq(qbQuestions.id, questionId));
+        } catch {}
+
+        return { explanation: formattedExplanation, aiGenerated: true };
       }
     } catch (err) {
       if (err instanceof ApiError) {
