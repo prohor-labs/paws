@@ -273,7 +273,7 @@ export function QbItemContent() {
             description="এই প্রশ্নব্যাংকে এখনো কোনো বিষয় পাওয়া যায়নি।"
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {filteredSubjects.map((subj) => (
               <GridCard
                 key={subj.id}
@@ -296,7 +296,7 @@ export function QbItemContent() {
           description="এই বিষয়ে এখনো কোনো অধ্যায় যোগ করা হয়নি।"
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
           {filteredChapters.map((ch) => (
             <GridCard
               key={ch.id}
