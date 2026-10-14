@@ -322,10 +322,6 @@ export class BillingService {
     const currentExp = question.explanation?.trim();
     const isTagOnly = !currentExp || (currentExp.startsWith('[') && currentExp.endsWith(']'));
 
-    if (!isTagOnly && currentExp) {
-      return { explanation: cleanAndFormatMathText(currentExp), aiGenerated: false };
-    }
-
     if (!userId) {
       return { explanation: currentExp ? cleanAndFormatMathText(currentExp) : null, aiGenerated: false };
     }
@@ -333,6 +329,12 @@ export class BillingService {
     const userCreditsBalance = await this.getUserCredits(userId);
     if (userCreditsBalance < 1) {
       throw new ApiError(400, 'INSUFFICIENT_AI_CREDITS', 'আপনার অ্যাকাউন্টে পর্যাপ্ত AI ক্রেডিট নেই।');
+    }
+
+    if (!isTagOnly && currentExp) {
+      await this.consumeAiCredits(userId, 1, 'Question Explanation AI Generation', { questionId });
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      return { explanation: cleanAndFormatMathText(currentExp), aiGenerated: true };
     }
 
     try {
