@@ -435,7 +435,7 @@ MATHJAX & LATEX FORMATTING RULES:
                 model: gModel,
                 messages: [{ role: 'user', content: prompt }],
                 temperature: 0.3,
-                max_completion_tokens: 1024,
+                max_completion_tokens: 4096,
               }),
             });
 
