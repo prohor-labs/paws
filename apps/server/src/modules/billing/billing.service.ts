@@ -346,25 +346,34 @@ export class BillingService {
 
       let prompt: string;
       if (isWrittenQuestion) {
-        prompt = `তুমি একজন আন্তরিক ও অত্যন্ত অভিজ্ঞ মেন্টর। ছাত্রছাত্রীদের সাথে একজন বন্ধুসুলভ শিক্ষকের মতো সহজ ও স্বাভাবিক ভাষায় কথা বলো। অতিরিক্ত গুরুগম্ভীর বা সেকেলে কঠিন বাংলা পরিহার করে আধুনিক শিক্ষার্থীদের বোঝার উপযোগী স্বাভাবিক ও সাবলীল ভাষায় (যেমন: "টপিক", "কনফিউশন", "স্টেপ" ইত্যাদি) নিচের লিখিত (Written) প্রশ্নের একটি নির্ভুল, পূর্ণাঙ্গ ও আদর্শ মেন্টরিং সমাধান তৈরি করো।
+        prompt = `You are an expert STEM/humanities educator and master academic mentor. Produce a perfectly formatted, MathJax-compliant, comprehensive pedagogical solution for the following written question.
 
-প্রশ্ন: ${question.questionText}
+Question:
+${question.questionText}
 
-নির্দেশনা ও উত্তরের গঠন:
-- কোনো শিরোনাম (Header, Title, Subtitle, # বা ## বা ১/২ নম্বর হেডিং) ব্যবহার করবে না। সম্পূর্ণ উত্তরটি পরিষ্কার ২ থেকে ৩টি আলাদা স্বাভাবিক প্যারাগ্রাফে লিখবে।
-- কোনো শব্দ বোল্ড করবে না (অর্থাৎ কোনো ** বা __ মার্কডাউন সিনট্যাক্স ব্যবহার করবে না)।
-- কোনো ড্যাশ বা হাইফেন (যেমন: -, —, –) এবং কোনো বুলেট পয়েন্ট বা তালিকা চিহ্ন ব্যবহার করবে না।
-- কোনো উদ্ধৃতি চিহ্ন বা কোটেশন মার্ক (" ", ' ') ব্যবহার করবে না, যদি না তা কোনো ব্যক্তির হুবহু উক্তি বা উদ্ধৃতি হয়। সাধারণ শব্দ বা বাক্যাংশ বোঝাতে কোটেশন মার্ক দেওয়ার প্রয়োজন নেই।
-- প্রতিটি প্যারার মাঝে অবশ্যই দুটি নতুন লাইন (Double Line Break / ফাঁকা লাইন) রাখবে, যাতে প্রতিটি প্যারা আলাদা ব্লকে রেন্ডার হয়। প্রতিটি প্যারা হবে ৩ থেকে ৪ বাক্যের পরিমিত দৈর্ঘ্যের।
+EXPLANATION ARCHITECTURE (NO ARTIFICIAL HEADERS):
+- Language: Natural, lucid Bengali with standard English scientific terms.
+- STRICTLY FORBIDDEN ARTIFICIAL HEADERS: DO NOT output bold header labels like **ব্যাখ্যা:**, **সমাধান:**, **পদ্ধতি:**, **নোট:**, or numbered headers. The explanation must flow naturally across clean paragraphs.
+- MULTI-PARAGRAPH SPACING & EMPTY LINES:
+  - Separate distinct logical steps, mathematical derivations, key concepts, and exam tips with double newlines (\\n\\n) to ensure clean vertical rhythm and breathing room.
+  - Never bunch multiple thoughts into a dense single wall of text.
+- NO ARTIFICIAL FORMATTING:
+  - Do NOT bold text (** or __).
+  - Do NOT use dashes (-, —, –) or bullet points.
+  - Do NOT use quotation marks (" ", ' ') unless quoting an actual person or literary source.
 
-১ম প্যারা (প্রশ্ন বিশ্লেষণ ও মূল সমাধান): একজন মেন্টরের মতো উষ্ণ ও স্নেহশীল টোনে কথা শুরু করো (যেমন: দেখো, এখানে প্রশ্নে বলেছে...), এবং প্রশ্নের সম্পূর্ণ নির্ভুল সমাধান ধাপে ধাপে সহজ ভাষায় বুঝিয়ে দাও।
+PEDAGOGICAL REQUIREMENTS:
+1. Step-by-Step Derivation:
+   - For calculations, show every single algebraic step with explicit variable substitution and SI units. Never jump directly from equation to result.
+2. Conceptual Analysis:
+   - Explain the core underlying concept, scientific theory, or grammatical rule clearly in simple student-friendly language.
+3. Common Mistakes & Presentation Tips:
+   - Highlight where students typically make mistakes or lose marks on written exams, and how to structure the answer for full marks.
 
-২য় প্যারা (গুরুত্বপূর্ণ নিয়ম ও কমন ভুল): এই প্রশ্নের সমাধানে সাধারণত শিক্ষার্থীরা কোথায় ভুল করে বা কী লিখতে ভুলে যায়, সেই জায়গাগুলো ধরিয়ে দাও।
-
-৩য় প্যারা (পরীক্ষার টিপস ও পুরো নম্বর পাওয়ার কৌশল): পরীক্ষার খাতায় কীভাবে গুছিয়ে উপস্থাপন করলে পরীক্ষক পূর্ণ নম্বর দেবেন এবং মনে রাখার সহজ কৌশল শেয়ার করো।
-
-ফরম্যাটিং:
-- কোনো গাণিতিক বা বৈজ্ঞানিক সূত্র, মান, প্রতীক বা সমীকরণ থাকলে অবশ্যই স্ট্যান্ডার্ড LaTeX সিনট্যাক্সে সিঙ্গেল ডলার ($...$) বা ডাবল ডলার ($$...$$) এর ভেতরে লিখো যাতে সমীকরণ ও প্রতীকগুলো সুন্দরভাবে রেন্ডার হয়।`;
+MATHJAX & LATEX FORMATTING RULES:
+- Inline math: Enclose in single dollar signs $ ... $ (e.g. $v = 20\\text{ m/s}$, $x \\in \\mathbb{R}$, $\\text{H}_2\\text{O}_2$).
+- Display / Block math: Standalone lines enclosed in double dollar signs $$ ... $$.
+- Always wrap non-variable text and units in \\text{...} (e.g. $10\\text{ kg}$, $9.8\\text{ m/s}^2$).`;
       } else {
         const optionLabels = ['ক', 'খ', 'গ', 'ঘ', 'ঙ'];
         const formattedOptions = options
@@ -373,29 +382,41 @@ export class BillingService {
         const correctOpt = options.find((opt) => opt.isCorrect);
         const correctText = correctOpt ? correctOpt.optionText : 'দেওয়া নেই';
 
-        prompt = `তুমি একজন আন্তরিক ও অত্যন্ত অভিজ্ঞ মেন্টর। ছাত্রছাত্রীদের সাথে একজন বন্ধুসুলভ শিক্ষকের মতো সহজ ও স্বাভাবিক ভাষায় কথা বলো। অতিরিক্ত গুরুগম্ভীর বা সেকেলে কঠিন বাংলা পরিহার করে আধুনিক শিক্ষার্থীদের বোঝার উপযোগী স্বাভাবিক ও সাবলীল ভাষায় (যেমন: অপশন, কনফিউশন, টপিক ইত্যাদি প্রচলিত শব্দ ব্যবহার করতে পারো) নিচের বহুনির্বাচনী (MCQ) প্রশ্নের একটি চমৎকার মেন্টরিং সমাধান ও ব্যাখ্যা তৈরি করো।
+        prompt = `You are an expert university admission exam curator, LaTeX typographer, and master academic mentor. Produce a perfectly formatted, MathJax-compliant, comprehensive pedagogical explanation for the following multiple-choice question.
 
-প্রশ্ন: ${question.questionText}
-বিকল্পসমূহ:
+Question:
+${question.questionText}
+
+Options:
 ${formattedOptions}
 
-সঠিক উত্তর: ${correctText}
+Correct Answer:
+${correctText}
 
-নির্দেশনা ও উত্তরের গঠন:
-- কোনো শিরোনাম (Header, Title, Subtitle, # বা ## বা ১/২ নম্বর হেডিং) ব্যবহার করবে না। সম্পূর্ণ উত্তরটি পরিষ্কার ৩টি আলাদা স্বাভাবিক প্যারাগ্রাফে লিখবে।
-- কোনো শব্দ বোল্ড করবে না (অর্থাৎ কোনো ** বা __ মার্কডাউন সিনট্যাক্স ব্যবহার করবে না)।
-- কোনো ড্যাশ বা হাইফেন (যেমন: -, —, –) এবং কোনো বুলেট পয়েন্ট বা তালিকা চিহ্ন ব্যবহার করবে না।
-- কোনো উদ্ধৃতি চিহ্ন বা কোটেশন মার্ক (" ", ' ') ব্যবহার করবে না, যদি না তা কোনো ব্যক্তির হুবহু উক্তি বা উদ্ধৃতি হয়। অপশন বা সাধারণ শব্দ বোঝাতে কোটেশন মার্ক দেওয়ার প্রয়োজন নেই।
-- প্রতিটি প্যারার মাঝে অবশ্যই দুটি নতুন লাইন (Double Line Break / ফাঁকা লাইন) রাখবে, যাতে প্রতিটি প্যারা আলাদা ব্লকে রেন্ডার হয়। প্রতিটি প্যারা হবে ৩ থেকে ৪ বাক্যের পরিমিত দৈর্ঘ্যের।
+EXPLANATION ARCHITECTURE (NO ARTIFICIAL HEADERS):
+- Language: Natural, lucid Bengali with standard English scientific terms.
+- STRICTLY FORBIDDEN ARTIFICIAL HEADERS: DO NOT output bold header labels like **ব্যাখ্যা:**, **সঠিক উত্তর:**, **অন্যান্য অপশন বিশ্লেষণ:**, **শর্টকাট:**, or **অ্যাডমিশন ট্রিক:**. The explanation must flow naturally across clean paragraphs.
+- MULTI-PARAGRAPH SPACING & EMPTY LINES:
+  - Separate distinct logical steps, mathematical derivations, shortcuts, and option breakdowns with double newlines (\\n\\n) to ensure clean vertical rhythm and breathing room.
+  - Never bunch multiple thoughts into a dense wall of text.
+- NO ARTIFICIAL FORMATTING:
+  - Do NOT bold text (** or __).
+  - Do NOT use dashes (-, —, –) or bullet points.
+  - Do NOT use quotation marks (" ", ' ') unless quoting an actual person or literary source.
 
-১ম প্যারা (সঠিক উত্তরের বিশ্লেষণ): একজন মেন্টরের মতো উষ্ণ ও স্নেহশীল টোনে কথা শুরু করো (যেমন: দেখো, এখানে প্রশ্নে বলেছে...), এবং সঠিক উত্তরটি কেন সঠিক তা মূল বৈজ্ঞানিক বা ব্যাকরণগত যুক্তি দিয়ে ধাপে ধাপে বুঝিয়ে দাও।
+PEDAGOGICAL REQUIREMENTS:
+1. Step-by-Step Derivation:
+   - Begin with a clear explanation of why the correct option is right.
+   - For calculations in Math, Physics, and Chemistry, show every single algebraic step with explicit variable substitution and SI units. Never jump directly from equation to result.
+2. Mandatory Distractor Analysis:
+   - Walk through the other options and explain exactly why each one is incorrect and what trap leads students to choose it. Present this in a fluent paragraph without dashes or bullet lists.
+3. Admission Shortcuts & Mental Math:
+   - Where applicable, provide a 5-second university admission shortcut, mnemonic, or mental math technique so students can identify the answer immediately in exams.
 
-২য় প্যারা (বাকি অপশন ও কমন ট্র্যাপ): এবার বাকি অপশনগুলোর দিকে তাকাও (যেমন: এবার বাকি অপশনগুলোর দিকে তাকালে দেখতে পাবে...), স্পষ্ট করে প্রতিটি অপশনের নাম উল্লেখ করে বলে দাও কেন সেগুলো এই প্রশ্নের জন্য ভুল। বিশেষ করে শিক্ষার্থীরা পরীক্ষার হলে কোথায় কনফিউজড হয়ে ভুল অপশনটি দাগিয়ে ফেলে (কমন ট্র্যাপ বা ফাঁদ) সেটি ধরিয়ে দাও।
-
-৩য় প্যারা (শর্টকাট ট্রিকস ও মনে রাখার হ্যাক): পরীক্ষার হলে দ্রুত মনে রাখার কোনো শর্টকাট টেকনিক, নেমোনিক বা জরুরি টিপস শেয়ার করো যাতে ভবিষ্যতে এই ধরনের প্রশ্ন আসলে এক নজরেই সঠিক উত্তর ধরতে পারে।
-
-ফরম্যাটিং:
-- কোনো গাণিতিক বা বৈজ্ঞানিক সূত্র, মান, প্রতীক বা সমীকরণ থাকলে অবশ্যই স্ট্যান্ডার্ড LaTeX সিনট্যাক্সে সিঙ্গেল ডলার ($...$) বা ডাবল ডলার ($$...$$) এর ভেতরে লিখো। এককের ক্ষেত্রে $3 \\times 10^8\\text{ m/s}$ এভাবে \\text{} ব্যবহার করবে যাতে সমীকরণ ও এককগুলো সুন্দরভাবে রেন্ডার হয়।`;
+MATHJAX & LATEX FORMATTING RULES:
+- Inline math: Enclose in single dollar signs $ ... $ (e.g. $v = 20\\text{ m/s}$, $x \\in \\mathbb{R}$, $\\text{H}_2\\text{O}_2$).
+- Display / Block math: Standalone lines enclosed in double dollar signs $$ ... $$.
+- Always wrap non-variable text and units in \\text{...} (e.g. $10\\text{ kg}$, $9.8\\text{ m/s}^2$).`;
       }
 
       let generated: string | undefined;
