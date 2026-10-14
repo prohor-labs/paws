@@ -422,7 +422,7 @@ MATHJAX & LATEX FORMATTING RULES:
       let generated: string | undefined;
 
       if (env.groqApiKey) {
-        const groqModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+        const groqModels = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b'];
         for (const gModel of groqModels) {
           try {
             const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {

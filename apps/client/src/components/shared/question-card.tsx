@@ -301,7 +301,6 @@ function QuestionExplanation({
   const { data: billingStatus } = useBillingStatus();
   const revealMutation = useRevealExplanation();
 
-  const isPro = billingStatus?.subscription?.isPro ?? false;
   const aiCredits = billingStatus?.credits?.aiCredits ?? 0;
 
   const triggerReveal = React.useCallback(() => {
@@ -360,9 +359,7 @@ function QuestionExplanation({
               <span className="text-base font-semibold leading-none">{title}</span>
             </div>
             <p className="mt-1.5 text-xs font-medium text-[#6F7A76] dark:text-emerald-300/90">
-              {isPro
-                ? "আনলিমিটেড এআই ব্যাখ্যা (প্রো প্ল্যান)"
-                : `এআই ক্রেডিট বাকি: ${toBengaliNumber(aiCredits)}`}
+              {`এআই ক্রেডিট বাকি: ${toBengaliNumber(aiCredits)}`}
             </p>
           </div>
           <ChevronDown
@@ -389,8 +386,7 @@ function QuestionExplanation({
                   </div>
                   <h4 className="text-sm font-bold text-foreground">পর্যাপ্ত AI ক্রেডিট নেই</h4>
                   <p className="text-xs text-muted-foreground mt-1 mb-3 max-w-sm">
-                    নতুন AI জেনারেটেড ব্যাখ্যা ও স্টেপ-বাই-স্টেপ সমাধান পেতে ক্রেডিট টপ-আপ বা প্রো প্ল্যানে আপগ্রেড
-                    করুন।
+                    নতুন AI জেনারেটেড ব্যাখ্যা ও স্টেপ-বাই-স্টেপ সমাধান পেতে আরও AI ক্রেডিট যুক্ত করে নাও।
                   </p>
                   <Button
                     size="sm"
@@ -398,7 +394,7 @@ function QuestionExplanation({
                     className="bg-gradient-to-r from-teal-500 to-indigo-600 font-semibold text-xs text-white shadow-sm hover:opacity-95 cursor-pointer"
                   >
                     <Sparkle className="size-3.5 fill-white mr-1.5" />
-                    ক্রেডিট বা প্রো আনলক করুন
+                    আরও AI ক্রেডিট নিন
                   </Button>
                 </div>
               </div>
@@ -419,19 +415,17 @@ function QuestionExplanation({
                     className="text-foreground text-sm leading-relaxed space-y-3 prose-p:my-2"
                   />
                 )}
-                {!isPro && (
-                  <div className="mt-4 pt-3 border-t border-[#DCEBE5] dark:border-[#29423B] flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                    <span className="text-[11px]">দৈনিক আরও দ্রুত প্রস্তুতি ও আনলিমিটেড ব্যাখ্যার জন্য</span>
-                    <button
-                      type="button"
-                      onClick={handleOpenUpgrade}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer bg-transparent border-none p-0"
-                    >
-                      <Sparkle className="size-3 text-primary" />
-                      <span>প্রো আপগ্রেড করুন →</span>
-                    </button>
-                  </div>
-                )}
+                <div className="mt-4 pt-3 border-t border-[#DCEBE5] dark:border-[#29423B] flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                  <span className="text-[11px]">আরও নতুন প্রশ্নের নির্ভুল এআই সমাধান পেতে</span>
+                  <button
+                    type="button"
+                    onClick={handleOpenUpgrade}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer bg-transparent border-none p-0"
+                  >
+                    <Sparkle className="size-3 text-primary" />
+                    <span>আরও AI ক্রেডিট চান? →</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -441,10 +435,6 @@ function QuestionExplanation({
       <UpgradeDialog
         open={isUpgradeOpen}
         onOpenChange={setIsUpgradeOpen}
-        onUpgrade={() => {
-          setIsUpgradeOpen(false);
-          window.location.href = "/checkout";
-        }}
       />
     </>
   );
