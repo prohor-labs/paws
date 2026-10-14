@@ -45,30 +45,25 @@ function normalizeLaTeX(str: string): string {
   if (!str) return "";
   let text = str;
 
-  // 1. Normalize line breaks and convert raw HTML breaks to markdown
   text = text
     .replace(/\r\n/g, "\n")
     .replace(/<p>/gi, "")
     .replace(/<\/p>/gi, "\n\n")
     .replace(/<br\s*\/?>/gi, "\n");
 
-  // 2. Standardize display math delimiters: \[ ... \] -> \n\n$$\n...\n$$\n\n
   text = text.replace(
     /(?:\\\\|\\)\[([\s\S]*?)(?:\\\\|\\)\]/g,
     (_, math) => `\n\n$$\n${math.trim()}\n$$\n\n`,
   );
 
-  // 3. Standardize inline math delimiters: \( ... \) -> $...$
   text = text.replace(
     /(?:\\\\|\\)\(([\s\S]*?)(?:\\\\|\\)\)/g,
     (_, math) => `$${math.trim()}$`,
   );
 
-  // 4. Ensure display math $$ is placed on dedicated lines for Remark
-  text = text.replace(/([^\n])\$\$/g, "$1\n\n$$");
-  text = text.replace(/\$\$([^\n])/g, "$$\n\n$1");
+  text = text.replace(/([^\n])\$\$/g, (_, c) => c + "\n\n$$");
+  text = text.replace(/\$\$([^\n])/g, (_, c) => "$$\n\n" + c);
 
-  // 5. Fix double-escaped backslashes inside math blocks ($...$ or $$...$$)
   text = text.replace(/(\$\$[\s\S]*?\$\$|\$[^$\n]+\$)/g, (match) => {
     return match.replace(/\\\\([a-zA-Z]+)/g, "\\$1");
   });
