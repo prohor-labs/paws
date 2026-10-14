@@ -303,8 +303,14 @@ function QuestionExplanation({
 
   const aiCredits = billingStatus?.credits?.aiCredits ?? 0;
 
+  const hasValidInitial = Boolean(
+    initialExplanation &&
+      initialExplanation.trim() !== "" &&
+      !(initialExplanation.trim().startsWith("[") && initialExplanation.trim().endsWith("]")),
+  );
+
   const triggerReveal = React.useCallback(() => {
-    if (requestedRef.current || !questionId) return;
+    if (requestedRef.current || !questionId || hasValidInitial) return;
     requestedRef.current = true;
 
     revealMutation
@@ -323,13 +329,13 @@ function QuestionExplanation({
           setIsLocked(true);
         }
       });
-  }, [questionId, revealMutation]);
+  }, [hasValidInitial, questionId, revealMutation]);
 
   React.useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !hasValidInitial) {
       triggerReveal();
     }
-  }, [isOpen, triggerReveal]);
+  }, [hasValidInitial, isOpen, triggerReveal]);
 
   const handleToggle = () => {
     const nextState = !isOpen;
